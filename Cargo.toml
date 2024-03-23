@@ -1,0 +1,17 @@
+[package]
+name = "graph1"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+minifb = "0.25.0"
+
+
+
+[profile.release]
+debug = false
+#opt-level = 'z' # or 's' for size optimization with a balance between size and speed
+opt-level = 's' # or 's' for size optimization with a balance between size and speed
+lto=true
