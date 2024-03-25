@@ -10,6 +10,9 @@ fn get_average(data: &Vec<u128>) -> u128 {
     average / data.len() as u128
 }
 
+/// Calculates and prints some statistics regarding execution time of a function
+/// The statistics is calculated on the 40% of the fastest execution times from the provided vector
+/// As the slowest 60% are considered to be less likely to happen
 pub fn make_stats(title: &String, data: &Vec<Duration>, show_extras: bool) {
     let mut micros: Vec<u128> = data.iter().map(|x| x.as_micros()).collect();
     micros.sort_unstable();

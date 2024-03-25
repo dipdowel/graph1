@@ -1,11 +1,12 @@
-use minifb::{CursorStyle, Key, Window, WindowOptions};
+use minifb::{CursorStyle, Key, KeyRepeat, Window, WindowOptions};
 
 mod tools;
-use crate::tools::draw::{GridOptions, RectOptions};
-use tools::draw;
-use std::time::{Duration, Instant};
-use std::collections::HashMap;
 use crate::tools::debug;
+use crate::tools::draw::{GridOptions, RectOptions};
+use std::collections::HashMap;
+use std::fmt::Debug;
+use std::time::{Duration, Instant};
+use tools::draw;
 
 const MONITOR_WIDTH: u32 = 3440;
 const MONITOR_HEIGHT: u32 = 1440;
@@ -13,10 +14,16 @@ const MONITOR_HEIGHT: u32 = 1440;
 const WIN_WIDTH: u32 = 640;
 const WIN_HEIGHT: u32 = 480;
 
-const WIN_X: u32 = MONITOR_WIDTH / 2 - WIN_WIDTH   / 2;
+const WIN_X: u32 = MONITOR_WIDTH / 2 - WIN_WIDTH / 2;
 const WIN_Y: u32 = MONITOR_HEIGHT / 2 - WIN_HEIGHT / 2;
 
 const WIN_NAME_PREFIX: &str = "ESC to exit";
+
+/// How many full-screen pages are there in the screen buffer
+const NUM_OF_PAGES: usize = 4;
+const DEFAULT_BG_COLOR: u32 = 0x00_00_22_22;
+
+const PIXEL_PER_PAGE: usize = (WIN_WIDTH * WIN_HEIGHT) as usize;
 
 fn main() {
     #![allow(unused)]
@@ -30,13 +37,9 @@ fn main() {
         panic!("{}", e);
     });
 
-    let mut buffer: Vec<u32> = vec![0x00_00_00_00; (WIN_WIDTH * WIN_HEIGHT) as usize];
-
-    // buffer[20] = 0x00_ff_ff_ff;
-    // buffer[21] = 0x00_ff_ff_ff;
-    // buffer[22] = 0x00_ff_ff_ff;
-    // buffer[23] = 0x00_ff_ff_ff;
-    // buffer[24] = 0x00_ff_ff_ff;
+    // Let's reserve enough memory for 4 screens!
+    let mut buffer: Vec<u32> =
+        vec![DEFAULT_BG_COLOR; NUM_OF_PAGES * (WIN_WIDTH * WIN_HEIGHT) as usize];
 
     // Limit to max ~60 fps update rate
     window.limit_update_rate(Some(std::time::Duration::from_micros(16600)));
@@ -48,77 +51,111 @@ fn main() {
     let mut frame_count: u32 = 0;
     let mut window_title: String;
 
-
     let mut stats_map: HashMap<String, Vec<Duration>> = HashMap::new();
     stats_map.insert("Rect".to_string(), Vec::new());
     stats_map.insert("Grid".to_string(), Vec::new());
     stats_map.insert("Background".to_string(), Vec::new());
 
+    let mut x: i32 = 0;
+    let mut velocity_x: i32 = 1;
 
-
-
-
-    let mut x:i32 = 0;
-    let mut velocity_x:i32 = 1;
-
-    let rect_width = 160;
-    let rect_height = 160;
+    let rect_width = 100;
+    let rect_height = 100;
 
     let max_rect_x = WIN_WIDTH - rect_width;
     let max_rect_y = WIN_HEIGHT - rect_height;
     let shift = 7;
+
+    let active_page: usize = 0;
+
+    let mut is_key_down: bool = false;
+    let mut is_key_up: bool = false;
+
+    let mut key_pressed: &str = " ";
+
+    let mut screen_offset: u32 = 2 * WIN_HEIGHT as u32;
+
+    let mut pressed_key: Option<Key> = None;
+
+    let max_y = WIN_HEIGHT * NUM_OF_PAGES as u32;
+
     while window.is_open() && !window.is_key_down(Key::Escape) {
+        window
+            .get_keys_pressed(KeyRepeat::No)
+            .iter()
+            .for_each(|key| match key {
+                Key::Up => {
+                    key_pressed = "[ ↑ ]";
+                    // test_count += 1;
+                    pressed_key = Some(*key);
+                }
+                Key::Down => {
+                    key_pressed = "[ ↓ ]";
+                    // test_count -= 1;
+                    pressed_key = Some(*key);
+                }
+                _ => {
+                    key_pressed = "[  ]";
+                    pressed_key = None;
+                }
+            });
+        window.get_keys_released().iter().for_each(|key| match key {
+            _ => {
+                key_pressed = "[  ]";
+                pressed_key = None;
+            }
+        });
 
-        window_title = format!("{} :: frame: {}", WIN_NAME_PREFIX, frame_count);
-        window.set_title(&window_title.as_str());
+        window_title = format!(
+            "{} :: {} :: {} :: pressed_key: {:?}",
+            WIN_NAME_PREFIX, key_pressed, screen_offset, pressed_key
 
-
-        let benchmark_start = Instant::now();
-        for (i, pixel) in buffer.iter_mut().enumerate() {
-            let x = i % WIN_WIDTH as usize;
-            let y = i / WIN_WIDTH as usize;
-            *pixel = ((x as u32) << shift) | ((y as u32) << shift); // Create a gradient
-        }
-        // buffer.fill(0x00_00_11_22);
-        let benchmark_duration = benchmark_start.elapsed();
-        stats_map.get_mut("Background").unwrap().push(benchmark_duration);
-
-
-
-        // for benchmarking function execution time.
-        let benchmark_start = Instant::now();
-        draw::square_grid(&GridOptions {
-            s: 20,
-            x: 0,
-            y: 160,
-            w: 32 ,
-            h: 10,
-            color: 0x00_77_77_99,
-            // color: 0x00_00_00_00,
-            win_h: WIN_HEIGHT as usize,
-            win_w: WIN_WIDTH as usize,
-
-        }, &mut buffer);
-
-        let benchmark_duration = benchmark_start.elapsed();
-        stats_map.get_mut("Grid").unwrap().push(benchmark_duration);
-
-        let benchmark_start = Instant::now();
-        draw::rect(
-            &RectOptions {
-                x: x as u32,
-                y: 300,
-                w: rect_width,
-                h: rect_height,
-                color: 0x00_ff_ff_ff,
-                win_w: WIN_WIDTH,
-                win_h: WIN_HEIGHT,
-            },
-            &mut buffer,
         );
 
-        let benchmark_duration = benchmark_start.elapsed();
-        stats_map.get_mut("Rect").unwrap().push(benchmark_duration);
+
+
+        window.set_title(&window_title.as_str());
+        buffer.fill(DEFAULT_BG_COLOR);
+
+
+        if let Some(Key::Up) = pressed_key {
+            if frame_count % 1 == 0 && screen_offset < max_y {
+            screen_offset -= 1;
+            }
+        }
+
+        if let Some(Key::Down) = pressed_key {
+            if frame_count % 1 == 0 && screen_offset > 1 {
+                screen_offset += 1;
+            }
+        }
+
+
+
+        let mut rect_index = 0;
+        let loop_till = WIN_HEIGHT * (NUM_OF_PAGES as u32) - rect_height * 2;
+        let mut rect_color = 0x00_ff_ff_ff;
+        loop {
+            draw::rect(
+                &RectOptions {
+                    // x: x as u32,
+                    x: 100,
+                    y: rect_index,
+                    w: rect_width,
+                    h: rect_height,
+                    color: rect_color,
+                    win_w: WIN_WIDTH,
+                    win_h: WIN_HEIGHT,
+                },
+                &mut buffer,
+            );
+
+            if rect_index >= loop_till {
+                break;
+            }
+            rect_index += rect_height;
+            rect_color += 0x00_11_11_11;
+        }
 
         x += velocity_x;
 
@@ -127,16 +164,54 @@ fn main() {
         }
 
         frame_count += 1;
+
+        // PIXEL_PER_PAGE
+        let screen_start = (screen_offset * WIN_WIDTH) as usize;
+        let buf_view = &buffer[screen_start..screen_start+PIXEL_PER_PAGE];
+
         // We unwrap here as we want this code to exit if it fails. Real applications may want to handle this in a different way
         window
-            .update_with_buffer(&buffer, WIN_WIDTH as usize, WIN_HEIGHT as usize)
+            .update_with_buffer(buf_view, WIN_WIDTH as usize, WIN_HEIGHT as usize)
             .unwrap();
     }
 
-
-    debug::make_stats( &"Grid".to_string(), stats_map.get("Grid").unwrap(), false);
-    debug::make_stats( &"Rect".to_string(), stats_map.get("Rect").unwrap(), false);
-    debug::make_stats( &"Background".to_string(), stats_map.get("Background").unwrap(),false);
-
-
+    // debug::make_stats(&"Grid".to_string(), stats_map.get("Grid").unwrap(), false);
+    // debug::make_stats(&"Rect".to_string(), stats_map.get("Rect").unwrap(), false);
+    // debug::make_stats(
+    //     &"Background".to_string(),
+    //     stats_map.get("Background").unwrap(),
+    //     false,
+    // );
 }
+
+/*
+       // for benchmarking function execution time.
+       let benchmark_start = Instant::now();
+       draw::square_grid(
+           &GridOptions {
+               s: 20,
+               x: 0,
+               y: 160,
+               w: 32,
+               h: 10,
+               color: 0x00_77_77_99,
+               // color: 0x00_00_00_00,
+               win_h: WIN_HEIGHT as usize,
+               win_w: WIN_WIDTH as usize,
+           },
+           &mut buffer,
+       );
+
+       let benchmark_duration = benchmark_start.elapsed();
+       stats_map.get_mut("Grid").unwrap().push(benchmark_duration);
+
+       stats_map
+           .get_mut("Background")
+           .unwrap()
+           .push(benchmark_duration);
+
+       let benchmark_start = Instant::now();
+       let benchmark_duration = benchmark_start.elapsed();
+       stats_map.get_mut("Rect").unwrap().push(benchmark_duration);
+
+*/
