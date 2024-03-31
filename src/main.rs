@@ -17,13 +17,17 @@ const WIN_HEIGHT: u32 = 480;
 const WIN_X: u32 = MONITOR_WIDTH / 2 - WIN_WIDTH / 2;
 const WIN_Y: u32 = MONITOR_HEIGHT / 2 - WIN_HEIGHT / 2;
 
-const WIN_NAME_PREFIX: &str = "ESC to exit";
+const WIN_NAME_PREFIX: &str = "GF ";
+const DEV_WIN_NAME_PREFIX: &str = "[dev] ";
+
+const DEFAULT_BG_COLOR: u32 = 0x00_33_33_33;
+
+const PIXEL_PER_PAGE: usize = (WIN_WIDTH * WIN_HEIGHT) as usize;
+
 
 /// How many full-screen pages are there in the screen buffer
 const NUM_OF_PAGES: usize = 4;
-const DEFAULT_BG_COLOR: u32 = 0x00_00_22_22;
-
-const PIXEL_PER_PAGE: usize = (WIN_WIDTH * WIN_HEIGHT) as usize;
+const TOTAL_BUFFER_SIZE: usize = NUM_OF_PAGES * (WIN_WIDTH * WIN_HEIGHT) as usize;
 
 fn main() {
     #![allow(unused)]
@@ -37,19 +41,32 @@ fn main() {
         panic!("{}", e);
     });
 
+    let mut dev_window = Window::new(
+        DEV_WIN_NAME_PREFIX,
+        WIN_WIDTH as usize,
+        WIN_HEIGHT as usize,
+        WindowOptions::default(),
+    )
+    .unwrap_or_else(|e| {
+        panic!("{}", e);
+    });
+
     // Let's reserve enough memory for 4 screens!
-    let mut buffer: Vec<u32> =
-        vec![DEFAULT_BG_COLOR; NUM_OF_PAGES * (WIN_WIDTH * WIN_HEIGHT) as usize];
+    let mut buffer: Vec<u32> = vec![DEFAULT_BG_COLOR; TOTAL_BUFFER_SIZE];
 
     // Limit to max ~60 fps update rate
     window.limit_update_rate(Some(std::time::Duration::from_micros(16600)));
+    dev_window.limit_update_rate(Some(std::time::Duration::from_micros(16600)));
     // window.limit_update_rate(Some(std::time::Duration::from_micros(138800)));
 
     window.set_position((WIN_X - 400) as isize, WIN_Y as isize);
+    dev_window.set_position((WIN_X - 400 - WIN_WIDTH) as isize, WIN_Y as isize);
+
     window.set_cursor_style(CursorStyle::Crosshair);
 
     let mut frame_count: u32 = 0;
     let mut window_title: String;
+    let mut dev_window_title: String;
 
     let mut stats_map: HashMap<String, Vec<Duration>> = HashMap::new();
     stats_map.insert("Rect".to_string(), Vec::new());
@@ -72,14 +89,37 @@ fn main() {
     let mut is_key_up: bool = false;
 
     let mut key_pressed: &str = " ";
-
     let mut screen_offset: u32 = 2 * WIN_HEIGHT as u32;
-
     let mut pressed_key: Option<Key> = None;
-
     let max_y = WIN_HEIGHT * NUM_OF_PAGES as u32;
 
-    while window.is_open() && !window.is_key_down(Key::Escape) {
+    /***[ DEV WINDOW ]************************************************************************/
+
+    draw::rect(
+        &RectOptions {
+            // x: x as u32,
+            x: 100,
+            y: 100,
+            w: rect_width,
+            h: rect_height,
+            color: 0x00_dd_00_00,
+            win_w: WIN_WIDTH,
+            win_h: WIN_HEIGHT,
+        },
+        &mut buffer,
+    );
+
+    // PIXEL_PER_PAGE
+    let screen_start = (0) as usize;
+    let buf_view = &buffer[screen_start..screen_start + PIXEL_PER_PAGE];
+
+    // We unwrap here as we want this code to exit if it fails. Real applications may want to handle this in a different way
+    dev_window
+        .update_with_buffer(buf_view, WIN_WIDTH as usize, WIN_HEIGHT as usize)
+        .unwrap();
+    /*****************************************************************************************/
+
+    while window.is_open() && dev_window.is_open() && !window.is_key_down(Key::Escape) {
         window
             .get_keys_pressed(KeyRepeat::No)
             .iter()
@@ -107,20 +147,17 @@ fn main() {
         });
 
         window_title = format!(
-            "{} :: {} :: {} :: pressed_key: {:?}",
-            WIN_NAME_PREFIX, key_pressed, screen_offset, pressed_key
-
+            "{} :: {} :: {} :: pressed_key: {:?} FR: {}",
+            WIN_NAME_PREFIX, key_pressed, screen_offset, pressed_key, frame_count
         );
 
-
-
         window.set_title(&window_title.as_str());
-        buffer.fill(DEFAULT_BG_COLOR);
 
+        buffer.fill(DEFAULT_BG_COLOR);
 
         if let Some(Key::Up) = pressed_key {
             if frame_count % 1 == 0 && screen_offset < max_y {
-            screen_offset -= 1;
+                screen_offset -= 1;
             }
         }
 
@@ -129,8 +166,6 @@ fn main() {
                 screen_offset += 1;
             }
         }
-
-
 
         let mut rect_index = 0;
         let loop_till = WIN_HEIGHT * (NUM_OF_PAGES as u32) - rect_height * 2;
@@ -167,7 +202,7 @@ fn main() {
 
         // PIXEL_PER_PAGE
         let screen_start = (screen_offset * WIN_WIDTH) as usize;
-        let buf_view = &buffer[screen_start..screen_start+PIXEL_PER_PAGE];
+        let buf_view = &buffer[screen_start..screen_start + PIXEL_PER_PAGE];
 
         // We unwrap here as we want this code to exit if it fails. Real applications may want to handle this in a different way
         window
