@@ -13,36 +13,43 @@ use tools::draw;
 mod constants;
 use constants::*;
 
+fn make_window() -> (Window, Window) {
+    (
+        // first element in the returned tuple is the main window
+        Window::new(
+            WIN_NAME_PREFIX,
+            WIN_WIDTH as usize,
+            WIN_HEIGHT as usize,
+            WindowOptions::default(),
+        )
+        .unwrap_or_else(|e| {
+            panic!("{}", e);
+        }),
+        // second element in the returned tuple is the dev window
+        Window::new(
+            DEV_WIN_NAME_PREFIX,
+            WIN_WIDTH as usize,
+            WIN_HEIGHT as usize,
+            WindowOptions::default(),
+        )
+        .unwrap_or_else(|e| {
+            panic!("{}", e);
+        }),
+    )
+}
 
 fn main() {
     #![allow(unused)]
-    let mut window = Window::new(
-        WIN_NAME_PREFIX,
-        WIN_WIDTH as usize,
-        WIN_HEIGHT as usize,
-        WindowOptions::default(),
-    )
-    .unwrap_or_else(|e| {
-        panic!("{}", e);
-    });
 
-    let mut dev_window = Window::new(
-        DEV_WIN_NAME_PREFIX,
-        WIN_WIDTH as usize,
-        WIN_HEIGHT as usize,
-        WindowOptions::default(),
-    )
-    .unwrap_or_else(|e| {
-        panic!("{}", e);
-    });
+    let (mut window, mut dev_window) = make_window();
 
     // Let's reserve enough memory for 4 screens!
     let mut buffer: Vec<u32> = vec![DEFAULT_BG_COLOR; TOTAL_BUFFER_SIZE];
 
     // Limit to max ~60 fps update rate
-    window.limit_update_rate(Some(std::time::Duration::from_micros(16600)));
-    dev_window.limit_update_rate(Some(std::time::Duration::from_micros(16600)));
-    // window.limit_update_rate(Some(std::time::Duration::from_micros(138800)));
+    window.limit_update_rate(Some(Duration::from_micros(16600)));
+    dev_window.limit_update_rate(Some(Duration::from_micros(16600)));
+    // window.limit_update_rate(Some(Duration::from_micros(138800)));
 
     window.set_position((WIN_X - 400) as isize, WIN_Y as isize);
     dev_window.set_position((WIN_X - 400 - WIN_WIDTH) as isize, WIN_Y as isize);
