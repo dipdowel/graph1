@@ -201,3 +201,45 @@ fn main() {
         false,
     );
 }
+
+
+// debug::make_stats(&"Grid".to_string(), stats_map.get("Grid").unwrap(), false);
+// debug::make_stats(&"Rect".to_string(), stats_map.get("Rect").unwrap(), false);
+// debug::make_stats(
+//     &"Background".to_string(),
+//     stats_map.get("Background").unwrap(),
+//     false,
+// );
+
+
+/*
+       // for benchmarking function execution time.
+       let benchmark_start = Instant::now();
+       draw::square_grid(
+           &GridOptions {
+               s: 20,
+               x: 0,
+               y: 160,
+               w: 32,
+               h: 10,
+               color: 0x00_77_77_99,
+               // color: 0x00_00_00_00,
+               win_h: WIN_HEIGHT as usize,
+               win_w: WIN_WIDTH as usize,
+           },
+           &mut buffer,
+       );
+
+       let benchmark_duration = benchmark_start.elapsed();
+       stats_map.get_mut("Grid").unwrap().push(benchmark_duration);
+
+       stats_map
+           .get_mut("Background")
+           .unwrap()
+           .push(benchmark_duration);
+
+       let benchmark_start = Instant::now();
+       let benchmark_duration = benchmark_start.elapsed();
+       stats_map.get_mut("Rect").unwrap().push(benchmark_duration);
+
+*/

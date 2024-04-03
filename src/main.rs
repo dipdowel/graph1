@@ -1,6 +1,7 @@
 use minifb::{CursorStyle, Key, KeyRepeat, Window, WindowOptions};
 
 mod tools;
+
 use crate::tools::debug;
 use crate::tools::draw::{GridOptions, RectOptions};
 use std::collections::HashMap;
@@ -8,26 +9,10 @@ use std::fmt::Debug;
 use std::time::{Duration, Instant};
 use tools::draw;
 
-const MONITOR_WIDTH: u32 = 3440;
-const MONITOR_HEIGHT: u32 = 1440;
+// Make the global constants accessible here
+mod constants;
+use constants::*;
 
-const WIN_WIDTH: u32 = 640;
-const WIN_HEIGHT: u32 = 480;
-
-const WIN_X: u32 = MONITOR_WIDTH / 2 - WIN_WIDTH / 2;
-const WIN_Y: u32 = MONITOR_HEIGHT / 2 - WIN_HEIGHT / 2;
-
-const WIN_NAME_PREFIX: &str = "GF ";
-const DEV_WIN_NAME_PREFIX: &str = "[dev] ";
-
-const DEFAULT_BG_COLOR: u32 = 0x00_33_33_33;
-
-const PIXEL_PER_PAGE: usize = (WIN_WIDTH * WIN_HEIGHT) as usize;
-
-
-/// How many full-screen pages are there in the screen buffer
-const NUM_OF_PAGES: usize = 4;
-const TOTAL_BUFFER_SIZE: usize = NUM_OF_PAGES * (WIN_WIDTH * WIN_HEIGHT) as usize;
 
 fn main() {
     #![allow(unused)]
@@ -119,7 +104,7 @@ fn main() {
         .unwrap();
     /*****************************************************************************************/
 
-    while window.is_open() && dev_window.is_open() && !window.is_key_down(Key::Escape) {
+    while window.is_open() && !window.is_key_down(Key::Escape) {
         window
             .get_keys_pressed(KeyRepeat::No)
             .iter()
@@ -209,44 +194,4 @@ fn main() {
             .update_with_buffer(buf_view, WIN_WIDTH as usize, WIN_HEIGHT as usize)
             .unwrap();
     }
-
-    // debug::make_stats(&"Grid".to_string(), stats_map.get("Grid").unwrap(), false);
-    // debug::make_stats(&"Rect".to_string(), stats_map.get("Rect").unwrap(), false);
-    // debug::make_stats(
-    //     &"Background".to_string(),
-    //     stats_map.get("Background").unwrap(),
-    //     false,
-    // );
 }
-
-/*
-       // for benchmarking function execution time.
-       let benchmark_start = Instant::now();
-       draw::square_grid(
-           &GridOptions {
-               s: 20,
-               x: 0,
-               y: 160,
-               w: 32,
-               h: 10,
-               color: 0x00_77_77_99,
-               // color: 0x00_00_00_00,
-               win_h: WIN_HEIGHT as usize,
-               win_w: WIN_WIDTH as usize,
-           },
-           &mut buffer,
-       );
-
-       let benchmark_duration = benchmark_start.elapsed();
-       stats_map.get_mut("Grid").unwrap().push(benchmark_duration);
-
-       stats_map
-           .get_mut("Background")
-           .unwrap()
-           .push(benchmark_duration);
-
-       let benchmark_start = Instant::now();
-       let benchmark_duration = benchmark_start.elapsed();
-       stats_map.get_mut("Rect").unwrap().push(benchmark_duration);
-
-*/
