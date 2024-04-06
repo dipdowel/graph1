@@ -1,47 +1,26 @@
-use minifb::{CursorStyle, Key, KeyRepeat, Window, WindowOptions};
+use std::collections::HashMap;
+use std::fmt::Debug;
+use std::time::Duration;
+
+use minifb::{CursorStyle, Key, KeyRepeat};
+
+use constants::*;
+use tools::draw;
+
+use crate::init::init_window::*;
+use crate::tools::draw::RectOptions;
 
 mod tools;
 
-use crate::tools::debug;
-use crate::tools::draw::{GridOptions, RectOptions};
-use std::collections::HashMap;
-use std::fmt::Debug;
-use std::time::{Duration, Instant};
-use tools::draw;
-
+mod init;
 // Make the global constants accessible here
 mod constants;
-use constants::*;
-
-fn make_window() -> (Window, Window) {
-    (
-        // first element in the returned tuple is the main window
-        Window::new(
-            WIN_NAME_PREFIX,
-            WIN_WIDTH as usize,
-            WIN_HEIGHT as usize,
-            WindowOptions::default(),
-        )
-        .unwrap_or_else(|e| {
-            panic!("{}", e);
-        }),
-        // second element in the returned tuple is the dev window
-        Window::new(
-            DEV_WIN_NAME_PREFIX,
-            WIN_WIDTH as usize,
-            WIN_HEIGHT as usize,
-            WindowOptions::default(),
-        )
-        .unwrap_or_else(|e| {
-            panic!("{}", e);
-        }),
-    )
-}
 
 fn main() {
     #![allow(unused)]
 
-    let (mut window, mut dev_window) = make_window();
+    let (mut window, mut dev_window) = init_window(true);
+    let mut dev_window = dev_window.unwrap();
 
     // Let's reserve enough memory for 4 screens!
     let mut buffer: Vec<u32> = vec![DEFAULT_BG_COLOR; TOTAL_BUFFER_SIZE];
