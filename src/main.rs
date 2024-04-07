@@ -5,12 +5,17 @@ use std::time::Duration;
 use minifb::{CursorStyle, Key, KeyRepeat};
 
 use constants::*;
+use crate::draw::line;
+
 
 
 use crate::init::init_window::*;
 
 use crate::input::handle_keyboard;
+use crate::tools::fill::fill;
 use crate::tools::init_screen_buffer::init_screen_buffer;
+use crate::tools::primitives::Pixel;
+
 
 // use crate::tools::draw::RectOptions;
 // use tools::draw;
@@ -20,6 +25,7 @@ mod init;
 // Make the global constants accessible here
 mod constants;
 mod input;
+mod draw;
 
 fn main() {
     #![allow(unused)]
@@ -35,7 +41,7 @@ fn main() {
 
     // PIXEL_PER_PAGE
     let screen_start: usize = 0;
-    let mut buf_view = &buffer[0..=PIXEL_PER_PAGE];
+    let mut buf_view = &mut buffer[0..=PIXEL_PER_PAGE];
     //
 
 
@@ -53,7 +59,17 @@ fn main() {
     // Main animation loop
     while window.is_open() && !window.is_key_down(Key::Escape) {
 
-        init_screen_buffer(&mut buffer);
+        // init_screen_buffer(&mut buf_view);
+        fill(buf_view, 0x00_00_1E_00);
+
+        line::horizontal(&mut buf_view, &Pixel { x: 10, y: 10, color: 0x00_00_dd_00 }, frame_count%640);
+        line::vertical(&mut buf_view, &Pixel { x: 10, y: 10, color: 0x00_00_dd_00 }, frame_count%480);
+
+        draw::circle(&mut buf_view, &Pixel { x: 320, y: 320, color: 0x00_00_dd_00 }, frame_count%42, 4);
+        draw::circle(&mut buf_view, &Pixel { x: 380, y: 301, color: 0x00_00_dd_00 }, frame_count%65, 8);
+        draw::circle(&mut buf_view, &Pixel { x: 200, y: 201, color: 0x00_00_dd_00 }, frame_count%173, 2);
+
+        draw::circle(&mut buf_view, &Pixel { x: 320, y: 240, color: 0x00_00_dd_00 }, frame_count%(WIN_HEIGHT/2), 4);
 
         //---------------------------
         // Read and handle keyboard
@@ -73,7 +89,7 @@ fn main() {
 
         // PIXEL_PER_PAGE
         // let screen_start = (screen_offset * WIN_WIDTH) as usize;
-        let buf_view = &buffer[screen_start..screen_start + PIXEL_PER_PAGE];
+        // let buf_view = &buffer[screen_start..screen_start + PIXEL_PER_PAGE];
 
         // We unwrap here as we want this code to exit if it fails. Real applications may want to handle this in a different way
         window
