@@ -1,4 +1,4 @@
-use minifb::{CursorStyle, Window, WindowOptions};
+use minifb::{CursorStyle, ScaleMode, Window, WindowOptions};
 use std::fmt::Debug;
 use std::time::Duration;
 
@@ -24,7 +24,22 @@ pub fn init_window(include_debug: bool) -> (Window, Option<Window>) {
         WIN_NAME_PREFIX,
         WIN_WIDTH as usize,
         WIN_HEIGHT as usize,
-        WindowOptions::default(),
+         WindowOptions::default(),
+        /*
+        WindowOptions {
+            borderless: true, // Set to true for a borderless window
+            title: true,
+            resize: true,
+            scale: minifb::Scale::X1,
+            // aspect_ratio: minifb::AspectRatio::Free,
+            topmost: true,
+            transparency: true,
+            none: false,
+            // fullscreen: true, // Enable full-screen mode
+            // scale_mode: ScaleMode::AspectRatioStretch,
+            scale_mode: ScaleMode::Center,
+        },
+        */
     )
     .unwrap_or_else(|e| {
         panic!("{}", e);

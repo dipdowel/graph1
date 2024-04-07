@@ -3,6 +3,7 @@ use std::fmt::Debug;
 use std::time::Duration;
 
 use minifb::{CursorStyle, Key, KeyRepeat};
+// use rand::Rng;
 
 use constants::*;
 use crate::draw::line;
@@ -56,20 +57,36 @@ fn main() {
     }
 
 
+    let color =  0x00_00_bb_00;
+
     // Main animation loop
     while window.is_open() && !window.is_key_down(Key::Escape) {
+        // let color = rand::thread_rng().gen_range(0x00_22_22_22..0x00_ff_ff_ff); // 0x00_00_88_00;
 
-        // init_screen_buffer(&mut buf_view);
+
         fill(buf_view, 0x00_00_1E_00);
 
-        line::horizontal(&mut buf_view, &Pixel { x: 10, y: 10, color: 0x00_00_dd_00 }, frame_count%640);
-        line::vertical(&mut buf_view, &Pixel { x: 10, y: 10, color: 0x00_00_dd_00 }, frame_count%480);
+        // line::horizontal(&mut buf_view, &Pixel { x: 10, y: 10, color }, frame_count%640);
+        line::vertical(&mut buf_view, &Pixel { x: 10, y: 0, color }, frame_count%480);
+        line::vertical(&mut buf_view, &Pixel { x: 13, y: 0, color }, 2+frame_count%480);
 
-        draw::circle(&mut buf_view, &Pixel { x: 320, y: 320, color: 0x00_00_dd_00 }, frame_count%42, 4);
-        draw::circle(&mut buf_view, &Pixel { x: 380, y: 301, color: 0x00_00_dd_00 }, frame_count%65, 8);
-        draw::circle(&mut buf_view, &Pixel { x: 200, y: 201, color: 0x00_00_dd_00 }, frame_count%173, 2);
 
-        draw::circle(&mut buf_view, &Pixel { x: 320, y: 240, color: 0x00_00_dd_00 }, frame_count%(WIN_HEIGHT/2), 4);
+        line::vertical(&mut buf_view, &Pixel { x: 630, y: 0, color }, frame_count%480);
+        line::vertical(&mut buf_view, &Pixel { x: 627, y: 0, color }, 3+frame_count%480);
+
+        draw::circle(&mut buf_view, &Pixel { x: 320, y: 320, color }, frame_count%42, 4);
+        draw::circle(&mut buf_view, &Pixel { x: 380, y: 301, color }, frame_count%65, 8);
+        draw::circle(&mut buf_view, &Pixel { x: 200, y: 201, color }, frame_count%173, 2);
+
+        draw::circle(&mut buf_view, &Pixel { x: WIN_WIDTH/2, y: WIN_HEIGHT/2, color }, frame_count%173, 4);
+
+        draw::circle(&mut buf_view, &Pixel { x: 0, y: 0, color }, frame_count%(WIN_WIDTH*2), 8);
+        draw::circle(&mut buf_view, &Pixel { x: WIN_WIDTH, y: 4, color }, frame_count%(WIN_WIDTH*2), 16);
+
+
+
+        // line::horizontal(buf_view, &Pixel{x:298, y:0 , color:0x00ffffff}, 44);
+
 
         //---------------------------
         // Read and handle keyboard
