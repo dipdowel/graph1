@@ -5,7 +5,7 @@ use std::f32::consts::PI;
 use std::mem::size_of;
 
 #[rustfmt::skip]
-static edges: [[usize; 2]; 12] = [
+static EDGES: [[usize; 2]; 12] = [
 [0, 1], [1, 2], [2, 3], [3, 0], // back face
 [4, 5], [5, 6], [6, 7], [7, 4], // front face
 [0, 4], [1, 5], [2, 6], [3, 7] // connecting sides
@@ -14,11 +14,11 @@ static edges: [[usize; 2]; 12] = [
 pub struct Cube {
     #[rustfmt::skip]
     /// X-rotation speed (RPS)
-    SPEED_X: f32,
+    speed_x: f32,
     /// Y-rotation speed (RPS)
-    SPEED_Y: f32,
+    speed_y: f32,
     /// Z-rotation speed (RPS)
-    SPEED_Z: f32,
+    speed_z: f32,
     /// X-center (the location of the cube on the X axis)
     cx: f32,
     /// Y-center (the location of the cube on the Y axis)
@@ -44,9 +44,9 @@ pub struct Cube {
 impl Cube {
     pub fn new(speed: Point3DF32, center: Point3DF32, size: f32, color: u32) -> Cube {
         let mut cube = Cube {
-            SPEED_X: speed.x,
-            SPEED_Y: speed.y,
-            SPEED_Z: speed.z,
+            speed_x: speed.x,
+            speed_y: speed.y,
+            speed_z: speed.z,
 
             cx: center.x,
             cy: center.y,
@@ -67,6 +67,11 @@ impl Cube {
 
         let Cube { cx, cy, cz, .. } = cube;
 
+        // TODO: If we want to change the size during rendering (in runtime),
+        // TODO: `vertices` will have to be re-calculated.
+        // TODO: Should the code below go into a separate function
+        // TODO: that can be called also from `render_frame()`?
+
         #[rustfmt::skip]
             let  vertices: Vec<Point3DF32> = vec![
             Point3DF32 { x: cx - size, y: cy - size, z: cz - size },
@@ -77,7 +82,6 @@ impl Cube {
             Point3DF32 { x: cx + size, y: cy - size, z: cz + size },
             Point3DF32 { x: cx + size, y: cy + size, z: cz + size },
             Point3DF32 { x: cx - size, y: cy + size, z: cz + size },
-
         ];
 
         cube.vertices = vertices;
@@ -98,7 +102,7 @@ impl Cube {
         self.time_last = self.time_now;
 
         // rotate the cube along the Z axis
-        let angle = self.time_delta * 0.001 * self.SPEED_Z * PI * 2_f32;
+        let angle = self.time_delta * 0.001 * self.speed_z * PI * 2_f32;
         let mut cx = self.cx; /* + oscillator; */
         let mut cy = self.cy; /* + oscillator; */
         let mut cz = self.cz; /*+ oscillator as f32; */
@@ -115,7 +119,7 @@ impl Cube {
         }
 
 
-        for mut v in &mut self.vertices {
+        for v in &mut self.vertices {
             let dx: f32 = v.x - cx;
             let dy = v.y - cy;
             let x = dx * f32::cos(angle) - dy * f32::sin(angle);
@@ -125,8 +129,8 @@ impl Cube {
         }
 
         // rotate the cube along the X axis
-        let angle = self.time_delta * 0.001 * self.SPEED_X * PI * 2_f32;
-        for mut v in &mut self.vertices {
+        let angle = self.time_delta * 0.001 * self.speed_x * PI * 2_f32;
+        for v in &mut self.vertices {
             let dy = v.y - cy;
             let dz = v.z - cz;
             let y = dy * f32::cos(angle) - dz * f32::sin(angle);
@@ -136,8 +140,8 @@ impl Cube {
         }
 
         // rotate the cube along the Y axis
-        let angle = self.time_delta * 0.001 * self.SPEED_Y * PI * 2_f32;
-        for mut v in &mut self.vertices {
+        let angle = self.time_delta * 0.001 * self.speed_y * PI * 2_f32;
+        for v in &mut self.vertices {
             let dx = v.x - cx;
             let dz = v.z - cz;
             let x = dz * f32::sin(angle) + dx * f32::cos(angle);
@@ -147,7 +151,7 @@ impl Cube {
         }
 
         // draw each edge
-        for edge in edges {
+        for edge in EDGES {
             self.cube_pixel.x = self.vertices[edge[0]].x as u32;
             self.cube_pixel.y = self.vertices[edge[0]].y as u32;
             self.cube_point.x = self.vertices[edge[1]].x as u32;

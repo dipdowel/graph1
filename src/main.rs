@@ -56,7 +56,7 @@ fn main() {
         _ => (),
     }
 
-    let color = 0x00_00_bb_00;
+    let color = 0x00_33_33_99;
 
     let mut points: Vec<Point> = vec![];
     let mut i = 0;
@@ -79,50 +79,8 @@ fn main() {
     // THE CUBE static
     //----------------------------------------------------------------------------------------------
 
-    const SPEED_X: f32 = 3.0; // rps
-    const SPEED_Y: f32 = 12.0; // rps
-    const SPEED_Z: f32 = 3.0; // rps
 
-    let cx: f32 = WIN_WIDTH as f32 / 2_f32 + 290.0;
-    let cy = WIN_HEIGHT as f32 / 2_f32 - 180_f32;
-    // let cy = WIN_HEIGHT as f32 / 2_f32 ;
-    let cz = 0_f32;
-    let size = WIN_HEIGHT as f32 / 24_f32;
 
-    #[rustfmt::skip]
-    let mut vertices: Vec<Point3DF32> = vec![
-        Point3DF32 { x: cx - size, y: cy - size, z: cz - size },
-        Point3DF32 { x: cx + size, y: cy - size, z: cz - size },
-        Point3DF32 { x: cx + size, y: cy + size, z: cz - size },
-        Point3DF32 { x: cx - size, y: cy + size, z: cz - size },
-        Point3DF32 { x: cx - size, y: cy - size, z: cz + size },
-        Point3DF32 { x: cx + size, y: cy - size, z: cz + size },
-        Point3DF32 { x: cx + size, y: cy + size, z: cz + size },
-        Point3DF32 { x: cx - size, y: cy + size, z: cz + size },
-
-    ];
-    #[rustfmt::skip]
-    let edges = [
-        [0, 1], [1, 2], [2, 3], [3, 0], // back face
-        [4, 5], [5, 6], [6, 7], [7, 4], // front face
-        [0, 4], [1, 5], [2, 6], [3, 7] // connecting sides
-    ];
-
-    // set up the animation loop
-    let mut time_delta: f32;
-    let mut time_last = 0.0_f32;
-    let mut time_now: f32;
-
-    ////////////////////////
-    ////////////////////////
-    // draw each edge
-    let mut cube_pixel = Pixel {
-        x: 0,
-        y: 0,
-        color: 0x00_ff_77_ff,
-    };
-
-    let mut cube_point = Point { x: 0, y: 0 };
 
     ////////////////////////
     ////////////////////////
@@ -134,6 +92,22 @@ fn main() {
     let mut cube = Cube::new(
         Point3DF32 {
             x: 3.1_f32,
+            y: 12.5_f32,
+            z: 3.1_f32,
+        },
+        Point3DF32 {
+            x: 1_f32 + WIN_WIDTH as f32 / 2_f32 + 290_f32,
+            y: 1_f32 + WIN_HEIGHT as f32 / 2_f32 - 180_f32,
+            z: 1_f32 + 0_f32,
+        },
+        (WIN_HEIGHT as f32 / 18_f32),
+        0x00_00_00_ff,
+    );
+
+
+    let mut cube2 = Cube::new(
+        Point3DF32 {
+            x: 3.1_f32,
             y: 12.1_f32,
             z: 3.1_f32,
         },
@@ -142,9 +116,25 @@ fn main() {
             y: WIN_HEIGHT as f32 / 2_f32 - 180_f32,
             z: 0_f32,
         },
-        (WIN_HEIGHT as f32 / 24_f32),
-        0x00_00_00_ff,
+        (WIN_HEIGHT as f32 / 32_f32),
+        0x00_ff_00_ff,
     );
+
+    let mut cube3 = Cube::new(
+        Point3DF32 {
+            x: 3.1_f32,
+            y: 12.1_f32,
+            z: 3.1_f32,
+        },
+        Point3DF32 {
+            x: WIN_WIDTH as f32 / 2_f32 + 290.0,
+            y: WIN_HEIGHT as f32 / 2_f32 - 180_f32,
+            z: 0_f32,
+        },
+        (WIN_HEIGHT as f32 / 10_f32),
+        0x00_ff_ff_ff,
+    );
+
 
 
 
@@ -166,112 +156,17 @@ fn main() {
         // Clear screen
         fill(buf_view, 0x00_04_04_0F);
 
-        // cube(buf_view, frame_count);
-
-        //----------------------------------------------------------------------------------------------
-        // THE CUBE dynamic
-        //----------------------------------------------------------------------------------------------
-
-        time_now = frame_count as f32;
-
-        // calculate the time difference
-        time_delta = time_now - time_last;
-        time_last = time_now;
-
-        // rotate the cube along the Z axis
-        let angle = time_delta * 0.001 * SPEED_Z * PI * 2_f32;
-        let cy = cy + oscillator as f32;
-        let cz = cz + oscillator as f32;
-
-        for mut v in &mut vertices {
-            let dx: f32 = v.x - cx;
-            let dy = v.y - cy;
-            let x = dx * f32::cos(angle) - dy * f32::sin(angle);
-            let y = dx * f32::sin(angle) + dy * f32::cos(angle);
-            v.x = x + cx;
-            v.y = y + cy;
-        }
-
-        // rotate the cube along the X axis
-        let angle = time_delta * 0.001 * SPEED_X * PI * 2_f32;
-        for mut v in &mut vertices {
-            let dy = v.y - cy;
-            let dz = v.z - cz;
-            let y = dy * f32::cos(angle) - dz * f32::sin(angle);
-            let z = dy * f32::sin(angle) + dz * f32::cos(angle);
-            v.y = y + cy;
-            v.z = z + cz;
-        }
-
-        // rotate the cube along the Y axis
-        let angle = time_delta * 0.001 * SPEED_Y * PI * 2_f32;
-        for mut v in &mut vertices {
-            let dx = v.x - cx;
-            let dz = v.z - cz;
-            let x = dz * f32::sin(angle) + dx * f32::cos(angle);
-            let z = dz * f32::cos(angle) - dx * f32::sin(angle);
-            v.x = x + cx;
-            v.z = z + cz;
-        }
-
-        // draw each edge
-        for edge in edges {
-            cube_pixel.x = vertices[edge[0]].x as u32;
-            cube_pixel.y = vertices[edge[0]].y as u32;
-            cube_point.x = vertices[edge[1]].x as u32;
-            cube_point.y = vertices[edge[1]].y as u32;
-            // println!("cube_pixel: {:?}", cube_pixel);
-            // println!("cube_point: {:?}", cube_point);
-
-            line::between_two_points(buf_view, &cube_pixel, &cube_point);
-        }
-
-        //----------------------------------------------------------------------------------------------
-
-        // println!("measure: {}", measure);
-
-        points.shuffle(&mut rng);
-
-        for i in 0..oscillator {
-            line::between_two_points(
-                &mut buf_view,
-                &Pixel {
-                    x: points[i].x,
-                    y: points[i].y,
-                    color: 0x00_44_44_ff,
-                },
-                &points[i + 1],
-            );
-        }
-
-        ////////////////////////////////////////////////////////////////////////////////////////////
-        // DRAW FRAME
-        let mut frame_pixel: Pixel = Pixel {
-            x: WIN_WIDTH / 2 - 75,
-            y: WIN_HEIGHT / 2 - 75,
-            color: 0x00_55_55_66,
-        };
-        line::horizontal(buf_view, &frame_pixel, 150);
-        line::vertical(buf_view, &frame_pixel, 150);
-        frame_pixel.y = WIN_HEIGHT / 2 + 75;
-        line::horizontal(buf_view, &frame_pixel, 150);
-        frame_pixel.x = WIN_WIDTH / 2 + 75;
-        frame_pixel.y = WIN_HEIGHT / 2 - 75;
-        line::vertical(buf_view, &frame_pixel, 150);
 
 
-        cube.render_frame(buf_view, frame_count as f32, Some(&Point3DF32{
-            x: 0_f32,
-            // y: 6_f32*oscillator as f32,
-            y: oscillator as f32,
-            z: oscillator as f32,
-        }));
+
+
+
 
         //TODO: Make the FRAME pulsate using `oscillator` in inverted manner compared to the 'electricity'
 
         // "Quantum Universe" or something along those lines
 
-        /*
+
                 // line::horizontal(&mut buf_view, &Pixel { x: 10, y: 10, color }, frame_count%640);
                         line::vertical(&mut buf_view, &Pixel { x: 10, y: 0, color }, frame_count%480);
                         line::vertical(&mut buf_view, &Pixel { x: 13, y: 0, color }, 2+frame_count%480);
@@ -282,14 +177,13 @@ fn main() {
 
                         draw::circle(&mut buf_view, &Pixel { x: 320, y: 320, color }, frame_count%42, 4);
                         draw::circle(&mut buf_view, &Pixel { x: 380, y: 301, color }, frame_count%65, 8);
-                        draw::circle(&mut buf_view, &Pixel { x: 200, y: 201, color }, frame_count%173, 2);
+                        draw::circle(&mut buf_view, &Pixel { x: 200+(oscillator) as u32, y: 201, color }, frame_count%173, 2);
 
-                        draw::circle(&mut buf_view, &Pixel { x: WIN_WIDTH/2, y: WIN_HEIGHT/2, color }, frame_count%173, 4);
+                        draw::circle(&mut buf_view, &Pixel { x: WIN_WIDTH/2, y: WIN_HEIGHT/2 , color }, frame_count%173, 4);
 
                         draw::circle(&mut buf_view, &Pixel { x: 0, y: 0, color }, frame_count%(WIN_WIDTH*2), 8);
                         draw::circle(&mut buf_view, &Pixel { x: WIN_WIDTH, y: 4, color }, frame_count%(WIN_WIDTH*2), 16);
 
-        */
 
         // line::draw_line(&mut buf_view, &Pixel { x: frame_count%WIN_WIDTH/2, y: frame_count%WIN_HEIGHT,  color:0xff_00_ff_ff }, &Point{ x:200, y:frame_count%WIN_WIDTH/3 });
 
@@ -297,6 +191,58 @@ fn main() {
         // line::draw_line(&mut buf_view, &Pixel { x: 40, y: 40, color }, &Pixel{ x:400, y:400, color });
 
         // line::horizontal(buf_view, &Pixel{x:298, y:0 , color:0x00ffffff}, 44);
+
+        //==================================================================================================
+        //=== ELECTRO-BOX!
+        //==================================================================================================
+                points.shuffle(&mut rng);
+
+                for i in 0..oscillator {
+                    line::between_two_points(
+                        &mut buf_view,
+                        &Pixel {
+                            x: points[i].x,
+                            y: points[i].y,
+                            color: 0x00_44_44_ff,
+                        },
+                        &points[i + 1],
+                    );
+                }
+
+                ////////////////////////////////////////////////////////////////////////////////////////////
+                // DRAW FRAME
+                let mut frame_pixel: Pixel = Pixel {
+                    x: WIN_WIDTH / 2 - 75,
+                    y: WIN_HEIGHT / 2 - 75,
+                    color: 0x00_55_55_66,
+                };
+                line::horizontal(buf_view, &frame_pixel, 150);
+                line::vertical(buf_view, &frame_pixel, 150);
+                frame_pixel.y = WIN_HEIGHT / 2 + 75;
+                line::horizontal(buf_view, &frame_pixel, 150);
+                frame_pixel.x = WIN_WIDTH / 2 + 75;
+                frame_pixel.y = WIN_HEIGHT / 2 - 75;
+                line::vertical(buf_view, &frame_pixel, 150);
+            //==================================================================================================
+
+
+        //----------------------------------------------------------------------------------------------
+        // THE CUBE dynamic
+        //----------------------------------------------------------------------------------------------
+
+        let translation: Point3DF32 = Point3DF32 {
+            x: 0_f32,
+            // y: 6_f32*oscillator as f32,
+            y: oscillator as f32,
+            z: oscillator as f32,
+        };
+
+        cube.render_frame(buf_view, frame_count as f32, Some(&translation));
+        cube2.render_frame(buf_view, frame_count as f32, Some(&translation));
+        cube3.render_frame(buf_view, frame_count as f32, Some(&translation));
+
+        //----------------------------------------------------------------------------------------------
+
 
         //---------------------------
         // Read and handle keyboard

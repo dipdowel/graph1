@@ -9,6 +9,9 @@ use std::time::Duration;
 pub const MONITOR_WIDTH: u32 = 3440;
 pub const MONITOR_HEIGHT: u32 = 1440;
 
+// pub const WIN_WIDTH: u32 = (1024.0*1.4) as u32;
+// pub const WIN_HEIGHT: u32 = (768.0*1.4) as u32;
+
 pub const WIN_WIDTH: u32 = 800;
 pub const WIN_HEIGHT: u32 = 600;
 
@@ -72,10 +75,7 @@ pub fn init_window(include_debug: bool) -> (Window, Option<Window>) {
         if let Some(ref mut dw) = dev_window {
             dw.limit_update_rate(Some(Duration::from_micros(16600)));
 
-            dw.set_position(
-                (WIN_X - 400 - WIN_WIDTH) as isize,
-                WIN_Y as isize,
-            );
+            dw.set_position(0_isize,0_isize);
         }
     }
 
