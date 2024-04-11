@@ -7,6 +7,7 @@ use minifb::{CursorStyle, Key, KeyRepeat};
 use rand::seq::SliceRandom;
 use rand::Rng; // Trait that provides the shuffle method.
 
+use crate::cube::Cube;
 use crate::draw::line;
 use constants::*;
 
@@ -82,7 +83,7 @@ fn main() {
     const SPEED_Y: f32 = 12.0; // rps
     const SPEED_Z: f32 = 3.0; // rps
 
-    let cx: f32 = WIN_WIDTH as f32 / 2_f32 + 290.0 ;
+    let cx: f32 = WIN_WIDTH as f32 / 2_f32 + 290.0;
     let cy = WIN_HEIGHT as f32 / 2_f32 - 180_f32;
     // let cy = WIN_HEIGHT as f32 / 2_f32 ;
     let cz = 0_f32;
@@ -126,6 +127,25 @@ fn main() {
     ////////////////////////
     ////////////////////////
 
+    //////////////////////////////
+    // CUBE 2
+    //////////////////////////////
+
+    let mut cube = Cube::new(
+        Point3DF32 {
+            x: 4_f32,
+            y: 4_f32,
+            z: 4_f32,
+        },
+        Point3DF32 {
+            x: WIN_WIDTH as f32 / 2_f32 + 290.0,
+            y: WIN_HEIGHT as f32 / 2_f32 - 180_f32,
+            z: 0_f32,
+        },
+        (WIN_HEIGHT as f32 / 24_f32),
+        0x00_00_00_ff,
+    );
+
     //----------------------------------------------------------------------------------------------
 
     // Main animation loop
@@ -133,12 +153,12 @@ fn main() {
         ////////////////////////////////////////////////////////////////////////////////////////////
         // SOME BASIC CRUDE OSCILLATION
         let frequency_adjustment_factor = 8.0; // Frequency of the change
-        // let frame_count_mod = frame_count.wrapping_add(1); // Safely handle overflow
+                                               // let frame_count_mod = frame_count.wrapping_add(1); // Safely handle overflow
         let sine_input = (frame_count as f64 / frequency_adjustment_factor).sin();
         // Transform sine output (-1 to 1) to 0 to points_len
         let normalized_value = (sine_input + 1.0) / 2.0; // Now between 0 and 1
         let oscillator = (normalized_value * points_len as f64) as usize;
-        let oscillator= if oscillator == 0 {1} else { oscillator };
+        let oscillator = if oscillator == 0 { 1 } else { oscillator };
 
         ////////////////////////////////////////////////////////////////////////////////////////////
         // Clear screen
@@ -158,8 +178,8 @@ fn main() {
 
         // rotate the cube along the Z axis
         let angle = time_delta * 0.001 * SPEED_Z * PI * 2_f32;
-        let cy = cy + oscillator  as f32;
-        let cz = cz + oscillator as f32 ;
+        let cy = cy + oscillator as f32;
+        let cz = cz + oscillator as f32;
 
         for mut v in &mut vertices {
             let dx: f32 = v.x - cx;
@@ -206,44 +226,43 @@ fn main() {
 
         //----------------------------------------------------------------------------------------------
 
+        // println!("measure: {}", measure);
+
+        points.shuffle(&mut rng);
+
+        for i in 0..oscillator {
+            line::between_two_points(
+                &mut buf_view,
+                &Pixel {
+                    x: points[i].x,
+                    y: points[i].y,
+                    color: 0x00_44_44_ff,
+                },
+                &points[i + 1],
+            );
+        }
+
+        ////////////////////////////////////////////////////////////////////////////////////////////
+        // DRAW FRAME
+        let mut frame_pixel: Pixel = Pixel {
+            x: WIN_WIDTH / 2 - 75,
+            y: WIN_HEIGHT / 2 - 75,
+            color: 0x00_55_55_66,
+        };
+        line::horizontal(buf_view, &frame_pixel, 150);
+        line::vertical(buf_view, &frame_pixel, 150);
+        frame_pixel.y = WIN_HEIGHT / 2 + 75;
+        line::horizontal(buf_view, &frame_pixel, 150);
+        frame_pixel.x = WIN_WIDTH / 2 + 75;
+        frame_pixel.y = WIN_HEIGHT / 2 - 75;
+        line::vertical(buf_view, &frame_pixel, 150);
 
 
+        cube.render_frame(buf_view, frame_count as f32);
 
+        //TODO: Make the FRAME pulsate using `oscillator` in inverted manner compared to the 'electricity'
 
-
-                // println!("measure: {}", measure);
-
-                points.shuffle(&mut rng);
-
-                for i in 0..oscillator {
-                    line::between_two_points(
-                        &mut buf_view,
-                        &Pixel{
-                            x:points[i].x,
-                            y:points[i].y,
-                            color:0x00_44_44_ff
-                        },
-                        &points[i+1],
-                    );
-                }
-
-                ////////////////////////////////////////////////////////////////////////////////////////////
-                // DRAW FRAME
-                let mut frame_pixel:Pixel = Pixel { x: WIN_WIDTH / 2 - 75, y: WIN_HEIGHT / 2 - 75, color:0x00_55_55_66 };
-                line::horizontal(buf_view, &frame_pixel, 150);
-                line::vertical(buf_view, &frame_pixel, 150);
-                frame_pixel.y = WIN_HEIGHT / 2 + 75;
-                line::horizontal(buf_view, &frame_pixel, 150);
-                frame_pixel.x = WIN_WIDTH / 2 + 75;
-                frame_pixel.y = WIN_HEIGHT / 2 - 75;
-                line::vertical(buf_view, &frame_pixel, 150);
-
-                //TODO: Make the FRAME pulsate using `oscillator` in inverted manner compared to the 'electricity'
-
-
-                // "Quantum Universe" or something along those lines
-
-
+        // "Quantum Universe" or something along those lines
 
         /*
                 // line::horizontal(&mut buf_view, &Pixel { x: 10, y: 10, color }, frame_count%640);
