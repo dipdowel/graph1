@@ -60,7 +60,7 @@ fn main() {
 
     let mut points: Vec<Point> = vec![];
     let mut i = 0;
-    let points_len = 250;
+    let points_len = 150;
     let mut rng = rand::thread_rng(); // Creates a random number generator.
 
     // Generate a bunch of points to draw lines with later on
@@ -85,10 +85,26 @@ fn main() {
         fill(buf_view, 0x00_00_1E_00);
 
 
+
+        ////////////////////////////////////////////////////////////////////////////////////////////
+        // SOME BASIC CRUDE OSCILLATION
+        ////////////////////////////////////////////////////////////////////////////////////////////
+        let frequency_adjustment_factor = 15.0; // Frequency of the change
+        // let frame_count_mod = frame_count.wrapping_add(1); // Safely handle overflow
+        let sine_input = (frame_count as f64 / frequency_adjustment_factor).sin();
+        // Transform sine output (-1 to 1) to 0 to points_len
+        let normalized_value = (sine_input + 1.0) / 2.0; // Now between 0 and 1
+        let oscillator = (normalized_value * points_len as f64) as usize;
+        let oscillator= if oscillator == 0 {1} else { oscillator };
+
+        ////////////////////////////////////////////////////////////////////////////////////////////
+
+        // println!("measure: {}", measure);
+
         points.shuffle(&mut rng);
-        let mut i = 0;
-        loop {
-            line::draw_line(
+
+        for i in 0..oscillator {
+            line::between_two_points(
                 &mut buf_view,
                 &Pixel{
                     x:points[i].x,
@@ -97,11 +113,9 @@ fn main() {
                 },
                 &points[i+1],
             );
-            i += 1;
-            if(i == points_len-1){
-                break;
-            }
         }
+
+
 
 /*
         // line::horizontal(&mut buf_view, &Pixel { x: 10, y: 10, color }, frame_count%640);
