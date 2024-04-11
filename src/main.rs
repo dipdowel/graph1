@@ -57,17 +57,16 @@ fn main() {
 
 
 
-
     let mut points: Vec<Point> = vec![];
     let mut i = 0;
-    let points_len = 150;
+    let points_len = 115;
     let mut rng = rand::thread_rng(); // Creates a random number generator.
 
     // Generate a bunch of points to draw lines with later on
     loop {
         points.push(Point {
-            x: rng.gen_range(WIN_WIDTH/2-200..WIN_WIDTH/2+200),
-            y: rng.gen_range(WIN_HEIGHT/2-100..WIN_HEIGHT/2+100),
+            x: rng.gen_range(WIN_WIDTH/2-75..WIN_WIDTH/2+75),
+            y: rng.gen_range(WIN_HEIGHT/2-75..WIN_HEIGHT/2+75),
         });
         i += 1;
         if i == points_len {
@@ -82,14 +81,13 @@ fn main() {
     while window.is_open() && !window.is_key_down(Key::Escape) {
         // let color = rand::thread_rng().gen_range(0x00_22_22_22..0x00_ff_ff_ff); // 0x00_00_88_00;
 
-        fill(buf_view, 0x00_00_1E_00);
-
+        // Clear screen
+        fill(buf_view, 0x00_04_04_0F);
 
 
         ////////////////////////////////////////////////////////////////////////////////////////////
         // SOME BASIC CRUDE OSCILLATION
-        ////////////////////////////////////////////////////////////////////////////////////////////
-        let frequency_adjustment_factor = 15.0; // Frequency of the change
+        let frequency_adjustment_factor = 8.0; // Frequency of the change
         // let frame_count_mod = frame_count.wrapping_add(1); // Safely handle overflow
         let sine_input = (frame_count as f64 / frequency_adjustment_factor).sin();
         // Transform sine output (-1 to 1) to 0 to points_len
@@ -109,33 +107,51 @@ fn main() {
                 &Pixel{
                     x:points[i].x,
                     y:points[i].y,
-                    color:0x00_00_88_00
+                    color:0x00_44_44_ff
                 },
                 &points[i+1],
             );
         }
 
+        ////////////////////////////////////////////////////////////////////////////////////////////
+        // FRAME
+        let mut frame_pixel:Pixel = Pixel { x: WIN_WIDTH / 2 - 75, y: WIN_HEIGHT / 2 - 75, color:0x00_55_55_66 };
+        line::horizontal(buf_view, &frame_pixel, 150);
+        line::vertical(buf_view, &frame_pixel, 150);
+        frame_pixel.y = WIN_HEIGHT / 2 + 75;
+        line::horizontal(buf_view, &frame_pixel, 150);
+        frame_pixel.x = WIN_WIDTH / 2 + 75;
+        frame_pixel.y = WIN_HEIGHT / 2 - 75;
+        line::vertical(buf_view, &frame_pixel, 150);
+
+        //TODO: Make the FRAME pulsate using `oscillator` in inverted manner compared to the 'electricity'
 
 
-/*
-        // line::horizontal(&mut buf_view, &Pixel { x: 10, y: 10, color }, frame_count%640);
-                line::vertical(&mut buf_view, &Pixel { x: 10, y: 0, color }, frame_count%480);
-                line::vertical(&mut buf_view, &Pixel { x: 13, y: 0, color }, 2+frame_count%480);
+        // "Quantum Universe" or something along those lines
 
 
-                line::vertical(&mut buf_view, &Pixel { x: 630, y: 0, color }, frame_count%480);
-                line::vertical(&mut buf_view, &Pixel { x: 627, y: 0, color }, 3+frame_count%480);
 
-                draw::circle(&mut buf_view, &Pixel { x: 320, y: 320, color }, frame_count%42, 4);
-                draw::circle(&mut buf_view, &Pixel { x: 380, y: 301, color }, frame_count%65, 8);
-                draw::circle(&mut buf_view, &Pixel { x: 200, y: 201, color }, frame_count%173, 2);
 
-                draw::circle(&mut buf_view, &Pixel { x: WIN_WIDTH/2, y: WIN_HEIGHT/2, color }, frame_count%173, 4);
 
-                draw::circle(&mut buf_view, &Pixel { x: 0, y: 0, color }, frame_count%(WIN_WIDTH*2), 8);
-                draw::circle(&mut buf_view, &Pixel { x: WIN_WIDTH, y: 4, color }, frame_count%(WIN_WIDTH*2), 16);
+        /*
+                // line::horizontal(&mut buf_view, &Pixel { x: 10, y: 10, color }, frame_count%640);
+                        line::vertical(&mut buf_view, &Pixel { x: 10, y: 0, color }, frame_count%480);
+                        line::vertical(&mut buf_view, &Pixel { x: 13, y: 0, color }, 2+frame_count%480);
 
-*/
+
+                        line::vertical(&mut buf_view, &Pixel { x: 630, y: 0, color }, frame_count%480);
+                        line::vertical(&mut buf_view, &Pixel { x: 627, y: 0, color }, 3+frame_count%480);
+
+                        draw::circle(&mut buf_view, &Pixel { x: 320, y: 320, color }, frame_count%42, 4);
+                        draw::circle(&mut buf_view, &Pixel { x: 380, y: 301, color }, frame_count%65, 8);
+                        draw::circle(&mut buf_view, &Pixel { x: 200, y: 201, color }, frame_count%173, 2);
+
+                        draw::circle(&mut buf_view, &Pixel { x: WIN_WIDTH/2, y: WIN_HEIGHT/2, color }, frame_count%173, 4);
+
+                        draw::circle(&mut buf_view, &Pixel { x: 0, y: 0, color }, frame_count%(WIN_WIDTH*2), 8);
+                        draw::circle(&mut buf_view, &Pixel { x: WIN_WIDTH, y: 4, color }, frame_count%(WIN_WIDTH*2), 16);
+
+        */
 
 
 

@@ -9,8 +9,8 @@ use std::time::Duration;
 pub const MONITOR_WIDTH: u32 = 3440;
 pub const MONITOR_HEIGHT: u32 = 1440;
 
-pub const WIN_WIDTH: u32 = 640;
-pub const WIN_HEIGHT: u32 = 480;
+pub const WIN_WIDTH: u32 = 800;
+pub const WIN_HEIGHT: u32 = 600;
 
 pub const WIN_X: u32 = MONITOR_WIDTH / 2 - WIN_WIDTH / 2;
 pub const WIN_Y: u32 = MONITOR_HEIGHT / 2 - WIN_HEIGHT / 2;
