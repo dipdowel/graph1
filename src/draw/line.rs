@@ -58,7 +58,7 @@ pub fn vertical(buf_view: &mut [u32], start: &Pixel, length: u32) {
     }
 }
 
-pub fn draw_line(buf_view: &mut [u32], start: &Pixel, end: &Point) {
+pub fn between_two_points(buf_view: &mut [u32], start: &Pixel, end: &Point) {
 
     let mut start: Pixel = Pixel {
         x: u32::min(start.x, WIN_WIDTH-1),
@@ -74,22 +74,22 @@ pub fn draw_line(buf_view: &mut [u32], start: &Pixel, end: &Point) {
 /**/
     // Detect vertical lines and draw them using a more optimised approach
     if start.x == end.x && start.y != end.y {
+        let start_pixel: &Pixel = if start.y < end.y { &start } else { &end };
         vertical(
             buf_view,
-            &start,
-            // i32::abs(end.y as i32 - start.y as i32) as u32,
-            u32::max(end.y, start.y ) - u32::min(end.y, start.y )
+            start_pixel,
+            i32::abs(end.y as i32 - start.y as i32) as u32,
         );
         return;
     }
 
     // Detect horizontal lines and draw them using a more optimised approach
     if start.y == end.y && start.x != end.x {
+        let start_pixel: &Pixel = if start.x < end.x { &start } else { &end };
         horizontal(
             buf_view,
-            &start,
-            // i32::abs(end.x as i32 - start.x as i32) as u32,
-            u32::max(end.x, start.x ) - u32::min(end.x, start.x )
+            &start_pixel,
+            i32::abs(end.x as i32 - start.x as i32) as u32,
         );
         return;
     }
