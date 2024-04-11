@@ -133,9 +133,9 @@ fn main() {
 
     let mut cube = Cube::new(
         Point3DF32 {
-            x: 4_f32,
-            y: 4_f32,
-            z: 4_f32,
+            x: 3.1_f32,
+            y: 12.1_f32,
+            z: 3.1_f32,
         },
         Point3DF32 {
             x: WIN_WIDTH as f32 / 2_f32 + 290.0,
@@ -145,6 +145,8 @@ fn main() {
         (WIN_HEIGHT as f32 / 24_f32),
         0x00_00_00_ff,
     );
+
+
 
     //----------------------------------------------------------------------------------------------
 
@@ -258,7 +260,12 @@ fn main() {
         line::vertical(buf_view, &frame_pixel, 150);
 
 
-        cube.render_frame(buf_view, frame_count as f32);
+        cube.render_frame(buf_view, frame_count as f32, Some(&Point3DF32{
+            x: 0_f32,
+            // y: 6_f32*oscillator as f32,
+            y: oscillator as f32,
+            z: oscillator as f32,
+        }));
 
         //TODO: Make the FRAME pulsate using `oscillator` in inverted manner compared to the 'electricity'
 

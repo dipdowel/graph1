@@ -85,7 +85,12 @@ impl Cube {
         return cube;
     }
 
-    pub fn render_frame(&mut self, buf_view: &mut [u32], frame_count: f32) {
+    pub fn render_frame(
+        &mut self,
+        buf_view: &mut [u32],
+        frame_count: f32,
+        translation: Option<&Point3DF32>,
+    ) {
         self.time_now = frame_count;
 
         // calculate the time difference
@@ -94,9 +99,21 @@ impl Cube {
 
         // rotate the cube along the Z axis
         let angle = self.time_delta * 0.001 * self.SPEED_Z * PI * 2_f32;
-        let cx = self.cx; /* + oscillator; */
-        let cy = self.cy; /* + oscillator; */
-        let cz = self.cz; /*+ oscillator as f32; */
+        let mut cx = self.cx; /* + oscillator; */
+        let mut cy = self.cy; /* + oscillator; */
+        let mut cz = self.cz; /*+ oscillator as f32; */
+
+
+        // apply translations only if provided.
+        match translation {
+            Some(delta) =>{
+                cx = cx + delta.x;
+                cy = cy + delta.y;
+                cz = cz + delta.z;
+            }
+            None => (),
+        }
+
 
         for mut v in &mut self.vertices {
             let dx: f32 = v.x - cx;
