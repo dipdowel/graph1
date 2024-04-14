@@ -181,7 +181,22 @@ fn main() {
         ////////////////////////////////////////////////////////////////////////////////////////////
         // Clear screen
         fill(buf_view_1, 0x00_44_00_00);
+
         fill(buf_view, 0x00_04_04_0F);
+
+        // Draw kinda dotted grid
+        let grid_factor:usize = 20;
+        for i in 0 ..WIN_WIDTH_US {
+            if i % grid_factor == 0 {
+                buf_view[i] = 0x00_55_55_aa;
+            }
+        }
+        for i in 1..WIN_HEIGHT_US / grid_factor {
+            buf_view.copy_within(0..WIN_WIDTH_US, i * grid_factor * WIN_WIDTH_US);
+        }
+
+
+
 
         //----------------------------------------------------------------------------------------------
         // THE CUBE dynamic
@@ -225,6 +240,14 @@ fn main() {
         // buf_view.cop
 
         // buffer.copy_within(0..40 * WIN_WIDTH as usize, PIXEL_PER_PAGE * 2 + 20*WIN_WIDTH as usize);
+
+        //TODO: This prevents the app from crashing but it's not accurate and needs an improvement!
+        let hero_lim = 78;
+        if state.hero_position.x < hero_lim {state.hero_position.x = hero_lim }
+        if state.hero_position.x > WIN_WIDTH - hero_lim {state.hero_position.x = WIN_WIDTH - hero_lim }
+
+        if state.hero_position.y < hero_lim {state.hero_position.y = hero_lim }
+        if state.hero_position.y > WIN_HEIGHT - hero_lim {state.hero_position.y = WIN_HEIGHT - hero_lim }
 
 
         copy_non_transparent_pixels(

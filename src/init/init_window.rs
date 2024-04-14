@@ -16,6 +16,10 @@ pub const MONITOR_HEIGHT: u32 = 1440;
 pub const WIN_WIDTH: u32 = 800;
 pub const WIN_HEIGHT: u32 = 600;
 
+pub const WIN_WIDTH_US: usize = WIN_WIDTH as usize;
+pub const WIN_HEIGHT_US: usize = WIN_HEIGHT as usize;
+
+
 
 // pub const WIN_WIDTH: u32 = 1024;
 // pub const WIN_HEIGHT: u32 = 768;
