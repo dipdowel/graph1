@@ -1,8 +1,21 @@
 #[derive(Debug)]
+pub struct Dimensions2d {
+    pub w: u32,
+    pub h: u32,
+}
+
+#[derive(Debug)]
 pub struct Point {
     pub x: u32,
     pub y: u32,
 }
+
+#[derive(Debug)]
+pub struct RectArea {
+    pub top_left:Point,
+    pub dimensions:Dimensions2d
+}
+
 
 #[derive(Debug)]
 pub struct Point3D {
