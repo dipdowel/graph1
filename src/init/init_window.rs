@@ -12,8 +12,13 @@ pub const MONITOR_HEIGHT: u32 = 1440;
 // pub const WIN_WIDTH: u32 = (1024.0*1.4) as u32;
 // pub const WIN_HEIGHT: u32 = (768.0*1.4) as u32;
 
+
 pub const WIN_WIDTH: u32 = 800;
 pub const WIN_HEIGHT: u32 = 600;
+
+
+// pub const WIN_WIDTH: u32 = 1024;
+// pub const WIN_HEIGHT: u32 = 768;
 
 pub const WIN_X: u32 = MONITOR_WIDTH / 2 - WIN_WIDTH / 2;
 pub const WIN_Y: u32 = MONITOR_HEIGHT / 2 - WIN_HEIGHT / 2;
@@ -27,7 +32,7 @@ pub fn init_window(include_debug: bool) -> (Window, Option<Window>) {
         WIN_NAME_PREFIX,
         WIN_WIDTH as usize,
         WIN_HEIGHT as usize,
-         WindowOptions::default(),
+        WindowOptions::default(),
         /*
         WindowOptions {
             borderless: true, // Set to true for a borderless window
@@ -75,7 +80,7 @@ pub fn init_window(include_debug: bool) -> (Window, Option<Window>) {
         if let Some(ref mut dw) = dev_window {
             dw.limit_update_rate(Some(Duration::from_micros(16600)));
 
-            dw.set_position(0_isize,0_isize);
+            dw.set_position(0_isize, 0_isize);
         }
     }
 
