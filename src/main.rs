@@ -1,22 +1,21 @@
-use std::f32::consts::PI;
 // use std::collections::HashMap;
 use std::fmt::Debug;
-use std::time::Duration;
 
-use minifb::{CursorStyle, Key, KeyRepeat};
+use minifb::{Key, KeyRepeat};
 use rand::seq::SliceRandom;
-use rand::Rng; // Trait that provides the shuffle method.
+use rand::Rng;
 
-use crate::cube::Cube;
-use crate::draw::line;
+use crate::copy_non_transparent_pixels::copy_non_transparent_pixels;
 use constants::*;
 
+use crate::cube::Cube;
 use crate::init::init_window::*;
-
 use crate::input::handle_keyboard;
+use crate::state::{init_app_state, APP_STATE};
 use crate::tools::fill::fill;
-use crate::tools::init_screen_buffer::init_screen_buffer;
-use crate::tools::primitives::{Pixel, Point, Point3D, Point3DF32};
+use crate::tools::primitives::{Dimensions2d, Pixel, Point, Point3DF32, RectArea};
+
+// Trait that provides the shuffle method.
 
 // use crate::tools::draw::RectOptions;
 // use tools::draw;
@@ -25,14 +24,34 @@ mod tools;
 mod init;
 // Make the global constants accessible here
 mod constants;
+mod copy_non_transparent_pixels;
 mod cube;
 mod draw;
 mod input;
+mod state;
+
+const DEV_MODE: bool = true;
+
+fn slice_buffer_in_4(buffer: &mut Vec<u32>) -> (&mut [u32], &mut [u32], &mut [u32], &mut [u32]) {
+    // Calculate indices for splitting the vector into four equal parts
+    let first_split = PIXEL_PER_PAGE;
+    let second_split = PIXEL_PER_PAGE * 2;
+    let third_split = PIXEL_PER_PAGE * 3;
+
+    // Split the buffer to avoid borrowing conflicts
+    let (first_half, second_half) = buffer.split_at_mut(second_split);
+    let (buf_view_1, buf_view_2) = first_half.split_at_mut(first_split);
+    let (buf_view_3, buf_view_4) = second_half.split_at_mut(first_split);
+
+    (buf_view_1, buf_view_2, buf_view_3, buf_view_4)
+}
 
 fn main() {
     #![allow(unused)]
 
-    let (mut window, mut dev_window) = init_window(false);
+    init_app_state();
+
+    let (mut window, mut dev_window) = init_window(DEV_MODE);
 
     // Let's reserve enough memory for 4 screens!
     let mut buffer: Vec<u32> = vec![DEFAULT_BG_COLOR; TOTAL_BUFFER_SIZE];
@@ -43,14 +62,20 @@ fn main() {
 
     // PIXEL_PER_PAGE
     let screen_start: usize = 0;
-    let mut buf_view = &mut buffer[0..=PIXEL_PER_PAGE];
-    //
+
+    let (buf_view_1, buf_view, buf_view_3, buf_view_4) = slice_buffer_in_4(&mut buffer);
+
+    // let mut buf_view = buf_view_2;
+
+    fill(buf_view_1, 0x00_44_00_00);
+    fill(buf_view_3, 0x00_00_44_00);
+    fill(buf_view_4, 0x00_00_00_44);
 
     match dev_window {
         Some(ref mut dev_window) => {
             // We unwrap here as we want this code to exit if it fails. Real applications may want to handle this in a different way
             dev_window
-                .update_with_buffer(buf_view, WIN_WIDTH as usize, WIN_HEIGHT as usize)
+                .update_with_buffer(buf_view_1, WIN_WIDTH as usize, WIN_HEIGHT as usize)
                 .expect("Failed to update dev window memory")
         }
         _ => (),
@@ -79,64 +104,65 @@ fn main() {
     // THE CUBE static
     //----------------------------------------------------------------------------------------------
 
-
-
-
     ////////////////////////
     ////////////////////////
 
     //////////////////////////////
-    // CUBE 2
+    // CUBE
     //////////////////////////////
+    let state = APP_STATE.lock().unwrap();
 
     let mut cube = Cube::new(
         Point3DF32 {
-            x: 3.1_f32,
-            y: 12.5_f32,
-            z: 3.1_f32,
+            x: 6_f32,
+            y: -6_f32,
+            z: 6_f32,
         },
         Point3DF32 {
-            x: 1_f32 + WIN_WIDTH as f32 / 2_f32 + 290_f32,
-            y: 1_f32 + WIN_HEIGHT as f32 / 2_f32 - 180_f32,
-            z: 1_f32 + 0_f32,
-        },
-        (WIN_HEIGHT as f32 / 18_f32),
-        0x00_00_00_ff,
-    );
-
-
-    let mut cube2 = Cube::new(
-        Point3DF32 {
-            x: 3.1_f32,
-            y: 12.1_f32,
-            z: 3.1_f32,
-        },
-        Point3DF32 {
-            x: WIN_WIDTH as f32 / 2_f32 + 290.0,
-            y: WIN_HEIGHT as f32 / 2_f32 - 180_f32,
+            // x: state.hero_position.x as f32,
+            // y: state.hero_position.y as f32,
+            x: 64_f32,
+            y: 64_f32,
             z: 0_f32,
         },
-        (WIN_HEIGHT as f32 / 32_f32),
-        0x00_ff_00_ff,
+        (WIN_HEIGHT as f32 / 52_f32),
+        0x00_ff_ff_ff,
+
     );
+
+        let mut cube2 = Cube::new(
+            Point3DF32 {
+                x: 3_f32,
+                y: -3_f32,
+                z: 3_f32,
+            },
+            Point3DF32 {
+
+                x: 64_f32,
+                y: 64_f32,
+                z: 0_f32,
+            },
+            (WIN_HEIGHT as f32 / 24_f32),
+            0x00_00_00_ff,
+        );
 
     let mut cube3 = Cube::new(
         Point3DF32 {
-            x: 3.1_f32,
-            y: 12.1_f32,
-            z: 3.1_f32,
+            x: 2_f32,
+            y: -2_f32,
+            z: 2_f32,
         },
         Point3DF32 {
-            x: WIN_WIDTH as f32 / 2_f32 + 290.0,
-            y: WIN_HEIGHT as f32 / 2_f32 - 180_f32,
+
+            x: 64_f32,
+            y: 64_f32,
             z: 0_f32,
         },
-        (WIN_HEIGHT as f32 / 10_f32),
-        0x00_ff_ff_ff,
+        (WIN_HEIGHT as f32 / 18_f32),
+        0x00_ff_00_ff,
     );
 
-
-
+    drop(state);
 
     //----------------------------------------------------------------------------------------------
 
@@ -154,106 +180,97 @@ fn main() {
 
         ////////////////////////////////////////////////////////////////////////////////////////////
         // Clear screen
+        fill(buf_view_1, 0x00_44_00_00);
         fill(buf_view, 0x00_04_04_0F);
-
-
-
-
-
-
-
-        //TODO: Make the FRAME pulsate using `oscillator` in inverted manner compared to the 'electricity'
-
-        // "Quantum Universe" or something along those lines
-
-
-                // line::horizontal(&mut buf_view, &Pixel { x: 10, y: 10, color }, frame_count%640);
-                        line::vertical(&mut buf_view, &Pixel { x: 10, y: 0, color }, frame_count%480);
-                        line::vertical(&mut buf_view, &Pixel { x: 13, y: 0, color }, 2+frame_count%480);
-
-
-                        line::vertical(&mut buf_view, &Pixel { x: 630, y: 0, color }, frame_count%480);
-                        line::vertical(&mut buf_view, &Pixel { x: 627, y: 0, color }, 3+frame_count%480);
-
-                        draw::circle(&mut buf_view, &Pixel { x: 320, y: 320, color }, frame_count%42, 4);
-                        draw::circle(&mut buf_view, &Pixel { x: 380, y: 301, color }, frame_count%65, 8);
-                        draw::circle(&mut buf_view, &Pixel { x: 200+(oscillator) as u32, y: 201, color }, frame_count%173, 2);
-
-                        draw::circle(&mut buf_view, &Pixel { x: WIN_WIDTH/2, y: WIN_HEIGHT/2 , color }, frame_count%173, 4);
-
-                        draw::circle(&mut buf_view, &Pixel { x: 0, y: 0, color }, frame_count%(WIN_WIDTH*2), 8);
-                        draw::circle(&mut buf_view, &Pixel { x: WIN_WIDTH, y: 4, color }, frame_count%(WIN_WIDTH*2), 16);
-
-
-        // line::draw_line(&mut buf_view, &Pixel { x: frame_count%WIN_WIDTH/2, y: frame_count%WIN_HEIGHT,  color:0xff_00_ff_ff }, &Point{ x:200, y:frame_count%WIN_WIDTH/3 });
-
-        // line::draw_line(&mut buf_view, &Pixel { x: 20, y: 20, color }, &Pixel{ x:120, y:120, color });
-        // line::draw_line(&mut buf_view, &Pixel { x: 40, y: 40, color }, &Pixel{ x:400, y:400, color });
-
-        // line::horizontal(buf_view, &Pixel{x:298, y:0 , color:0x00ffffff}, 44);
-
-        //==================================================================================================
-        //=== ELECTRO-BOX!
-        //==================================================================================================
-                points.shuffle(&mut rng);
-
-                for i in 0..oscillator {
-                    line::between_two_points(
-                        &mut buf_view,
-                        &Pixel {
-                            x: points[i].x,
-                            y: points[i].y,
-                            color: 0x00_44_44_ff,
-                        },
-                        &points[i + 1],
-                    );
-                }
-
-                ////////////////////////////////////////////////////////////////////////////////////////////
-                // DRAW FRAME
-                let mut frame_pixel: Pixel = Pixel {
-                    x: WIN_WIDTH / 2 - 75,
-                    y: WIN_HEIGHT / 2 - 75,
-                    color: 0x00_55_55_66,
-                };
-                line::horizontal(buf_view, &frame_pixel, 150);
-                line::vertical(buf_view, &frame_pixel, 150);
-                frame_pixel.y = WIN_HEIGHT / 2 + 75;
-                line::horizontal(buf_view, &frame_pixel, 150);
-                frame_pixel.x = WIN_WIDTH / 2 + 75;
-                frame_pixel.y = WIN_HEIGHT / 2 - 75;
-                line::vertical(buf_view, &frame_pixel, 150);
-            //==================================================================================================
-
 
         //----------------------------------------------------------------------------------------------
         // THE CUBE dynamic
         //----------------------------------------------------------------------------------------------
+        let mut state = APP_STATE.lock().unwrap();
+        let dev_buffer_number = state.dev_buffer_number;
+        // println!(":::: dev_buffer_number: {:?}", state);
 
-        let translation: Point3DF32 = Point3DF32 {
-            x: 0_f32,
-            // y: 6_f32*oscillator as f32,
-            y: oscillator as f32,
-            z: oscillator as f32,
-        };
+        // draw::circle(buf_view, &Pixel { x: state.hero_position.x, y: state.hero_position.y, color: 0x00_ff_ff_ff }, 3,2);
 
-        cube.render_frame(buf_view, frame_count as f32, Some(&translation));
-        cube2.render_frame(buf_view, frame_count as f32, Some(&translation));
-        cube3.render_frame(buf_view, frame_count as f32, Some(&translation));
+        state.hero_position.x =
+            (state.hero_position.x as i32 + state.hero_velocity.x) as u32;
+        state.hero_position.y =
+            (state.hero_position.y as i32 + state.hero_velocity.y) as u32;
+
+        let mut translation: Option<Point3DF32> = None;
+
+        if (state.hero_velocity.x != 0 || state.hero_velocity.y != 0) {
+            translation = Some(Point3DF32 {
+                // x: state.hero_position.x as f32,
+                x: 0_f32,
+                // x: state.hero_velocity.x as f32,
+                // y: 6_f32*oscillator as f32,
+                // y: oscillator as f32,
+                // y: state.hero_velocity.y as f32,
+                y: 0_f32,
+                // z: oscillator as f32,
+                z: 0_f32,
+            });
+        }
+
+        // println!(">>> translation: {:?}", translation);
+
+        // cube.render_frame(buf_view, 10.0 + frame_count as f32, &translation );
+
+        cube.render_frame(buf_view_1,  frame_count as f32, None);
+        cube2.render_frame(buf_view_1, frame_count as f32, None);
+        cube3.render_frame(buf_view_1, frame_count as f32, None);
+
+        // buf_view.copy_from_slice(&buf_view_1[0..1*WIN_WIDTH as usize]);
+        // buf_view.cop
+
+        // buffer.copy_within(0..40 * WIN_WIDTH as usize, PIXEL_PER_PAGE * 2 + 20*WIN_WIDTH as usize);
+
+
+        copy_non_transparent_pixels(
+            buf_view_1,
+            buf_view,
+            RectArea {
+                top_left: Point { x: 0, y: 0 },
+                dimensions: Dimensions2d { w: 154, h: 154 },
+            },
+            Point { x: state.hero_position.x, y: state.hero_position.y },
+            0x00_44_00_00,
+        );
+
+        drop(state);
+
+
+        /*******************************************************************************************
+        //  A WORKING SOLUTIONS:  Combine all the 4 buf_views into one and do copy within!
+        //-------------------------------------------------------------------------------------------
+        let mut complete_slice =  unsafe { std::slice::from_raw_parts_mut(buf_view_1.as_mut_ptr(), TOTAL_BUFFER_SIZE)};
+        complete_slice.copy_within(0..100 * WIN_WIDTH as usize, PIXEL_PER_PAGE+ 300 * WIN_WIDTH as usize);
+        *******************************************************************************************/
+
+        // let mut v = complete_slice.to_vec();
+        // v.copy_within(0..100*WIN_WIDTH as usize, PIXEL_PER_PAGE*2);
+
+        // complete_slice
 
         //----------------------------------------------------------------------------------------------
-
 
         //---------------------------
         // Read and handle keyboard
         //---------------------------
         let keys_pressed = window.get_keys_pressed(KeyRepeat::No);
 
-        let keys_released = window.get_keys_released();
+        // let mut state = APP_STATE.lock().unwrap();
+        // state.keyboard_raw.keys_pressed = window.get_keys_pressed(KeyRepeat::No);
+        // state.keyboard_raw.keys_released = window.get_keys_released();
+        // drop(state); // release the mutex by moving `state` out of scope.
 
-        if (keys_pressed.len() > 0 || keys_released.len() > 0) {
-            handle_keyboard(&keys_pressed, &keys_released);
-        }
+        handle_keyboard(
+            &window.get_keys_pressed(KeyRepeat::No),
+            &window.get_keys_released(),
+        );
+
+        // println!("State: {:?}", state);
 
         frame_count += 1;
 
@@ -264,8 +281,16 @@ fn main() {
 
         match dev_window {
             Some(ref mut dev_window) => {
+                let mut dev_buf_view: &mut [u32];
+                match dev_buffer_number {
+                    1 => dev_buf_view = buf_view_1,
+                    2 => dev_buf_view = buf_view,
+                    3 => dev_buf_view = buf_view_3,
+                    _ => dev_buf_view = buf_view_4,
+                }
+
                 dev_window
-                    .update_with_buffer(buf_view, WIN_WIDTH as usize, WIN_HEIGHT as usize)
+                    .update_with_buffer(dev_buf_view, WIN_WIDTH as usize, WIN_HEIGHT as usize)
                     .unwrap();
             }
             _ => (),
@@ -273,105 +298,138 @@ fn main() {
     }
 }
 
-//
-//
-//
-//
-// ------------------------------------------------------------------------------------------------------------------------
-//
-// PIXEL_PER_PAGE
-// let screen_start = (screen_offset * WIN_WIDTH) as usize;
-// let buf_view = &buffer[screen_start..screen_start + PIXEL_PER_PAGE];
+//TODO: Make the FRAME pulsate using `oscillator` in inverted manner compared to the 'electricity'
+/*
+        // "Quantum Universe" or something along those lines
 
-// let mut key_pressed: &str = " ";
-// let mut screen_offset: u32 = 2 * WIN_HEIGHT as u32;
-// let mut pressed_key: Option<Key> = None;
-// let max_y = WIN_HEIGHT * NUM_OF_PAGES as u32;
+        // line::horizontal(&mut buf_view, &Pixel { x: 10, y: 10, color }, frame_count%640);
+        line::vertical(
+            &mut buf_view,
+            &Pixel { x: 10, y: 0, color },
+            frame_count % 480,
+        );
+        line::vertical(
+            &mut buf_view,
+            &Pixel { x: 13, y: 0, color },
+            2 + frame_count % 480,
+        );
 
-// let mut is_key_down: bool = false;
-// let mut is_key_up: bool = false;
-//
+        line::vertical(
+            &mut buf_view,
+            &Pixel {
+                x: 630,
+                y: 0,
+                color,
+            },
+            frame_count % 480,
+        );
+        line::vertical(
+            &mut buf_view,
+            &Pixel {
+                x: 627,
+                y: 0,
+                color,
+            },
+            3 + frame_count % 480,
+        );
 
-// let mut stats_map: HashMap<String, Vec<Duration>> = HashMap::new();
-// stats_map.insert("Rect".to_string(), Vec::new());
-// stats_map.insert("Grid".to_string(), Vec::new());
-// stats_map.insert("Background".to_string(), Vec::new());
+        draw::circle(
+            &mut buf_view,
+            &Pixel {
+                x: 320,
+                y: 320,
+                color,
+            },
+            frame_count % 42,
+            4,
+        );
+        draw::circle(
+            &mut buf_view,
+            &Pixel {
+                x: 380,
+                y: 301,
+                color,
+            },
+            frame_count % 65,
+            8,
+        );
+        draw::circle(
+            &mut buf_view,
+            &Pixel {
+                x: 200 + (oscillator) as u32,
+                y: 201,
+                color,
+            },
+            frame_count % 173,
+            2,
+        );
 
-// let mut x: i32 = 0;
-// let mut velocity_x: i32 = 1;
+        draw::circle(
+            &mut buf_view,
+            &Pixel {
+                x: WIN_WIDTH / 2,
+                y: WIN_HEIGHT / 2,
+                color,
+            },
+            frame_count % 173,
+            4,
+        );
 
-// let rect_width = 100;
-// let rect_height = 100;
+        draw::circle(
+            &mut buf_view,
+            &Pixel { x: 0, y: 0, color },
+            frame_count % (WIN_WIDTH * 2),
+            8,
+        );
+        draw::circle(
+            &mut buf_view,
+            &Pixel {
+                x: WIN_WIDTH,
+                y: 4,
+                color,
+            },
+            frame_count % (WIN_WIDTH * 2),
+            16,
+        );
+*/
+// line::draw_line(&mut buf_view, &Pixel { x: frame_count%WIN_WIDTH/2, y: frame_count%WIN_HEIGHT,  color:0xff_00_ff_ff }, &Point{ x:200, y:frame_count%WIN_WIDTH/3 });
 
-// let max_rect_x = WIN_WIDTH - rect_width;
-// let max_rect_y = WIN_HEIGHT - rect_height;
-// let shift = 7;
+// line::draw_line(&mut buf_view, &Pixel { x: 20, y: 20, color }, &Pixel{ x:120, y:120, color });
+// line::draw_line(&mut buf_view, &Pixel { x: 40, y: 40, color }, &Pixel{ x:400, y:400, color });
 
-// let active_page: usize = 0;
+// line::horizontal(buf_view, &Pixel{x:298, y:0 , color:0x00ffffff}, 44);
+/*
+        //==================================================================================================
+        //=== ELECTRO-BOX!
+        //==================================================================================================
+        points.shuffle(&mut rng);
 
-/***[ DEV WINDOW ]************************************************************************/
+        for i in 0..oscillator {
+            line::between_two_points(
+                &mut buf_view,
+                &Pixel {
+                    x: points[i].x,
+                    y: points[i].y,
+                    color: 0x00_44_44_ff,
+                },
+                &points[i + 1],
+            );
+        }
 
-// draw::rect(
-//     &RectOptions {
-//         // x: x as u32,
-//         x: 100,
-//         y: 100,
-//         w: rect_width,
-//         h: rect_height,
-//         color: 0x00_dd_00_00,
-//         win_w: WIN_WIDTH,
-//         win_h: WIN_HEIGHT,
-//     },
-//     &mut buffer,
-// );
 
-// window_title = format!(
-//     "{} :: {} :: {} :: pressed_key: {:?} FR: {}",
-//     WIN_NAME_PREFIX, key_pressed, screen_offset, pressed_key, frame_count
-// );
-//
-// window.set_title(&window_title.as_str());
 
-// buffer.fill(DEFAULT_BG_COLOR);
-
-// if let Some(Key::Up) = pressed_key {
-//     if frame_count % 1 == 0 && screen_offset < max_y {
-//         screen_offset -= 1;
-//     }
-// }
-//
-// if let Some(Key::Down) = pressed_key {
-//     if frame_count % 1 == 0 && screen_offset > 1 {
-//         screen_offset += 1;
-//     }
-// }
-
-// let mut rect_index = 0;
-// let loop_till = WIN_HEIGHT * (NUM_OF_PAGES as u32) - rect_height * 2;
-// let mut rect_color = 0x00_ff_ff_ff;
-// loop {
-//     draw::rect(
-//         &RectOptions {
-//             // x: x as u32,
-//             x: 100,
-//             y: rect_index,
-//             w: rect_width,
-//             h: rect_height,
-//             color: rect_color,
-//             win_w: WIN_WIDTH,
-//             win_h: WIN_HEIGHT,
-//         },
-//         &mut buffer,
-//     );
-//
-//     if rect_index >= loop_till {
-//         break;
-//     }
-//     rect_index += rect_height;
-//     rect_color += 0x00_11_11_11;
-
-// x += velocity_x;
-
-// if (x as u32) > max_rect_x || (x as u32) < 1 {
-//     velocity_x *= -1;
-// }
+        // DRAW FRAME
+        let mut frame_pixel: Pixel = Pixel {
+            x: WIN_WIDTH / 2 - 75,
+            y: WIN_HEIGHT / 2 - 75,
+            color: 0x00_55_55_66,
+        };
+        line::horizontal(buf_view, &frame_pixel, 150);
+        line::vertical(buf_view, &frame_pixel, 150);
+        frame_pixel.y = WIN_HEIGHT / 2 + 75;
+        line::horizontal(buf_view, &frame_pixel, 150);
+        frame_pixel.x = WIN_WIDTH / 2 + 75;
+        frame_pixel.y = WIN_HEIGHT / 2 - 75;
+        line::vertical(buf_view, &frame_pixel, 150);
+        //==================================================================================================
+*/

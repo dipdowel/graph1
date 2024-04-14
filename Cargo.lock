@@ -180,6 +180,7 @@ name = "graph1"
 version = "0.1.0"
 dependencies = [
  "minifb",
+ "once_cell",
  "rand",
 ]
 
