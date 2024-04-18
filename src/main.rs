@@ -1,3 +1,4 @@
+
 // use std::collections::HashMap;
 use std::fmt::Debug;
 
@@ -5,14 +6,19 @@ use minifb::{Key, KeyRepeat};
 use rand::seq::SliceRandom;
 use rand::Rng;
 
-use crate::copy_non_transparent_pixels::copy_non_transparent_pixels;
 use constants::*;
 
 use crate::cube::Cube;
+use crate::draw::line;
 use crate::init::init_window::*;
 use crate::input::handle_keyboard;
 use crate::state::{init_app_state, APP_STATE};
 use crate::tools::fill::fill;
+use crate::tools::operations::ColorOperation;
+use crate::tools::pixel_copy::trans_copy::trans_copy;
+use crate::tools::pixel_copy::trans_copy_math::trans_copy_math;
+use crate::tools::pixel_copy::trans_copy_math_multi_dest::trans_copy_math_multi_dest;
+use crate::tools::pixel_copy::trans_copy_multi_dest::trans_copy_multi_dest;
 use crate::tools::primitives::{Dimensions2d, Pixel, Point, Point3DF32, RectArea};
 
 // Trait that provides the shuffle method.
@@ -24,13 +30,13 @@ mod tools;
 mod init;
 // Make the global constants accessible here
 mod constants;
-mod copy_non_transparent_pixels;
+
 mod cube;
 mod draw;
 mod input;
 mod state;
 
-const DEV_MODE: bool = true;
+const DEV_MODE: bool = false;
 
 fn slice_buffer_in_4(buffer: &mut Vec<u32>) -> (&mut [u32], &mut [u32], &mut [u32], &mut [u32]) {
     // Calculate indices for splitting the vector into four equal parts
@@ -125,7 +131,7 @@ fn main() {
             y: 64_f32,
             z: 0_f32,
         },
-        (WIN_HEIGHT as f32 / 52_f32),
+        (WIN_HEIGHT as f32 / 64_f32),
         0x00_ff_ff_ff,
 
     );
@@ -142,7 +148,7 @@ fn main() {
                 y: 64_f32,
                 z: 0_f32,
             },
-            (WIN_HEIGHT as f32 / 24_f32),
+            (WIN_HEIGHT as f32 / 32_f32),
             0x00_00_00_ff,
         );
 
@@ -158,7 +164,7 @@ fn main() {
             y: 64_f32,
             z: 0_f32,
         },
-        (WIN_HEIGHT as f32 / 18_f32),
+        (WIN_HEIGHT as f32 / 24_f32),
         0x00_ff_00_ff,
     );
 
@@ -250,170 +256,243 @@ fn main() {
         if state.hero_position.y > WIN_HEIGHT - hero_lim {state.hero_position.y = WIN_HEIGHT - hero_lim }
 
 
-        copy_non_transparent_pixels(
+        line::horizontal(buf_view, &Pixel{x:0, y:WIN_HEIGHT/8*5 , color:0x00_55_55_aa}, WIN_WIDTH);
+
+
+
+
+
+        /*
+        // TESTED! WORKS!
+        trans_copy(
             buf_view_1,
             buf_view,
-            RectArea {
+            &RectArea {
                 top_left: Point { x: 0, y: 0 },
                 dimensions: Dimensions2d { w: 154, h: 154 },
             },
-            Point { x: state.hero_position.x, y: state.hero_position.y },
-            0x00_44_00_00,
+            &Point { x: state.hero_position.x+140, y: state.hero_position.y},
+            &0x00_44_00_00
+        );
+        */
+
+
+
+
+
+        let dest_vec_pixel: Vec<Pixel> = vec![
+            Pixel { x: state.hero_position.x, y: state.hero_position.y+100, color: 0x00_cc_cc_cc },
+            Pixel { x: state.hero_position.x, y: state.hero_position.y, color: 0x00_88_88_88 },
+            Pixel { x: state.hero_position.x, y: state.hero_position.y-100, color: 0x00_44_44_44 },
+            Pixel { x: state.hero_position.x, y: state.hero_position.y-200, color: 0x00_00_00_00 },
+        ];
+
+        trans_copy_math_multi_dest(
+            buf_view_1,
+            buf_view,
+            &RectArea {
+                top_left: Point { x: 0, y: 0 },
+                dimensions: Dimensions2d { w: 154, h: 154 },
+            },
+            &dest_vec_pixel,
+            &0x00_44_00_00,
+            &ColorOperation::Add
         );
 
-        drop(state);
 
 
-        /*******************************************************************************************
-        //  A WORKING SOLUTIONS:  Combine all the 4 buf_views into one and do copy within!
-        //-------------------------------------------------------------------------------------------
-        let mut complete_slice =  unsafe { std::slice::from_raw_parts_mut(buf_view_1.as_mut_ptr(), TOTAL_BUFFER_SIZE)};
-        complete_slice.copy_within(0..100 * WIN_WIDTH as usize, PIXEL_PER_PAGE+ 300 * WIN_WIDTH as usize);
-        *******************************************************************************************/
 
-        // let mut v = complete_slice.to_vec();
-        // v.copy_within(0..100*WIN_WIDTH as usize, PIXEL_PER_PAGE*2);
+        // TESTED! WORKS!
+        let dest_vec_point: Vec<Point> = vec![
+            Point { x: state.hero_position.x, y: state.hero_position.y},
+            Point { x: state.hero_position.x+140, y: state.hero_position.y},
+            Point { x: state.hero_position.x+280, y: state.hero_position.y},
+        ];
 
-        // complete_slice
-
-        //----------------------------------------------------------------------------------------------
-
-        //---------------------------
-        // Read and handle keyboard
-        //---------------------------
-        let keys_pressed = window.get_keys_pressed(KeyRepeat::No);
-
-        // let mut state = APP_STATE.lock().unwrap();
-        // state.keyboard_raw.keys_pressed = window.get_keys_pressed(KeyRepeat::No);
-        // state.keyboard_raw.keys_released = window.get_keys_released();
-        // drop(state); // release the mutex by moving `state` out of scope.
-
-        handle_keyboard(
-            &window.get_keys_pressed(KeyRepeat::No),
-            &window.get_keys_released(),
+        trans_copy_multi_dest(
+            buf_view_1,
+            buf_view,
+            &RectArea {
+                top_left: Point { x: 0, y: 0 },
+                dimensions: Dimensions2d { w: 154, h: 154 },
+            },
+            &dest_vec_point,
+            &0x00_44_00_00,
         );
 
-        // println!("State: {:?}", state);
 
-        frame_count += 1;
 
-        // We unwrap here as we want this code to exit if it fails. Real applications may want to handle this in a different way
-        window
-            .update_with_buffer(buf_view, WIN_WIDTH as usize, WIN_HEIGHT as usize)
-            .unwrap();
 
-        match dev_window {
-            Some(ref mut dev_window) => {
-                let mut dev_buf_view: &mut [u32];
-                match dev_buffer_number {
-                    1 => dev_buf_view = buf_view_1,
-                    2 => dev_buf_view = buf_view,
-                    3 => dev_buf_view = buf_view_3,
-                    _ => dev_buf_view = buf_view_4,
-                }
 
-                dev_window
-                    .update_with_buffer(dev_buf_view, WIN_WIDTH as usize, WIN_HEIGHT as usize)
-                    .unwrap();
+    // TESTED! WORKS!
+    trans_copy_math(
+        buf_view_1,
+        buf_view,
+        &RectArea {
+            top_left: Point { x: 0, y: 0 },
+            dimensions: Dimensions2d { w: 154, h: 154 },
+        },
+        &Pixel { x: state.hero_position.x+140, y: state.hero_position.y, color: 0x00_22_22_55 },
+        &0x00_44_00_00,
+        &ColorOperation::Subtract
+    );
+
+
+
+
+    drop(state);
+
+
+    /*******************************************************************************************
+    //  A WORKING SOLUTIONS:  Combine all the 4 buf_views into one and do copy within!
+    //-------------------------------------------------------------------------------------------
+    let mut complete_slice =  unsafe { std::slice::from_raw_parts_mut(buf_view_1.as_mut_ptr(), TOTAL_BUFFER_SIZE)};
+    complete_slice.copy_within(0..100 * WIN_WIDTH as usize, PIXEL_PER_PAGE+ 300 * WIN_WIDTH as usize);
+    *******************************************************************************************/
+
+    // let mut v = complete_slice.to_vec();
+    // v.copy_within(0..100*WIN_WIDTH as usize, PIXEL_PER_PAGE*2);
+
+    // complete_slice
+
+    //----------------------------------------------------------------------------------------------
+
+    //---------------------------
+    // Read and handle keyboard
+    //---------------------------
+    let keys_pressed = window.get_keys_pressed(KeyRepeat::No);
+
+    // let mut state = APP_STATE.lock().unwrap();
+    // state.keyboard_raw.keys_pressed = window.get_keys_pressed(KeyRepeat::No);
+    // state.keyboard_raw.keys_released = window.get_keys_released();
+    // drop(state); // release the mutex by moving `state` out of scope.
+
+    handle_keyboard(
+        &window.get_keys_pressed(KeyRepeat::No),
+        &window.get_keys_released(),
+    );
+
+    // println!("State: {:?}", state);
+
+    frame_count += 1;
+
+    // We unwrap here as we want this code to exit if it fails. Real applications may want to handle this in a different way
+    window
+        .update_with_buffer(buf_view, WIN_WIDTH as usize, WIN_HEIGHT as usize)
+        .unwrap();
+
+    match dev_window {
+        Some(ref mut dev_window) => {
+            let mut dev_buf_view: &mut [u32];
+            match dev_buffer_number {
+                1 => dev_buf_view = buf_view_1,
+                2 => dev_buf_view = buf_view,
+                3 => dev_buf_view = buf_view_3,
+                _ => dev_buf_view = buf_view_4,
             }
-            _ => (),
+
+            dev_window
+                .update_with_buffer(dev_buf_view, WIN_WIDTH as usize, WIN_HEIGHT as usize)
+                .unwrap();
         }
+        _ => (),
     }
+}
 }
 
 //TODO: Make the FRAME pulsate using `oscillator` in inverted manner compared to the 'electricity'
 /*
-        // "Quantum Universe" or something along those lines
+    // "Quantum Universe" or something along those lines
 
-        // line::horizontal(&mut buf_view, &Pixel { x: 10, y: 10, color }, frame_count%640);
-        line::vertical(
-            &mut buf_view,
-            &Pixel { x: 10, y: 0, color },
-            frame_count % 480,
-        );
-        line::vertical(
-            &mut buf_view,
-            &Pixel { x: 13, y: 0, color },
-            2 + frame_count % 480,
-        );
+    // line::horizontal(&mut buf_view, &Pixel { x: 10, y: 10, color }, frame_count%640);
+    line::vertical(
+        &mut buf_view,
+        &Pixel { x: 10, y: 0, color },
+        frame_count % 480,
+    );
+    line::vertical(
+        &mut buf_view,
+        &Pixel { x: 13, y: 0, color },
+        2 + frame_count % 480,
+    );
 
-        line::vertical(
-            &mut buf_view,
-            &Pixel {
-                x: 630,
-                y: 0,
-                color,
-            },
-            frame_count % 480,
-        );
-        line::vertical(
-            &mut buf_view,
-            &Pixel {
-                x: 627,
-                y: 0,
-                color,
-            },
-            3 + frame_count % 480,
-        );
+    line::vertical(
+        &mut buf_view,
+        &Pixel {
+            x: 630,
+            y: 0,
+            color,
+        },
+        frame_count % 480,
+    );
+    line::vertical(
+        &mut buf_view,
+        &Pixel {
+            x: 627,
+            y: 0,
+            color,
+        },
+        3 + frame_count % 480,
+    );
 
-        draw::circle(
-            &mut buf_view,
-            &Pixel {
-                x: 320,
-                y: 320,
-                color,
-            },
-            frame_count % 42,
-            4,
-        );
-        draw::circle(
-            &mut buf_view,
-            &Pixel {
-                x: 380,
-                y: 301,
-                color,
-            },
-            frame_count % 65,
-            8,
-        );
-        draw::circle(
-            &mut buf_view,
-            &Pixel {
-                x: 200 + (oscillator) as u32,
-                y: 201,
-                color,
-            },
-            frame_count % 173,
-            2,
-        );
+    draw::circle(
+        &mut buf_view,
+        &Pixel {
+            x: 320,
+            y: 320,
+            color,
+        },
+        frame_count % 42,
+        4,
+    );
+    draw::circle(
+        &mut buf_view,
+        &Pixel {
+            x: 380,
+            y: 301,
+            color,
+        },
+        frame_count % 65,
+        8,
+    );
+    draw::circle(
+        &mut buf_view,
+        &Pixel {
+            x: 200 + (oscillator) as u32,
+            y: 201,
+            color,
+        },
+        frame_count % 173,
+        2,
+    );
 
-        draw::circle(
-            &mut buf_view,
-            &Pixel {
-                x: WIN_WIDTH / 2,
-                y: WIN_HEIGHT / 2,
-                color,
-            },
-            frame_count % 173,
-            4,
-        );
+    draw::circle(
+        &mut buf_view,
+        &Pixel {
+            x: WIN_WIDTH / 2,
+            y: WIN_HEIGHT / 2,
+            color,
+        },
+        frame_count % 173,
+        4,
+    );
 
-        draw::circle(
-            &mut buf_view,
-            &Pixel { x: 0, y: 0, color },
-            frame_count % (WIN_WIDTH * 2),
-            8,
-        );
-        draw::circle(
-            &mut buf_view,
-            &Pixel {
-                x: WIN_WIDTH,
-                y: 4,
-                color,
-            },
-            frame_count % (WIN_WIDTH * 2),
-            16,
-        );
+    draw::circle(
+        &mut buf_view,
+        &Pixel { x: 0, y: 0, color },
+        frame_count % (WIN_WIDTH * 2),
+        8,
+    );
+    draw::circle(
+        &mut buf_view,
+        &Pixel {
+            x: WIN_WIDTH,
+            y: 4,
+            color,
+        },
+        frame_count % (WIN_WIDTH * 2),
+        16,
+    );
 */
 // line::draw_line(&mut buf_view, &Pixel { x: frame_count%WIN_WIDTH/2, y: frame_count%WIN_HEIGHT,  color:0xff_00_ff_ff }, &Point{ x:200, y:frame_count%WIN_WIDTH/3 });
 
@@ -422,37 +501,37 @@ fn main() {
 
 // line::horizontal(buf_view, &Pixel{x:298, y:0 , color:0x00ffffff}, 44);
 /*
-        //==================================================================================================
-        //=== ELECTRO-BOX!
-        //==================================================================================================
-        points.shuffle(&mut rng);
+    //==================================================================================================
+    //=== ELECTRO-BOX!
+    //==================================================================================================
+    points.shuffle(&mut rng);
 
-        for i in 0..oscillator {
-            line::between_two_points(
-                &mut buf_view,
-                &Pixel {
-                    x: points[i].x,
-                    y: points[i].y,
-                    color: 0x00_44_44_ff,
-                },
-                &points[i + 1],
-            );
-        }
+    for i in 0..oscillator {
+        line::between_two_points(
+            &mut buf_view,
+            &Pixel {
+                x: points[i].x,
+                y: points[i].y,
+                color: 0x00_44_44_ff,
+            },
+            &points[i + 1],
+        );
+    }
 
 
 
-        // DRAW FRAME
-        let mut frame_pixel: Pixel = Pixel {
-            x: WIN_WIDTH / 2 - 75,
-            y: WIN_HEIGHT / 2 - 75,
-            color: 0x00_55_55_66,
-        };
-        line::horizontal(buf_view, &frame_pixel, 150);
-        line::vertical(buf_view, &frame_pixel, 150);
-        frame_pixel.y = WIN_HEIGHT / 2 + 75;
-        line::horizontal(buf_view, &frame_pixel, 150);
-        frame_pixel.x = WIN_WIDTH / 2 + 75;
-        frame_pixel.y = WIN_HEIGHT / 2 - 75;
-        line::vertical(buf_view, &frame_pixel, 150);
-        //==================================================================================================
+    // DRAW FRAME
+    let mut frame_pixel: Pixel = Pixel {
+        x: WIN_WIDTH / 2 - 75,
+        y: WIN_HEIGHT / 2 - 75,
+        color: 0x00_55_55_66,
+    };
+    line::horizontal(buf_view, &frame_pixel, 150);
+    line::vertical(buf_view, &frame_pixel, 150);
+    frame_pixel.y = WIN_HEIGHT / 2 + 75;
+    line::horizontal(buf_view, &frame_pixel, 150);
+    frame_pixel.x = WIN_WIDTH / 2 + 75;
+    frame_pixel.y = WIN_HEIGHT / 2 - 75;
+    line::vertical(buf_view, &frame_pixel, 150);
+    //==================================================================================================
 */
