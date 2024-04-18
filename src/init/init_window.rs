@@ -12,7 +12,8 @@ pub const MONITOR_HEIGHT: u32 = 1440;
 // pub const WIN_WIDTH: u32 = (1024.0*1.4) as u32;
 // pub const WIN_HEIGHT: u32 = (768.0*1.4) as u32;
 
-
+// pub const WIN_WIDTH: u32 = 1024;
+// pub const WIN_HEIGHT: u32 = 768;
 pub const WIN_WIDTH: u32 = 800;
 pub const WIN_HEIGHT: u32 = 600;
 
@@ -21,8 +22,6 @@ pub const WIN_HEIGHT_US: usize = WIN_HEIGHT as usize;
 
 
 
-// pub const WIN_WIDTH: u32 = 1024;
-// pub const WIN_HEIGHT: u32 = 768;
 
 pub const WIN_X: u32 = MONITOR_WIDTH / 2 - WIN_WIDTH / 2;
 pub const WIN_Y: u32 = MONITOR_HEIGHT / 2 - WIN_HEIGHT / 2;
