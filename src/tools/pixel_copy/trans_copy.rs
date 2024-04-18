@@ -1,14 +1,19 @@
 use crate::init::init_window::WIN_WIDTH;
 use crate::tools::primitives::{Point, RectArea};
 
-pub fn copy_non_transparent_pixels(
+/// Transparency-aware copy -- copies non-transparent pixels from the source memory buf to the destination memory buf.
+/// - `src_buf_view` -- source memory buffer
+/// - `dst_buf_view` -- destination memory buffer
+/// - `src_area` -- A rectangular area that will be copied
+/// - `dst_start` -- Top-left point of the destination area. The area itself matches the source.
+/// - `transparency_color` -- Pixels of this color will not be copied to the destination
+pub fn trans_copy(
     src_buf_view: &[u32],
     dst_buf_view: &mut [u32],
-    src_area: RectArea,
-    dst_start: Point,
-    transparency_color: u32,
+    src_area: &RectArea,
+    dst_start: &Point,
+    transparency_color: &u32,
 ) {
-
     let x_start = src_area.top_left.x;
     let x_end = x_start + src_area.dimensions.w;
 
@@ -16,7 +21,7 @@ pub fn copy_non_transparent_pixels(
     let y_end = y_start + src_area.dimensions.h;
     let mut index: usize;
     let mut pixel: u32;
-
+    let transparency_color = *transparency_color;
 
     let mut dst_x = dst_start.x;
     let mut dst_y = dst_start.y;
@@ -32,7 +37,6 @@ pub fn copy_non_transparent_pixels(
                 }
             }
             dst_y += 1;
-            // FIXME: It blows up at around here!!!
         }
         dst_x += 1;
         dst_y = dst_start.y;
