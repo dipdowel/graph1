@@ -1,15 +1,16 @@
-
 // use std::collections::HashMap;
 use std::fmt::Debug;
 
 use minifb::{Key, KeyRepeat};
 use rand::seq::SliceRandom;
 use rand::Rng;
-
+use crate::tools::color_math::argb_math::argb_math;
 use constants::*;
 
 use crate::cube::Cube;
 use crate::draw::line;
+use crate::draw::star;
+
 use crate::init::init_window::*;
 use crate::input::handle_keyboard;
 use crate::state::{init_app_state, APP_STATE};
@@ -19,7 +20,9 @@ use crate::tools::pixel_copy::trans_copy::trans_copy;
 use crate::tools::pixel_copy::trans_copy_math::trans_copy_math;
 use crate::tools::pixel_copy::trans_copy_math_multi_dest::trans_copy_math_multi_dest;
 use crate::tools::pixel_copy::trans_copy_multi_dest::trans_copy_multi_dest;
-use crate::tools::primitives::{Dimensions2d, Pixel, Point, Point3DF32, RectArea};
+use crate::tools::primitives::{
+    Dimensions2d, Pixel, Point, Point3DF32, StarProperties, RectArea,
+};
 
 // Trait that provides the shuffle method.
 
@@ -36,7 +39,7 @@ mod draw;
 mod input;
 mod state;
 
-const DEV_MODE: bool = false;
+const DEV_MODE: bool = true;
 
 fn slice_buffer_in_4(buffer: &mut Vec<u32>) -> (&mut [u32], &mut [u32], &mut [u32], &mut [u32]) {
     // Calculate indices for splitting the vector into four equal parts
@@ -133,24 +136,22 @@ fn main() {
         },
         (WIN_HEIGHT as f32 / 64_f32),
         0x00_ff_ff_ff,
-
     );
 
-        let mut cube2 = Cube::new(
-            Point3DF32 {
-                x: 3_f32,
-                y: -3_f32,
-                z: 3_f32,
-            },
-            Point3DF32 {
-
-                x: 64_f32,
-                y: 64_f32,
-                z: 0_f32,
-            },
-            (WIN_HEIGHT as f32 / 32_f32),
-            0x00_00_00_ff,
-        );
+    let mut cube2 = Cube::new(
+        Point3DF32 {
+            x: 3_f32,
+            y: -3_f32,
+            z: 3_f32,
+        },
+        Point3DF32 {
+            x: 64_f32,
+            y: 64_f32,
+            z: 0_f32,
+        },
+        (WIN_HEIGHT as f32 / 32_f32),
+        0x00_00_00_ff,
+    );
 
     let mut cube3 = Cube::new(
         Point3DF32 {
@@ -159,7 +160,6 @@ fn main() {
             z: 2_f32,
         },
         Point3DF32 {
-
             x: 64_f32,
             y: 64_f32,
             z: 0_f32,
@@ -191,8 +191,8 @@ fn main() {
         fill(buf_view, 0x00_04_04_0F);
 
         // Draw kinda dotted grid
-        let grid_factor:usize = 20;
-        for i in 0 ..WIN_WIDTH_US {
+        let grid_factor: usize = 20;
+        for i in 0..WIN_WIDTH_US {
             if i % grid_factor == 0 {
                 buf_view[i] = 0x00_55_55_aa;
             }
@@ -201,8 +201,40 @@ fn main() {
             buf_view.copy_within(0..WIN_WIDTH_US, i * grid_factor * WIN_WIDTH_US);
         }
 
+        ///////////// STAR START ////////////////////
+
+        // Example usage
+        let mut center_pixel = Pixel {
+            x: 300 + oscillator as u32,
+            y: 300 - oscillator as u32,
+            color:0xff_00_ff_dd
+        };
+        center_pixel.color = argb_math(&0xff_ff_ff_ff, &(frame_count * oscillator as u32), &ColorOperation::Subtract);
+        let star_props_1 = StarProperties {
+            center: center_pixel,
+            num_vertices: 18, // e.g., a 10-point star
+            outer_radius: 50 + (oscillator / 2) as u32,
+            inner_radius: 40,
+            rotation_angle: frame_count as f64 * 1.5,
+        };
 
 
+        star(buf_view, &star_props_1);
+
+        center_pixel.color = argb_math(&0xff_22_22_99, &(frame_count * oscillator as u32), &ColorOperation::Add);
+        let star_props_2 = StarProperties {
+            center: center_pixel,
+            num_vertices: 18, // e.g., a 10-point star
+            outer_radius: 40 + (oscillator / 4) as u32,
+            inner_radius: 30,
+            rotation_angle: frame_count as f64 * 1.5,
+        };
+
+
+
+        star(buf_view, &star_props_2);
+
+        ///////////// STAR END ////////////////////
 
         //----------------------------------------------------------------------------------------------
         // THE CUBE dynamic
@@ -213,10 +245,8 @@ fn main() {
 
         // draw::circle(buf_view, &Pixel { x: state.hero_position.x, y: state.hero_position.y, color: 0x00_ff_ff_ff }, 3,2);
 
-        state.hero_position.x =
-            (state.hero_position.x as i32 + state.hero_velocity.x) as u32;
-        state.hero_position.y =
-            (state.hero_position.y as i32 + state.hero_velocity.y) as u32;
+        state.hero_position.x = (state.hero_position.x as i32 + state.hero_velocity.x) as u32;
+        state.hero_position.y = (state.hero_position.y as i32 + state.hero_velocity.y) as u32;
 
         let mut translation: Option<Point3DF32> = None;
 
@@ -238,7 +268,7 @@ fn main() {
 
         // cube.render_frame(buf_view, 10.0 + frame_count as f32, &translation );
 
-        cube.render_frame(buf_view_1,  frame_count as f32, None);
+        cube.render_frame(buf_view_1, frame_count as f32, None);
         cube2.render_frame(buf_view_1, frame_count as f32, None);
         cube3.render_frame(buf_view_1, frame_count as f32, None);
 
@@ -249,155 +279,158 @@ fn main() {
 
         //TODO: This prevents the app from crashing but it's not accurate and needs an improvement!
         let hero_lim = 78;
-        if state.hero_position.x < hero_lim {state.hero_position.x = hero_lim }
-        if state.hero_position.x > WIN_WIDTH - hero_lim {state.hero_position.x = WIN_WIDTH - hero_lim }
+        if state.hero_position.x < hero_lim {
+            state.hero_position.x = hero_lim
+        }
+        if state.hero_position.x > WIN_WIDTH - hero_lim {
+            state.hero_position.x = WIN_WIDTH - hero_lim
+        }
 
-        if state.hero_position.y < hero_lim {state.hero_position.y = hero_lim }
-        if state.hero_position.y > WIN_HEIGHT - hero_lim {state.hero_position.y = WIN_HEIGHT - hero_lim }
+        if state.hero_position.y < hero_lim {
+            state.hero_position.y = hero_lim
+        }
+        if state.hero_position.y > WIN_HEIGHT - hero_lim {
+            state.hero_position.y = WIN_HEIGHT - hero_lim
+        }
 
-
-        line::horizontal(buf_view, &Pixel{x:0, y:WIN_HEIGHT/8*5 , color:0x00_55_55_aa}, WIN_WIDTH);
-
-
-
-
+        line::horizontal(
+            buf_view,
+            &Pixel {
+                x: 0,
+                y: WIN_HEIGHT / 8 * 5,
+                color: 0x00_55_55_aa,
+            },
+            WIN_WIDTH,
+        );
 
         /*
-        // TESTED! WORKS!
-        trans_copy(
-            buf_view_1,
-            buf_view,
-            &RectArea {
-                top_left: Point { x: 0, y: 0 },
-                dimensions: Dimensions2d { w: 154, h: 154 },
-            },
-            &Point { x: state.hero_position.x+140, y: state.hero_position.y},
-            &0x00_44_00_00
-        );
+                // TESTED! WORKS!
+                trans_copy(
+                    buf_view_1,
+                    buf_view,
+                    &RectArea {
+                        top_left: Point { x: 0, y: 0 },
+                        dimensions: Dimensions2d { w: 154, h: 154 },
+                    },
+                    &Point { x: state.hero_position.x+140, y: state.hero_position.y-120},
+                    &0x00_44_00_00
+                );
         */
 
+        /*
+              // TESTED! WORKS!
+                let dest_vec_pixel: Vec<Pixel> = vec![
+                    Pixel { x: state.hero_position.x, y: state.hero_position.y+100, color: 0x00_cc_cc_cc },
+                    Pixel { x: state.hero_position.x, y: state.hero_position.y, color: 0x00_88_88_88 },
+                    Pixel { x: state.hero_position.x, y: state.hero_position.y-100, color: 0x00_44_44_44 },
+                    Pixel { x: state.hero_position.x, y: state.hero_position.y-200, color: 0x00_00_00_00 },
+                ];
 
+                trans_copy_math_multi_dest(
+                    buf_view_1,
+                    buf_view,
+                    &RectArea {
+                        top_left: Point { x: 0, y: 0 },
+                        dimensions: Dimensions2d { w: 154, h: 154 },
+                    },
+                    &dest_vec_pixel,
+                    &0x00_44_00_00,
+                    &ColorOperation::Add
+                );
+        */
 
+        /*
+                // TESTED! WORKS!
+                let dest_vec_point: Vec<Point> = vec![
+                    Point { x: state.hero_position.x, y: state.hero_position.y},
+                    Point { x: state.hero_position.x+140, y: state.hero_position.y},
+                    Point { x: state.hero_position.x+280, y: state.hero_position.y},
+                ];
 
+                trans_copy_multi_dest(
+                    buf_view_1,
+                    buf_view,
+                    &RectArea {
+                        top_left: Point { x: 0, y: 0 },
+                        dimensions: Dimensions2d { w: 154, h: 154 },
+                    },
+                    &dest_vec_point,
+                    &0x00_44_00_00,
+                );
+        */
 
-        let dest_vec_pixel: Vec<Pixel> = vec![
-            Pixel { x: state.hero_position.x, y: state.hero_position.y+100, color: 0x00_cc_cc_cc },
-            Pixel { x: state.hero_position.x, y: state.hero_position.y, color: 0x00_88_88_88 },
-            Pixel { x: state.hero_position.x, y: state.hero_position.y-100, color: 0x00_44_44_44 },
-            Pixel { x: state.hero_position.x, y: state.hero_position.y-200, color: 0x00_00_00_00 },
-        ];
+        /*
+            // TESTED! WORKS!
+            trans_copy_math(
+                buf_view_1,
+                buf_view,
+                &RectArea {
+                    top_left: Point { x: 0, y: 0 },
+                    dimensions: Dimensions2d { w: 154, h: 154 },
+                },
+                &Pixel { x: state.hero_position.x+140, y: state.hero_position.y, color: 0x00_22_22_55 },
+                &0x00_44_00_00,
+                &ColorOperation::Subtract
+            );
+        */
 
-        trans_copy_math_multi_dest(
-            buf_view_1,
-            buf_view,
-            &RectArea {
-                top_left: Point { x: 0, y: 0 },
-                dimensions: Dimensions2d { w: 154, h: 154 },
-            },
-            &dest_vec_pixel,
-            &0x00_44_00_00,
-            &ColorOperation::Add
+        drop(state);
+
+        /*******************************************************************************************
+        //  A WORKING SOLUTIONS:  Combine all the 4 buf_views into one and do copy within!
+        //-------------------------------------------------------------------------------------------
+        let mut complete_slice =  unsafe { std::slice::from_raw_parts_mut(buf_view_1.as_mut_ptr(), TOTAL_BUFFER_SIZE)};
+        complete_slice.copy_within(0..100 * WIN_WIDTH as usize, PIXEL_PER_PAGE+ 300 * WIN_WIDTH as usize);
+        *******************************************************************************************/
+
+        // let mut v = complete_slice.to_vec();
+        // v.copy_within(0..100*WIN_WIDTH as usize, PIXEL_PER_PAGE*2);
+
+        // complete_slice
+
+        //----------------------------------------------------------------------------------------------
+
+        //---------------------------
+        // Read and handle keyboard
+        //---------------------------
+        let keys_pressed = window.get_keys_pressed(KeyRepeat::No);
+
+        // let mut state = APP_STATE.lock().unwrap();
+        // state.keyboard_raw.keys_pressed = window.get_keys_pressed(KeyRepeat::No);
+        // state.keyboard_raw.keys_released = window.get_keys_released();
+        // drop(state); // release the mutex by moving `state` out of scope.
+
+        handle_keyboard(
+            &window.get_keys_pressed(KeyRepeat::No),
+            &window.get_keys_released(),
         );
 
+        // println!("State: {:?}", state);
 
+        frame_count += 1;
 
+        // We unwrap here as we want this code to exit if it fails. Real applications may want to handle this in a different way
+        window
+            .update_with_buffer(buf_view, WIN_WIDTH as usize, WIN_HEIGHT as usize)
+            .unwrap();
 
-        // TESTED! WORKS!
-        let dest_vec_point: Vec<Point> = vec![
-            Point { x: state.hero_position.x, y: state.hero_position.y},
-            Point { x: state.hero_position.x+140, y: state.hero_position.y},
-            Point { x: state.hero_position.x+280, y: state.hero_position.y},
-        ];
+        match dev_window {
+            Some(ref mut dev_window) => {
+                let mut dev_buf_view: &mut [u32];
+                match dev_buffer_number {
+                    1 => dev_buf_view = buf_view_1,
+                    2 => dev_buf_view = buf_view,
+                    3 => dev_buf_view = buf_view_3,
+                    _ => dev_buf_view = buf_view_4,
+                }
 
-        trans_copy_multi_dest(
-            buf_view_1,
-            buf_view,
-            &RectArea {
-                top_left: Point { x: 0, y: 0 },
-                dimensions: Dimensions2d { w: 154, h: 154 },
-            },
-            &dest_vec_point,
-            &0x00_44_00_00,
-        );
-
-
-
-
-
-    // TESTED! WORKS!
-    trans_copy_math(
-        buf_view_1,
-        buf_view,
-        &RectArea {
-            top_left: Point { x: 0, y: 0 },
-            dimensions: Dimensions2d { w: 154, h: 154 },
-        },
-        &Pixel { x: state.hero_position.x+140, y: state.hero_position.y, color: 0x00_22_22_55 },
-        &0x00_44_00_00,
-        &ColorOperation::Subtract
-    );
-
-
-
-
-    drop(state);
-
-
-    /*******************************************************************************************
-    //  A WORKING SOLUTIONS:  Combine all the 4 buf_views into one and do copy within!
-    //-------------------------------------------------------------------------------------------
-    let mut complete_slice =  unsafe { std::slice::from_raw_parts_mut(buf_view_1.as_mut_ptr(), TOTAL_BUFFER_SIZE)};
-    complete_slice.copy_within(0..100 * WIN_WIDTH as usize, PIXEL_PER_PAGE+ 300 * WIN_WIDTH as usize);
-    *******************************************************************************************/
-
-    // let mut v = complete_slice.to_vec();
-    // v.copy_within(0..100*WIN_WIDTH as usize, PIXEL_PER_PAGE*2);
-
-    // complete_slice
-
-    //----------------------------------------------------------------------------------------------
-
-    //---------------------------
-    // Read and handle keyboard
-    //---------------------------
-    let keys_pressed = window.get_keys_pressed(KeyRepeat::No);
-
-    // let mut state = APP_STATE.lock().unwrap();
-    // state.keyboard_raw.keys_pressed = window.get_keys_pressed(KeyRepeat::No);
-    // state.keyboard_raw.keys_released = window.get_keys_released();
-    // drop(state); // release the mutex by moving `state` out of scope.
-
-    handle_keyboard(
-        &window.get_keys_pressed(KeyRepeat::No),
-        &window.get_keys_released(),
-    );
-
-    // println!("State: {:?}", state);
-
-    frame_count += 1;
-
-    // We unwrap here as we want this code to exit if it fails. Real applications may want to handle this in a different way
-    window
-        .update_with_buffer(buf_view, WIN_WIDTH as usize, WIN_HEIGHT as usize)
-        .unwrap();
-
-    match dev_window {
-        Some(ref mut dev_window) => {
-            let mut dev_buf_view: &mut [u32];
-            match dev_buffer_number {
-                1 => dev_buf_view = buf_view_1,
-                2 => dev_buf_view = buf_view,
-                3 => dev_buf_view = buf_view_3,
-                _ => dev_buf_view = buf_view_4,
+                dev_window
+                    .update_with_buffer(dev_buf_view, WIN_WIDTH as usize, WIN_HEIGHT as usize)
+                    .unwrap();
             }
-
-            dev_window
-                .update_with_buffer(dev_buf_view, WIN_WIDTH as usize, WIN_HEIGHT as usize)
-                .unwrap();
+            _ => (),
         }
-        _ => (),
     }
-}
 }
 
 //TODO: Make the FRAME pulsate using `oscillator` in inverted manner compared to the 'electricity'
