@@ -4,7 +4,6 @@ use crate::draw::line::between_two_points;
 use crate::tools::primitives::{Pixel, Point, StarProperties};
 
 /// Function to draw a polygon based on provided properties
-// pub fn star(buf_view: &mut [u32],props: &StarProperties) {
 pub fn star(ctx: &mut GraphContext, props: &StarProperties) {
 
     let angle_step = 2.0 * PI / props.num_vertices as f64;  // Angle between each vertex

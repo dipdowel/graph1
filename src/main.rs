@@ -8,7 +8,7 @@ use crate::tools::color_math::argb_math::argb_math;
 use constants::*;
 
 use crate::cube::Cube;
-use crate::graph_core::context::GraphContext;
+use crate::graph_core::context::{GraphContext, ContextWindow};
 use crate::draw::line;
 use crate::draw::star;
 
@@ -82,21 +82,22 @@ fn main() {
     fill(buf_view_3, 0x00_00_44_00);
     fill(buf_view_4, 0x00_00_00_44);
 
+    let context_window: ContextWindow = ContextWindow {
+        w: WIN_WIDTH,
+        h: WIN_HEIGHT,
+        w_usize: WIN_WIDTH_US,
+        h_usize: WIN_HEIGHT_US,
+    };
 
     let mut ctx: GraphContext = GraphContext {
         buf_view,
-        win_width:WIN_WIDTH,
-        win_height: WIN_HEIGHT,
-        win_height_usize: WIN_HEIGHT_US,
-        win_width_usize:WIN_WIDTH_US
+        win: &context_window
     };
+
 
     let mut ctx_draft: GraphContext = GraphContext {
         buf_view:buf_view_1,
-        win_width:WIN_WIDTH,
-        win_height: WIN_HEIGHT,
-        win_height_usize: WIN_HEIGHT_US,
-        win_width_usize:WIN_WIDTH_US
+        win: &context_window
     };
 
 
@@ -104,7 +105,7 @@ fn main() {
         Some(ref mut dev_window) => {
             // We unwrap here as we want this code to exit if it fails. Real applications may want to handle this in a different way
             dev_window
-                .update_with_buffer(ctx_draft.buf_view, ctx.win_width_usize, ctx.win_height_usize)
+                .update_with_buffer(ctx_draft.buf_view, ctx.win.w_usize, ctx.win.h_usize)
                 .expect("Failed to update dev window memory")
         }
         _ => (),
@@ -120,8 +121,8 @@ fn main() {
     // Generate a bunch of points to draw lines with later on
     loop {
         points.push(Point {
-            x: rng.gen_range(ctx.win_width / 2 - 75..ctx.win_width / 2 + 75),
-            y: rng.gen_range(ctx.win_height / 2 - 75..ctx.win_height / 2 + 75),
+            x: rng.gen_range(ctx.win.w / 2 - 75..ctx.win.w / 2 + 75),
+            y: rng.gen_range(ctx.win.h / 2 - 75..ctx.win.h / 2 + 75),
         });
         i += 1;
         if i == points_len {
@@ -302,15 +303,15 @@ fn main() {
         if state.hero_position.x < hero_lim {
             state.hero_position.x = hero_lim
         }
-        if state.hero_position.x > ctx.win_width - hero_lim {
-            state.hero_position.x = ctx.win_width - hero_lim
+        if state.hero_position.x > ctx.win.w - hero_lim {
+            state.hero_position.x = ctx.win.w - hero_lim
         }
 
         if state.hero_position.y < hero_lim {
             state.hero_position.y = hero_lim
         }
-        if state.hero_position.y > ctx.win_height - hero_lim {
-            state.hero_position.y = ctx.win_height - hero_lim
+        if state.hero_position.y > ctx.win.h - hero_lim {
+            state.hero_position.y = ctx.win.h - hero_lim
         }
 
         line::horizontal(
@@ -323,11 +324,11 @@ fn main() {
             WIN_WIDTH,
         );
 
-        /*
+
                 // TESTED! WORKS!
                 trans_copy(
-                    buf_view_1,
-                    buf_view,
+                    ctx_draft.buf_view,
+                    ctx.buf_view,
                     &RectArea {
                         top_left: Point { x: 0, y: 0 },
                         dimensions: Dimensions2d { w: 154, h: 154 },
@@ -335,7 +336,7 @@ fn main() {
                     &Point { x: state.hero_position.x+140, y: state.hero_position.y-120},
                     &0x00_44_00_00
                 );
-        */
+
 
         /*
               // TESTED! WORKS!
@@ -431,7 +432,7 @@ fn main() {
 
         // We unwrap here as we want this code to exit if it fails. Real applications may want to handle this in a different way
         window
-            .update_with_buffer(ctx.buf_view, ctx.win_width_usize, ctx.win_height_usize)
+            .update_with_buffer(ctx.buf_view, ctx.win.w_usize, ctx.win.h_usize)
             .unwrap();
 
         match dev_window {
@@ -445,7 +446,7 @@ fn main() {
                 }
 
                 dev_window
-                    .update_with_buffer(dev_buf_view, ctx.win_width_usize, ctx.win_height_usize)
+                    .update_with_buffer(dev_buf_view, ctx.win.w_usize, ctx.win.h_usize)
                     .unwrap();
             }
             _ => (),

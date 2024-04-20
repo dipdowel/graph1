@@ -1,8 +1,13 @@
+
+pub struct ContextWindow {
+    pub w: u32,
+    pub h: u32,
+    pub w_usize: usize,
+    pub h_usize: usize,
+}
+
 pub struct GraphContext<'a> {
-    pub win_width: u32,
-    pub win_height: u32,
-    pub win_width_usize: usize,
-    pub win_height_usize: usize,
+    pub win: &'a ContextWindow,
     pub buf_view: &'a mut[u32]
 }
 
