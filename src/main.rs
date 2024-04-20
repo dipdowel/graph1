@@ -8,6 +8,7 @@ use crate::tools::color_math::argb_math::argb_math;
 use constants::*;
 
 use crate::cube::Cube;
+use crate::graph_core::context::GraphContext;
 use crate::draw::line;
 use crate::draw::star;
 
@@ -38,6 +39,7 @@ mod cube;
 mod draw;
 mod input;
 mod state;
+mod graph_core;
 
 const DEV_MODE: bool = true;
 
@@ -79,6 +81,16 @@ fn main() {
     fill(buf_view_1, 0x00_44_00_00);
     fill(buf_view_3, 0x00_00_44_00);
     fill(buf_view_4, 0x00_00_00_44);
+
+
+    let mut ctx: GraphContext = GraphContext {
+        buf_view,
+        win_width:WIN_WIDTH,
+        win_height: WIN_HEIGHT,
+        win_height_usize: WIN_HEIGHT_US,
+        win_width_usize:WIN_WIDTH_US
+    };
+
 
     match dev_window {
         Some(ref mut dev_window) => {
@@ -188,17 +200,17 @@ fn main() {
         // Clear screen
         fill(buf_view_1, 0x00_44_00_00);
 
-        fill(buf_view, 0x00_04_04_0F);
+        fill(ctx.buf_view, 0x00_04_04_0F);
 
         // Draw kinda dotted grid
         let grid_factor: usize = 20;
         for i in 0..WIN_WIDTH_US {
             if i % grid_factor == 0 {
-                buf_view[i] = 0x00_55_55_aa;
+                ctx.buf_view[i] = 0x00_55_55_aa;
             }
         }
         for i in 1..WIN_HEIGHT_US / grid_factor {
-            buf_view.copy_within(0..WIN_WIDTH_US, i * grid_factor * WIN_WIDTH_US);
+            ctx.buf_view.copy_within(0..WIN_WIDTH_US, i * grid_factor * WIN_WIDTH_US);
         }
 
         ///////////// STAR START ////////////////////
@@ -219,7 +231,7 @@ fn main() {
         };
 
 
-        star(buf_view, &star_props_1);
+        star(&mut ctx, &star_props_1);
 
         center_pixel.color = argb_math(&0xff_22_22_99, &(frame_count * oscillator as u32), &ColorOperation::Add);
         let star_props_2 = StarProperties {
@@ -232,7 +244,7 @@ fn main() {
 
 
 
-        star(buf_view, &star_props_2);
+        star(&mut ctx, &star_props_2);
 
         ///////////// STAR END ////////////////////
 
@@ -294,7 +306,7 @@ fn main() {
         }
 
         line::horizontal(
-            buf_view,
+            ctx.buf_view,
             &Pixel {
                 x: 0,
                 y: WIN_HEIGHT / 8 * 5,
@@ -411,7 +423,7 @@ fn main() {
 
         // We unwrap here as we want this code to exit if it fails. Real applications may want to handle this in a different way
         window
-            .update_with_buffer(buf_view, WIN_WIDTH as usize, WIN_HEIGHT as usize)
+            .update_with_buffer(ctx.buf_view, WIN_WIDTH as usize, WIN_HEIGHT as usize)
             .unwrap();
 
         match dev_window {
@@ -419,7 +431,7 @@ fn main() {
                 let mut dev_buf_view: &mut [u32];
                 match dev_buffer_number {
                     1 => dev_buf_view = buf_view_1,
-                    2 => dev_buf_view = buf_view,
+                    2 => dev_buf_view = ctx.buf_view,
                     3 => dev_buf_view = buf_view_3,
                     _ => dev_buf_view = buf_view_4,
                 }

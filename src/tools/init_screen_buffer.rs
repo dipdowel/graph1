@@ -1,15 +1,16 @@
 use crate::draw;
+use crate::graph_core::context::GraphContext;
 use crate::tools::fill::fill;
 use crate::tools::primitives::Pixel;
 
 // pub fn init_screen_buffer(buffer: &mut Vec<u32>) {
-pub fn init_screen_buffer(buf_view: &mut [u32]) {
+pub fn init_screen_buffer(ctx: &mut GraphContext) {
     // let buf_len = buffer.len();
     // let buf_view: &mut [u32] = &mut buffer[0..buf_len];
-    let buf_len = buf_view.len();
+    let buf_len = ctx.buf_view.len();
 
 
-    fill(buf_view, 0x00_00_1E_00);
+    // fill(buf_view, 0x00_00_1E_00);
 
     /*
     let total_scanlines = buf_len as u32 / WIN_WIDTH;
@@ -31,10 +32,10 @@ pub fn init_screen_buffer(buf_view: &mut [u32]) {
 
 
      // draw::circle(buf_view, &Pixel { x: 320, y: 95, color: 0x00_00_ff_00 }, 20, 0);
-    draw::circle(buf_view, &Pixel { x: 320, y: 95, color: 0x00_00_ff_00 }, 20, 0);
-    draw::circle(buf_view, &Pixel { x: 320, y: 95*2, color: 0x00_00_ff_00 }, 30, 1);
-    draw::circle(buf_view, &Pixel { x: 320, y: 95*3, color: 0x00_00_ff_00 }, 40, 2);
-    draw::circle(buf_view, &Pixel { x: 320, y: 95*4, color: 0x00_00_ff_00 }, 50, 3);
+    draw::circle(ctx.buf_view, &Pixel { x: 320, y: 95, color: 0x00_00_ff_00 }, 20, 0);
+    draw::circle(ctx.buf_view, &Pixel { x: 320, y: 95*2, color: 0x00_00_ff_00 }, 30, 1);
+    draw::circle(ctx.buf_view, &Pixel { x: 320, y: 95*3, color: 0x00_00_ff_00 }, 40, 2);
+    draw::circle(ctx.buf_view, &Pixel { x: 320, y: 95*4, color: 0x00_00_ff_00 }, 50, 3);
 
 
 
