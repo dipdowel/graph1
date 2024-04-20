@@ -1,16 +1,17 @@
 // use std::collections::HashMap;
 use std::fmt::Debug;
 
+use crate::tools::color_math::argb_math::argb_math;
+use constants::*;
 use minifb::{Key, KeyRepeat};
 use rand::seq::SliceRandom;
 use rand::Rng;
-use crate::tools::color_math::argb_math::argb_math;
-use constants::*;
 
 use crate::cube::Cube;
-use crate::graph_core::context::{GraphContext, ContextWindow};
+use crate::draw::curves::draw_continuous_bezier_curve;
 use crate::draw::line;
 use crate::draw::star;
+use crate::graph_core::context::{ContextWindow, GraphContext};
 
 use crate::init::init_window::*;
 use crate::input::handle_keyboard;
@@ -22,7 +23,7 @@ use crate::tools::pixel_copy::trans_copy_math::trans_copy_math;
 use crate::tools::pixel_copy::trans_copy_math_multi_dest::trans_copy_math_multi_dest;
 use crate::tools::pixel_copy::trans_copy_multi_dest::trans_copy_multi_dest;
 use crate::tools::primitives::{
-    Dimensions2d, Pixel, Point, Point3DF32, StarProperties, RectArea,
+    Dimensions2d, Pixel, Point, Point3DF32, PointF32, RectArea, StarProperties,
 };
 
 // Trait that provides the shuffle method.
@@ -37,9 +38,9 @@ mod constants;
 
 mod cube;
 mod draw;
+mod graph_core;
 mod input;
 mod state;
-mod graph_core;
 
 const DEV_MODE: bool = true;
 
@@ -91,15 +92,13 @@ fn main() {
 
     let mut ctx: GraphContext = GraphContext {
         buf_view,
-        win: &context_window
+        win: &context_window,
     };
-
 
     let mut ctx_draft: GraphContext = GraphContext {
-        buf_view:buf_view_1,
-        win: &context_window
+        buf_view: buf_view_1,
+        win: &context_window,
     };
-
 
     match dev_window {
         Some(ref mut dev_window) => {
@@ -219,7 +218,8 @@ fn main() {
             }
         }
         for i in 1..WIN_HEIGHT_US / grid_factor {
-            ctx.buf_view.copy_within(0..WIN_WIDTH_US, i * grid_factor * WIN_WIDTH_US);
+            ctx.buf_view
+                .copy_within(0..WIN_WIDTH_US, i * grid_factor * WIN_WIDTH_US);
         }
 
         ///////////// STAR START ////////////////////
@@ -228,34 +228,147 @@ fn main() {
         let mut center_pixel = Pixel {
             x: 300 + oscillator as u32,
             y: 300 - oscillator as u32,
-            color:0xff_00_ff_dd
+            color: 0xff_00_ff_dd,
         };
-        center_pixel.color = argb_math(&0xff_ff_ff_ff, &(frame_count * oscillator as u32), &ColorOperation::Subtract);
+        center_pixel.color = argb_math(
+            &0xff_ff_ff_ff,
+            &(frame_count * oscillator as u32),
+            &ColorOperation::Subtract,
+        );
+
+        let vertex_num = frame_count % 60;
+
         let star_props_1 = StarProperties {
             center: center_pixel,
-            num_vertices: 18, // e.g., a 10-point star
+            num_vertices: vertex_num, // e.g., a 10-point star
             outer_radius: 50 + (oscillator / 2) as u32,
             inner_radius: 40,
             rotation_angle: frame_count as f64 * 1.5,
         };
 
-
         star(&mut ctx, &star_props_1);
 
-        center_pixel.color = argb_math(&0xff_22_22_99, &(frame_count * oscillator as u32), &ColorOperation::Add);
+        center_pixel.color = argb_math(
+            &0xff_22_22_99,
+            &(frame_count * oscillator as u32),
+            &ColorOperation::Add,
+        );
         let star_props_2 = StarProperties {
             center: center_pixel,
-            num_vertices: 18, // e.g., a 10-point star
+            num_vertices: vertex_num, // e.g., a 10-point star
             outer_radius: 40 + (oscillator / 4) as u32,
             inner_radius: 30,
             rotation_angle: frame_count as f64 * 1.5,
         };
 
-
-
         star(&mut ctx, &star_props_2);
 
         ///////////// STAR END ////////////////////
+
+        // pub fn draw_bezier_curve(ctx: &mut GraphContext, p0: &Point, p1: &Point, p2: &Point, p3: &Point) {
+        //******************************************************************************************
+        //******************************************************************************************
+        draw::curves::draw_bezier_curve(
+            &mut ctx,
+            &Point { x: 0, y: 0 },
+            &Point {
+                x: 250,
+                y: 250 - (oscillator) as u32,
+            },
+            &Point {
+                x: 350 + oscillator as u32,
+                y: 350 + oscillator as u32,
+            },
+            &Point { x: 800, y: 600 },
+            Some(0.05), //None // Some(0.001)
+        );
+
+        let cx = 30_f32 + (oscillator*5 ) as f32; // Center x
+        let cy = 300_f32 + oscillator as f32; // Center y
+        let r = 120_f32 + 1.5*oscillator as f32; // Radius
+        let k = 4.0 / 3.0 * (2.0_f32.sqrt() - 1.0);
+        let res_delta:f32 = 0.01;
+
+        // First Quadrant
+        #[rustfmt::skip]
+        let p0 = PointF32 { x: cx + r,     y: cy };
+        #[rustfmt::skip]
+        let p1 = PointF32 { x: cx + r,     y: cy + r * k };
+        #[rustfmt::skip]
+        let p2 = PointF32 { x: cx + r * k, y: cy + r };
+        #[rustfmt::skip]
+        let p3 = PointF32 { x: cx,         y: cy + r };
+        #[rustfmt::skip]
+        draw::curves::draw_bezier_curve( &mut ctx, &Point::from(p0), &Point::from(p1),
+                                         &Point::from(p2), &Point::from(p3), Some(res_delta) );
+
+        // Second Quadrant
+        #[rustfmt::skip]
+        let p0 = PointF32 { x: cx,         y: cy + r };
+        #[rustfmt::skip]
+        let p1 = PointF32 { x: cx - r * k, y: cy + r };
+        #[rustfmt::skip]
+        let p2 = PointF32 { x: cx - r,     y: cy + r * k };
+        #[rustfmt::skip]
+        let p3 = PointF32 { x: cx - r,     y: cy };
+        #[rustfmt::skip]
+        draw::curves::draw_bezier_curve( &mut ctx, &Point::from(p0), &Point::from(p1),
+                                         &Point::from(p2), &Point::from(p3), Some(res_delta) );
+
+        // Third Quadrant
+        #[rustfmt::skip]
+        let p0 = PointF32 { x: cx - r,     y: cy };
+        #[rustfmt::skip]
+        let p1 = PointF32 { x: cx - r,     y: cy - r * k };
+        #[rustfmt::skip]
+        let p2 = PointF32 { x: cx - r * k, y: cy - r };
+        #[rustfmt::skip]
+        let p3 = PointF32 { x: cx,         y: cy - r };
+        #[rustfmt::skip]
+        draw::curves::draw_bezier_curve( &mut ctx, &Point::from(p0), &Point::from(p1),
+                                         &Point::from(p2), &Point::from(p3), Some(res_delta) );
+
+        // Fourth Quadrant
+        #[rustfmt::skip]
+        let p0 = PointF32 { x: cx,         y: cy - r };
+        #[rustfmt::skip]
+        let p1 = PointF32 { x: cx + r * k, y: cy - r };
+        #[rustfmt::skip]
+        let p2 = PointF32 { x: cx + r,     y: cy - r * k };
+        #[rustfmt::skip]
+        let p3 = PointF32 { x: cx + r,     y: cy };
+        #[rustfmt::skip]
+        draw::curves::draw_bezier_curve( &mut ctx, &Point::from(p0), &Point::from(p1),
+                                         &Point::from(p2), &Point::from(p3), Some(res_delta) );
+
+
+
+        //******************************************************************************************
+        //******************************************************************************************
+
+
+
+        // Usage of the continuous Bezier curve!
+        let points = vec![
+            Point { x: 50, y: 50 },
+            Point { x: 150, y: 150 },
+            Point { x: 300, y: 100 },
+            Point { x: 350, y: 200 },
+            // More points can follow...
+            Point { x: 400, y: 400 },
+            Point { x: 300, y: 100 },
+            Point { x: 150, y: 100 },
+            // and some more!
+
+            Point { x: 100, y: 140 },
+            Point { x: 190, y: 190 },
+            Point { x: 50, y: 50 },
+        ];
+
+        draw_continuous_bezier_curve(&mut ctx, &points, 0.05);
+
+        //******************************************************************************************
+        //******************************************************************************************
 
         //----------------------------------------------------------------------------------------------
         // THE CUBE dynamic
@@ -298,8 +411,7 @@ fn main() {
 
         // buffer.copy_within(0..40 * WIN_WIDTH as usize, PIXEL_PER_PAGE * 2 + 20*WIN_WIDTH as usize);
 
-
-//==================================================================================================
+        //==================================================================================================
         //TODO: This prevents the app from crashing but it's not accurate and needs an improvement!
         let hero_lim = 78;
         if state.hero_position.x < hero_lim {
@@ -325,84 +437,82 @@ fn main() {
             },
             WIN_WIDTH,
         );
-//==================================================================================================
+        //==================================================================================================
 
 
-/*
-                // TESTED! WORKS!
-                trans_copy(
-                    ctx_draft.buf_view,
-                    ctx.buf_view,
-                    &RectArea {
-                        top_left: Point { x: 0, y: 0 },
-                        dimensions: Dimensions2d { w: 154, h: 154 },
-                    },
-                    &Point { x: state.hero_position.x+140, y: state.hero_position.y-120},
-                    &0x00_44_00_00,
-                    ctx.win
-                );
- */
+                       // TESTED! WORKS!
+                       trans_copy(
+                           ctx_draft.buf_view,
+                           ctx.buf_view,
+                           &RectArea {
+                               top_left: Point { x: 0, y: 0 },
+                               dimensions: Dimensions2d { w: 154, h: 154 },
+                           },
+                           &Point { x: state.hero_position.x+140, y: state.hero_position.y-120},
+                           &0x00_44_00_00,
+                           ctx.win
+                       );
 
 
-/*
-              // TESTED! WORKS!
-                let dest_vec_pixel: Vec<Pixel> = vec![
-                    Pixel { x: state.hero_position.x, y: state.hero_position.y+100, color: 0x00_cc_cc_cc },
-                    Pixel { x: state.hero_position.x, y: state.hero_position.y, color: 0x00_88_88_88 },
-                    Pixel { x: state.hero_position.x, y: state.hero_position.y-100, color: 0x00_44_44_44 },
-                    Pixel { x: state.hero_position.x, y: state.hero_position.y-200, color: 0x00_00_00_00 },
-                ];
+        /*
+                      // TESTED! WORKS!
+                        let dest_vec_pixel: Vec<Pixel> = vec![
+                            Pixel { x: state.hero_position.x, y: state.hero_position.y+100, color: 0x00_cc_cc_cc },
+                            Pixel { x: state.hero_position.x, y: state.hero_position.y, color: 0x00_88_88_88 },
+                            Pixel { x: state.hero_position.x, y: state.hero_position.y-100, color: 0x00_44_44_44 },
+                            Pixel { x: state.hero_position.x, y: state.hero_position.y-200, color: 0x00_00_00_00 },
+                        ];
 
-                trans_copy_math_multi_dest(
-                    ctx_draft.buf_view,
-                    ctx.buf_view,
-                    &RectArea {
-                        top_left: Point { x: 0, y: 0 },
-                        dimensions: Dimensions2d { w: 154, h: 154 },
-                    },
-                    &dest_vec_pixel,
-                    &0x00_44_00_00,
-                    &ColorOperation::Add,
-                    ctx.win
-                );
-*/
+                        trans_copy_math_multi_dest(
+                            ctx_draft.buf_view,
+                            ctx.buf_view,
+                            &RectArea {
+                                top_left: Point { x: 0, y: 0 },
+                                dimensions: Dimensions2d { w: 154, h: 154 },
+                            },
+                            &dest_vec_pixel,
+                            &0x00_44_00_00,
+                            &ColorOperation::Add,
+                            ctx.win
+                        );
+        */
 
-/*
-                // TESTED! WORKS!
-                let dest_vec_point: Vec<Point> = vec![
-                    Point { x: state.hero_position.x, y: state.hero_position.y},
-                    Point { x: state.hero_position.x+140, y: state.hero_position.y},
-                    Point { x: state.hero_position.x+280, y: state.hero_position.y},
-                ];
+        /*
+                        // TESTED! WORKS!
+                        let dest_vec_point: Vec<Point> = vec![
+                            Point { x: state.hero_position.x, y: state.hero_position.y},
+                            Point { x: state.hero_position.x+140, y: state.hero_position.y},
+                            Point { x: state.hero_position.x+280, y: state.hero_position.y},
+                        ];
 
-                trans_copy_multi_dest(
-                    ctx_draft.buf_view,
-                    ctx.buf_view,
-                    &RectArea {
-                        top_left: Point { x: 0, y: 0 },
-                        dimensions: Dimensions2d { w: 154, h: 154 },
-                    },
-                    &dest_vec_point,
-                    &0x00_44_00_00,
-                    ctx.win
-                );
-*/
-/*
+                        trans_copy_multi_dest(
+                            ctx_draft.buf_view,
+                            ctx.buf_view,
+                            &RectArea {
+                                top_left: Point { x: 0, y: 0 },
+                                dimensions: Dimensions2d { w: 154, h: 154 },
+                            },
+                            &dest_vec_point,
+                            &0x00_44_00_00,
+                            ctx.win
+                        );
+        */
+        /*
 
-            // TESTED! WORKS!
-            trans_copy_math(
-                ctx_draft.buf_view,
-                ctx.buf_view,
-                &RectArea {
-                    top_left: Point { x: 0, y: 0 },
-                    dimensions: Dimensions2d { w: 154, h: 154 },
-                },
-                &Pixel { x: state.hero_position.x+140, y: state.hero_position.y, color: 0x00_22_22_55 },
-                &0x00_44_00_00,
-                &ColorOperation::Subtract,
-                ctx.win
-            );
-*/
+                    // TESTED! WORKS!
+                    trans_copy_math(
+                        ctx_draft.buf_view,
+                        ctx.buf_view,
+                        &RectArea {
+                            top_left: Point { x: 0, y: 0 },
+                            dimensions: Dimensions2d { w: 154, h: 154 },
+                        },
+                        &Pixel { x: state.hero_position.x+140, y: state.hero_position.y, color: 0x00_22_22_55 },
+                        &0x00_44_00_00,
+                        &ColorOperation::Subtract,
+                        ctx.win
+                    );
+        */
 
         drop(state);
 
