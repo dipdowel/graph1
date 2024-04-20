@@ -298,6 +298,8 @@ fn main() {
 
         // buffer.copy_within(0..40 * WIN_WIDTH as usize, PIXEL_PER_PAGE * 2 + 20*WIN_WIDTH as usize);
 
+
+//==================================================================================================
         //TODO: This prevents the app from crashing but it's not accurate and needs an improvement!
         let hero_lim = 78;
         if state.hero_position.x < hero_lim {
@@ -323,8 +325,10 @@ fn main() {
             },
             WIN_WIDTH,
         );
+//==================================================================================================
 
 
+/*
                 // TESTED! WORKS!
                 trans_copy(
                     ctx_draft.buf_view,
@@ -337,9 +341,10 @@ fn main() {
                     &0x00_44_00_00,
                     ctx.win
                 );
+ */
 
 
-        /*
+
               // TESTED! WORKS!
                 let dest_vec_pixel: Vec<Pixel> = vec![
                     Pixel { x: state.hero_position.x, y: state.hero_position.y+100, color: 0x00_cc_cc_cc },
@@ -349,17 +354,18 @@ fn main() {
                 ];
 
                 trans_copy_math_multi_dest(
-                    buf_view_1,
-                    buf_view,
+                    ctx_draft.buf_view,
+                    ctx.buf_view,
                     &RectArea {
                         top_left: Point { x: 0, y: 0 },
                         dimensions: Dimensions2d { w: 154, h: 154 },
                     },
                     &dest_vec_pixel,
                     &0x00_44_00_00,
-                    &ColorOperation::Add
+                    &ColorOperation::Add,
+                    ctx.win
                 );
-        */
+
 
         /*
                 // TESTED! WORKS!
