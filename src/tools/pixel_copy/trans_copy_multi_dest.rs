@@ -1,5 +1,4 @@
 use crate::graph_core::context::ContextWindow;
-use crate::init::init_window::WIN_WIDTH;
 use crate::tools::primitives::{Point, RectArea};
 
 /// Transparency-aware copy
