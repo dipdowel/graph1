@@ -1,9 +1,19 @@
 use crate::graph_core::context::ContextWindow;
 use crate::tools::color_math::argb_math::argb_math;
-
 use crate::tools::operations::ColorOperation;
 use crate::tools::primitives::{Pixel, RectArea};
 
+/// Transparency-aware copy with an applied color math operation
+/// - Copies non-transparent pixels from the source memory buf to the destination memory buf.
+/// - A provided math operation is applied to each pixel
+/// - `src_buf_view` -- source memory buffer
+/// - `dst_buf_view` -- destination memory buffer
+/// - `src_area` -- A rectangular area that will be copied
+/// - `dst_start` -- A list of top-left points of the destination areas. The area itself matches the source.
+/// The color component of `dst_start` is applied to each non-transparent source pixel.
+/// - `transparency_color` -- Pixels of this color will not be copied to the destination
+/// - `operation` -- Math operation, specified how to apply `dst_start.color` to each source pixel///
+/// - `win` -- a `ContextWindow` instance with information on the window size
 pub fn trans_copy_math_multi_dest(
     src_buf_view: &[u32],
     dst_buf_view: &mut [u32],

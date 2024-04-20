@@ -1,4 +1,4 @@
-use crate::init::init_window::WIN_WIDTH;
+use crate::graph_core::context::ContextWindow;
 use crate::tools::color_math::argb_math::argb_math;
 use crate::tools::operations::ColorOperation;
 use crate::tools::primitives::{Pixel, RectArea};
@@ -13,6 +13,7 @@ use crate::tools::primitives::{Pixel, RectArea};
 /// The color component of `dst_start` is applied to each non-transparent source pixel.
 /// - `transparency_color` -- Pixels of this color will not be copied to the destination
 /// - `operation` -- Math operation, specified how to apply `dst_start.color` to each source pixel
+/// - `win` -- a `ContextWindow` instance with information on the window size
 pub fn trans_copy_math(
     src_buf_view: &[u32],
     dst_buf_view: &mut [u32],
@@ -20,6 +21,7 @@ pub fn trans_copy_math(
     dst_start: &Pixel,
     transparency_color: &u32,
     operation: &ColorOperation,
+    win:&ContextWindow
 ) {
     let x_start = src_area.top_left.x;
     let x_end = x_start + src_area.dimensions.w;
@@ -36,10 +38,10 @@ pub fn trans_copy_math(
     let dst_buf_view_len = dst_buf_view.len();
     for x in x_start..=x_end {
         for y in y_start..=y_end {
-            index = (WIN_WIDTH * y + x) as usize;
+            index = (win.w * y + x) as usize;
             pixel = src_buf_view[index];
             if pixel != transparency_color {
-                let dest_index: usize = (WIN_WIDTH * dst_y + dst_x) as usize;
+                let dest_index: usize = (win.w * dst_y + dst_x) as usize;
                 if dest_index < dst_buf_view_len {
                     dst_buf_view[dest_index] = argb_math(&pixel, &dst_start.color, operation);
                 }

@@ -344,7 +344,7 @@ fn main() {
  */
 
 
-
+/*
               // TESTED! WORKS!
                 let dest_vec_pixel: Vec<Pixel> = vec![
                     Pixel { x: state.hero_position.x, y: state.hero_position.y+100, color: 0x00_cc_cc_cc },
@@ -365,9 +365,9 @@ fn main() {
                     &ColorOperation::Add,
                     ctx.win
                 );
+*/
 
-
-        /*
+/*
                 // TESTED! WORKS!
                 let dest_vec_point: Vec<Point> = vec![
                     Point { x: state.hero_position.x, y: state.hero_position.y},
@@ -376,31 +376,33 @@ fn main() {
                 ];
 
                 trans_copy_multi_dest(
-                    buf_view_1,
-                    buf_view,
+                    ctx_draft.buf_view,
+                    ctx.buf_view,
                     &RectArea {
                         top_left: Point { x: 0, y: 0 },
                         dimensions: Dimensions2d { w: 154, h: 154 },
                     },
                     &dest_vec_point,
                     &0x00_44_00_00,
+                    ctx.win
                 );
-        */
+*/
+/*
 
-        /*
             // TESTED! WORKS!
             trans_copy_math(
-                buf_view_1,
-                buf_view,
+                ctx_draft.buf_view,
+                ctx.buf_view,
                 &RectArea {
                     top_left: Point { x: 0, y: 0 },
                     dimensions: Dimensions2d { w: 154, h: 154 },
                 },
                 &Pixel { x: state.hero_position.x+140, y: state.hero_position.y, color: 0x00_22_22_55 },
                 &0x00_44_00_00,
-                &ColorOperation::Subtract
+                &ColorOperation::Subtract,
+                ctx.win
             );
-        */
+*/
 
         drop(state);
 
