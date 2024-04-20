@@ -1,74 +1,73 @@
-use crate::init::init_window::{WIN_HEIGHT, WIN_WIDTH};
+use crate::graph_core::context::GraphContext;
 use crate::tools::primitives::{Pixel, Point};
 
 /// Attempts to draw a horizontal line (from left to right) with a specified color and length
 /// in a specified screen buffer.
-pub fn horizontal(buf_view: &mut [u32], start: &Pixel, length: u32) {
+pub fn horizontal(ctx: &mut GraphContext, start: &Pixel, length: u32) {
 
     // if length+start.x > WIN_WIDTH {
     //     println!(">>> HORIZONTAL! {}, {:?}", length, start);
     // }
     // Don't draw off-screen or draw a zero-length line
-    if start.x >= WIN_WIDTH || start.y >= WIN_HEIGHT || length == 0 {
+    if start.x >= ctx.win_width || start.y >= ctx.win_height || length == 0 {
         return;
     }
 
     // Don't let the line overflow to the next line in the screen buffer
     let mut line_len = length;
-    if start.x + length >= WIN_WIDTH {
-        line_len = WIN_WIDTH - start.x-1;
+    if start.x + length >= ctx.win_width {
+        line_len = ctx.win_width - start.x-1;
     }
 
-    let mut buf_index = (start.y * WIN_WIDTH + start.x) as usize;
+    let mut buf_index = (start.y * ctx.win_width + start.x) as usize;
     let buf_end_index = buf_index + line_len as usize;
 
     while buf_index < buf_end_index {
-        buf_view[buf_index] = start.color;
+        ctx.buf_view[buf_index] = start.color;
         buf_index += 1;
     }
 }
 
 /// Attempts to draw a vertical line (from top to bottom) with a specified color and length
 /// in a specified screen buffer.
-pub fn vertical(buf_view: &mut [u32], start: &Pixel, length: u32) {
-
+pub fn vertical(ctx: &mut GraphContext, start: &Pixel, length: u32) {
 
 
     // Don't draw off-screen or draw a zero-length line
-    if start.x >= WIN_WIDTH || start.y >= WIN_HEIGHT || length == 0 {
+    if start.x >= ctx.win_width || start.y >= ctx.win_height || length == 0 {
         return;
     }
 
     // Don't let the line overflow the screen height
     let mut line_len = length;
-    if start.y + length >= WIN_HEIGHT {
-        line_len = WIN_HEIGHT - start.y-1;
+    if start.y + length >= ctx.win_height {
+        line_len = ctx.win_height - start.y-1;
     }
 
     // if length+start.y > WIN_HEIGHT {
     //     println!(">>> VERTICAL! length: {}, {:?}, line_len:{} ", length, start,line_len);
     // }
 
-    let mut buf_index = (start.y * WIN_WIDTH + start.x) as usize;
-    let buf_end_index = buf_index + (line_len * WIN_WIDTH) as usize;
+    let mut buf_index = (start.y * ctx.win_width + start.x) as usize;
+    let buf_end_index = buf_index + (line_len * ctx.win_width) as usize;
 
     while buf_index < buf_end_index {
-        buf_view[buf_index] = start.color;
-        buf_index += WIN_WIDTH as usize;
+        ctx.buf_view[buf_index] = start.color;
+        buf_index += ctx.win_width_usize;
     }
 }
 
-pub fn between_two_points(buf_view: &mut [u32], start: &Pixel, end: &Point) {
+pub fn between_two_points(ctx: &mut GraphContext, start: &Pixel, end: &Point) {
 
     let mut start: Pixel = Pixel {
-        x: u32::min(start.x, WIN_WIDTH-1),
-        y: u32::min(start.y, WIN_HEIGHT-1),
+        x: u32::min(start.x, ctx.win_width-1),
+        y: u32::min(start.y, ctx.win_height-1),
         color: start.color,
     };
 
     let end: Pixel = Pixel {
-        x: u32::min(end.x, WIN_WIDTH-1),
-        y: u32::min(end.y, WIN_HEIGHT-1),
+        x: u32::min(end.x, ctx.win_width-1),
+        y: u32::min(end.y, ctx.win_height-1),
         color: start.color,
     };
 /**/
@@ -76,7 +75,7 @@ pub fn between_two_points(buf_view: &mut [u32], start: &Pixel, end: &Point) {
     if start.x == end.x && start.y != end.y {
         let start_pixel: &Pixel = if start.y < end.y { &start } else { &end };
         vertical(
-            buf_view,
+            ctx,
             start_pixel,
             i32::abs(end.y as i32 - start.y as i32) as u32,
         );
@@ -87,7 +86,7 @@ pub fn between_two_points(buf_view: &mut [u32], start: &Pixel, end: &Point) {
     if start.y == end.y && start.x != end.x {
         let start_pixel: &Pixel = if start.x < end.x { &start } else { &end };
         horizontal(
-            buf_view,
+            ctx,
             &start_pixel,
             i32::abs(end.x as i32 - start.x as i32) as u32,
         );
@@ -122,8 +121,8 @@ pub fn between_two_points(buf_view: &mut [u32], start: &Pixel, end: &Point) {
 
     loop {
         // Set the current pixel. The color can be set to a specific value or passed through the Pixel struct.
-        let buf_index = (start.y * WIN_WIDTH + start.x) as usize;
-        buf_view[buf_index] = start.color;
+        let buf_index = (start.y * ctx.win_width + start.x) as usize;
+        ctx.buf_view[buf_index] = start.color;
 
         // If the current position is the end point, exit the loop.
         if start.x == end.x && start.y == end.y {

@@ -1,8 +1,7 @@
 use crate::draw::line;
-use crate::init::init_window::{WIN_HEIGHT, WIN_WIDTH};
 use crate::tools::primitives::{Pixel, Point, Point3DF32};
 use std::f32::consts::PI;
-use std::mem::size_of;
+use crate::graph_core::context::GraphContext;
 
 #[rustfmt::skip]
 static EDGES: [[usize; 2]; 12] = [
@@ -91,7 +90,7 @@ impl Cube {
 
     pub fn render_frame(
         &mut self,
-        buf_view: &mut [u32],
+        ctx: &mut GraphContext,
         frame_count: f32,
         translation: Option<&Point3DF32>,
     ) {
@@ -159,7 +158,7 @@ impl Cube {
             // println!("cube_pixel: {:?}", cube_pixel);
             // println!("cube_point: {:?}", cube_point);
 
-            line::between_two_points(buf_view, &self.cube_pixel, &self.cube_point);
+            line::between_two_points(ctx, &self.cube_pixel, &self.cube_point);
         }
     }
 }

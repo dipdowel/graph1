@@ -91,12 +91,20 @@ fn main() {
         win_width_usize:WIN_WIDTH_US
     };
 
+    let mut ctx_draft: GraphContext = GraphContext {
+        buf_view:buf_view_1,
+        win_width:WIN_WIDTH,
+        win_height: WIN_HEIGHT,
+        win_height_usize: WIN_HEIGHT_US,
+        win_width_usize:WIN_WIDTH_US
+    };
+
 
     match dev_window {
         Some(ref mut dev_window) => {
             // We unwrap here as we want this code to exit if it fails. Real applications may want to handle this in a different way
             dev_window
-                .update_with_buffer(buf_view_1, WIN_WIDTH as usize, WIN_HEIGHT as usize)
+                .update_with_buffer(ctx_draft.buf_view, ctx.win_width_usize, ctx.win_height_usize)
                 .expect("Failed to update dev window memory")
         }
         _ => (),
@@ -112,8 +120,8 @@ fn main() {
     // Generate a bunch of points to draw lines with later on
     loop {
         points.push(Point {
-            x: rng.gen_range(WIN_WIDTH / 2 - 75..WIN_WIDTH / 2 + 75),
-            y: rng.gen_range(WIN_HEIGHT / 2 - 75..WIN_HEIGHT / 2 + 75),
+            x: rng.gen_range(ctx.win_width / 2 - 75..ctx.win_width / 2 + 75),
+            y: rng.gen_range(ctx.win_height / 2 - 75..ctx.win_height / 2 + 75),
         });
         i += 1;
         if i == points_len {
@@ -198,7 +206,7 @@ fn main() {
 
         ////////////////////////////////////////////////////////////////////////////////////////////
         // Clear screen
-        fill(buf_view_1, 0x00_44_00_00);
+        fill(ctx_draft.buf_view, 0x00_44_00_00);
 
         fill(ctx.buf_view, 0x00_04_04_0F);
 
@@ -280,9 +288,9 @@ fn main() {
 
         // cube.render_frame(buf_view, 10.0 + frame_count as f32, &translation );
 
-        cube.render_frame(buf_view_1, frame_count as f32, None);
-        cube2.render_frame(buf_view_1, frame_count as f32, None);
-        cube3.render_frame(buf_view_1, frame_count as f32, None);
+        cube.render_frame(&mut ctx_draft, frame_count as f32, None);
+        cube2.render_frame(&mut ctx_draft, frame_count as f32, None);
+        cube3.render_frame(&mut ctx_draft, frame_count as f32, None);
 
         // buf_view.copy_from_slice(&buf_view_1[0..1*WIN_WIDTH as usize]);
         // buf_view.cop
@@ -294,19 +302,19 @@ fn main() {
         if state.hero_position.x < hero_lim {
             state.hero_position.x = hero_lim
         }
-        if state.hero_position.x > WIN_WIDTH - hero_lim {
-            state.hero_position.x = WIN_WIDTH - hero_lim
+        if state.hero_position.x > ctx.win_width - hero_lim {
+            state.hero_position.x = ctx.win_width - hero_lim
         }
 
         if state.hero_position.y < hero_lim {
             state.hero_position.y = hero_lim
         }
-        if state.hero_position.y > WIN_HEIGHT - hero_lim {
-            state.hero_position.y = WIN_HEIGHT - hero_lim
+        if state.hero_position.y > ctx.win_height - hero_lim {
+            state.hero_position.y = ctx.win_height - hero_lim
         }
 
         line::horizontal(
-            ctx.buf_view,
+            &mut ctx,
             &Pixel {
                 x: 0,
                 y: WIN_HEIGHT / 8 * 5,
@@ -423,21 +431,21 @@ fn main() {
 
         // We unwrap here as we want this code to exit if it fails. Real applications may want to handle this in a different way
         window
-            .update_with_buffer(ctx.buf_view, WIN_WIDTH as usize, WIN_HEIGHT as usize)
+            .update_with_buffer(ctx.buf_view, ctx.win_width_usize, ctx.win_height_usize)
             .unwrap();
 
         match dev_window {
             Some(ref mut dev_window) => {
                 let mut dev_buf_view: &mut [u32];
                 match dev_buffer_number {
-                    1 => dev_buf_view = buf_view_1,
+                    1 => dev_buf_view = ctx_draft.buf_view,
                     2 => dev_buf_view = ctx.buf_view,
                     3 => dev_buf_view = buf_view_3,
                     _ => dev_buf_view = buf_view_4,
                 }
 
                 dev_window
-                    .update_with_buffer(dev_buf_view, WIN_WIDTH as usize, WIN_HEIGHT as usize)
+                    .update_with_buffer(dev_buf_view, ctx.win_width_usize, ctx.win_height_usize)
                     .unwrap();
             }
             _ => (),

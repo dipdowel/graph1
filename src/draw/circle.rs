@@ -1,10 +1,10 @@
 use crate::draw::line;
-use crate::init::init_window::{WIN_HEIGHT, WIN_WIDTH};
+use crate::graph_core::context::GraphContext;
 use crate::tools::primitives::Pixel;
 
 /// Tries to draw a circle
 /// TODO: add more details to the RustDoc here
-pub fn circle(buf_view: &mut [u32], center: &Pixel, radius: u32, skip_every: u32) {
+pub fn circle(ctx: &mut GraphContext, center: &Pixel, radius: u32, skip_every: u32) {
     let radius_sq = radius.pow(2) as i32;
 
     let mut skip_every = skip_every;
@@ -47,14 +47,14 @@ pub fn circle(buf_view: &mut [u32], center: &Pixel, radius: u32, skip_every: u32
         pixel.y = center.y + delta_y; // `y` for the upper half-circle
 
         // Draw the upper half of the circle.
-        line::horizontal(buf_view, &pixel, length);
+        line::horizontal(ctx, &pixel, length);
 
         if delta_y > 0 {
             // Draw the lower half of the circle, avoiding the central line being drawn twice.
             pixel.y = (center.y as i32 - delta_y as i32) as u32;
             // NB: due to typecasting `pixel.y` can become really large, but it's okay
             // NB: since `line::horizontal()` checks for `y` being greater than window's height
-            line::horizontal(buf_view, &pixel, length);
+            line::horizontal(ctx, &pixel, length);
         }
     }
 }

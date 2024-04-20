@@ -32,10 +32,10 @@ pub fn init_screen_buffer(ctx: &mut GraphContext) {
 
 
      // draw::circle(buf_view, &Pixel { x: 320, y: 95, color: 0x00_00_ff_00 }, 20, 0);
-    draw::circle(ctx.buf_view, &Pixel { x: 320, y: 95, color: 0x00_00_ff_00 }, 20, 0);
-    draw::circle(ctx.buf_view, &Pixel { x: 320, y: 95*2, color: 0x00_00_ff_00 }, 30, 1);
-    draw::circle(ctx.buf_view, &Pixel { x: 320, y: 95*3, color: 0x00_00_ff_00 }, 40, 2);
-    draw::circle(ctx.buf_view, &Pixel { x: 320, y: 95*4, color: 0x00_00_ff_00 }, 50, 3);
+    draw::circle(ctx, &Pixel { x: 320, y: 95, color: 0x00_00_ff_00 }, 20, 0);
+    draw::circle(ctx, &Pixel { x: 320, y: 95*2, color: 0x00_00_ff_00 }, 30, 1);
+    draw::circle(ctx, &Pixel { x: 320, y: 95*3, color: 0x00_00_ff_00 }, 40, 2);
+    draw::circle(ctx, &Pixel { x: 320, y: 95*4, color: 0x00_00_ff_00 }, 50, 3);
 
 
 

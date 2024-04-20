@@ -28,11 +28,11 @@ pub fn star(ctx: &mut GraphContext, props: &StarProperties) {
     if let Some(first_vertex) = vertices.first() {
         let mut previous_vertex = first_vertex;
         for vertex in vertices.iter().skip(1) {
-            between_two_points(ctx.buf_view, &Pixel{x:previous_vertex.x, y:previous_vertex.y, color:props.center.color}, vertex);
+            between_two_points(ctx, &Pixel{x:previous_vertex.x, y:previous_vertex.y, color:props.center.color}, vertex);
             previous_vertex = vertex;
         }
         // Connect the last vertex to the first to complete the polygon
-        between_two_points(ctx.buf_view, &Pixel{x:previous_vertex.x, y:previous_vertex.y, color:props.center.color}, first_vertex);
+        between_two_points(ctx, &Pixel{x:previous_vertex.x, y:previous_vertex.y, color:props.center.color}, first_vertex);
 
     }
 }
