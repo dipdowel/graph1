@@ -334,7 +334,8 @@ fn main() {
                         dimensions: Dimensions2d { w: 154, h: 154 },
                     },
                     &Point { x: state.hero_position.x+140, y: state.hero_position.y-120},
-                    &0x00_44_00_00
+                    &0x00_44_00_00,
+                    ctx.win
                 );
 
 
