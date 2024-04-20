@@ -4,11 +4,45 @@ pub struct Dimensions2d {
     pub h: u32,
 }
 
+
+// [ START ] ///////////////////////////////////////////////////////////////////////////////////////
+// ========= Point 2D, + conversions from u32 to f32 coordinates and back ==========================
+
 #[derive(Clone, Copy, Debug)]
 pub struct Point {
     pub x: u32,
     pub y: u32,
 }
+
+#[derive(Clone, Copy, Debug)]
+pub struct PointF32 {
+    pub x: f32,
+    pub y: f32,
+}
+
+
+// Implementing conversion from Point to PointF32
+impl From<Point> for PointF32 {
+    fn from(p: Point) -> Self {
+        PointF32 {
+            x: p.x as f32,
+            y: p.y as f32,
+        }
+    }
+}
+
+
+// Implementing conversion from PointF32 to Point
+impl From<PointF32> for Point {
+    fn from(p: PointF32) -> Self {
+        Point {
+            x: p.x as u32,
+            y: p.y as u32,
+        }
+    }
+}
+// ========= Point 2D, + conversions from u32 to f32 coordinates and back ==========================
+// [ END ] ///////////////////////////////////////////////////////////////////////////////////////
 
 #[derive(Debug)]
 pub struct RectArea {
