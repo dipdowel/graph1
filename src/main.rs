@@ -45,6 +45,11 @@ mod state;
 const DEV_MODE: bool = true;
 
 fn slice_buffer_in_4(buffer: &mut Vec<u32>) -> (&mut [u32], &mut [u32], &mut [u32], &mut [u32]) {
+
+    // TODO:
+    // TODO: Move this function to a dedicated file!
+    // TODO:
+
     // Calculate indices for splitting the vector into four equal parts
     let first_split = PIXEL_PER_PAGE;
     let second_split = PIXEL_PER_PAGE * 2;
