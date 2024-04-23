@@ -17,30 +17,6 @@ fn bezier_point(t: &f32, p0: &Point, p1: &Point, p2: &Point, p3: &Point) -> Poin
     Point { x: x.round() as u32, y: y.round() as u32 }
 }
 
-pub fn draw_bezier_curve(ctx: &mut GraphContext, p0: &Point, p1: &Point, p2: &Point, p3: &Point, resolution_delta:Option<f32>) {
-
-    // TODO:
-    // TODO: Can this function be completely superseded by `draw_continuous_bezier_curve()`?!?!
-    // TODO:
-
-    let mut t = 0.0;
-    let mut current_point = *p0;
-    let color = 0xff_ff_ff_ff;
-
-    let resolution_delta = resolution_delta.unwrap_or(0.05);
-
-
-
-    while t <= 1.0 {
-        let next_point = bezier_point(&t, p0, p1, p2, p3);
-        between_two_points(ctx, &Pixel{x:current_point.x, y:current_point.y, color}, &next_point);
-        current_point = next_point;
-        t += resolution_delta; // This delta determines the resolution of the curve
-    }
-
-    // Draw the final segment to the last control point
-    between_two_points(ctx, &Pixel{x:current_point.x, y:current_point.y, color}, &p3);
-}
 /// This function should  handle an arbitrary long vector of points to draw complex and continuous Bezier curves.
 /// ## Important Notes
 /// ### Point Organization
@@ -61,12 +37,9 @@ pub fn draw_bezier_curve(ctx: &mut GraphContext, p0: &Point, p1: &Point, p2: &Po
 /// This function recalculates points dynamically and draws many lines, which can be computationally
 /// expensive for very high resolutions or very complex paths. Adjust resolution_delta to balance
 /// between performance and smoothness.
-pub fn draw_continuous_bezier_curve(ctx: &mut GraphContext, points: &[Point], resolution_delta: f32) {
-    let length = points.len();
+pub fn draw_bezier_curve(ctx: &mut GraphContext, points: &[Point], resolution_delta: &f32) {
 
-    // TODO:
-    // TODO: Come up with a way to pass the color value(s) to this function!
-    // TODO:
+    let length = points.len();
 
     for i in (0..length - 3).step_by(3) {
         let p0 = &points[i];
@@ -74,7 +47,8 @@ pub fn draw_continuous_bezier_curve(ctx: &mut GraphContext, points: &[Point], re
         let p2 = &points[i + 2];
         let p3 = &points[i + 3];
 
-        let color = 0xff_00_de_00;
+        // FIXME: Come up with a way to pass the color value(s) to this function!
+        let color = ctx.default_color;
 
         let mut t = 0.0;
         let mut current_point = *p0;

@@ -8,7 +8,9 @@ pub struct ContextWindow {
 
 pub struct GraphContext<'a> {
     pub win: &'a ContextWindow,
-    pub buf_view: &'a mut[u32]
+    pub buf_view: &'a mut[u32],
+    /// Can be used to render visual shapes if no other color is found
+    pub default_color: u32
 }
 
 

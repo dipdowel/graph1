@@ -1,10 +1,19 @@
 
 ## Bezier curves
-1. See if `draw_bezier_curve()` can be deleted in favour of `draw_continuous_bezier_curve()`
-2. Add mode for visualising the control points, that should help come up with shapes
-3. Make the control points draggable by mouse!
-4. Make it possible to dump the coordinates of all the start/end and control points into JSON into the console.
++ See if `draw_bezier_curve()` can be deleted in favour of `draw_continuous_bezier_curve()`
+1Add mode for visualising the control points, that should help come up with shapes
+2Make the control points draggable by mouse!
+3Make it possible to dump the coordinates of all the start/end and control points into JSON into the console.
    That should make it easier creating cool curves and then hardcoding their points for animation, etc.
+
+
+## Text rendering engine
+Inputs:
+- A pixel font.
+- A location from the draft buffer of how a single pixel needs to be rendered. It can be a large animated cube or a single pixel!
+- A buffer of text to render
+- Destination on the frame buffer, where the first letter should appear. 
+
 
 ## Tools
 
@@ -18,3 +27,4 @@ Here's how it can work:
 #### Nice to haves:
 - Tolerance: how much the scanned pixels can deviate from the colour of the starting Pixel to still be considered of the same colour.
  
+

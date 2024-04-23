@@ -8,7 +8,7 @@ use rand::seq::SliceRandom;
 use rand::Rng;
 
 use crate::cube::Cube;
-use crate::draw::curves::draw_continuous_bezier_curve;
+use crate::draw::curves::draw_bezier_curve;
 use crate::draw::line;
 use crate::draw::star;
 use crate::graph_core::context::{ContextWindow, GraphContext};
@@ -45,7 +45,6 @@ mod state;
 const DEV_MODE: bool = true;
 
 fn slice_buffer_in_4(buffer: &mut Vec<u32>) -> (&mut [u32], &mut [u32], &mut [u32], &mut [u32]) {
-
     // TODO:
     // TODO: Move this function to a dedicated file!
     // TODO:
@@ -98,11 +97,13 @@ fn main() {
     let mut ctx: GraphContext = GraphContext {
         buf_view,
         win: &context_window,
+        default_color: 0x00_ff_00_00
     };
 
     let mut ctx_draft: GraphContext = GraphContext {
         buf_view: buf_view_1,
         win: &context_window,
+        default_color: 0x00_00_ff_00
     };
 
     match dev_window {
@@ -273,104 +274,74 @@ fn main() {
         // pub fn draw_bezier_curve(ctx: &mut GraphContext, p0: &Point, p1: &Point, p2: &Point, p3: &Point) {
         //******************************************************************************************
         //******************************************************************************************
-        draw::curves::draw_bezier_curve(
-            &mut ctx,
-            &Point { x: 0, y: 0 },
-            &Point {
-                x: 250,
-                y: 250 - (oscillator) as u32,
-            },
-            &Point {
-                x: 350 + oscillator as u32,
-                y: 350 + oscillator as u32,
-            },
-            &Point { x: 800, y: 600 },
-            Some(0.05), //None // Some(0.001)
-        );
+        let res_delta: f32 = 0.05;
 
-        let cx = 30_f32 + (oscillator*5 ) as f32; // Center x
-        let cy = 300_f32 + oscillator as f32; // Center y
-        let r = 120_f32 + 1.5*oscillator as f32; // Radius
+        let string_curve = vec![
+            Point { x: 0, y: 0 },
+            Point { x: 250, y: 250 - (oscillator) as u32, },
+            Point { x: 350 + oscillator as u32, y: 350 + oscillator as u32,},
+            Point { x: 800, y: 600 },
+        ];
+        ctx.default_color = 0x00_ff_ff_ff;
+        draw_bezier_curve(&mut ctx, &string_curve, &res_delta);
+
+
+
+
+        let cx = 30_f32 + (oscillator * 5) as f32; // Center x
+        let cy = 300_f32  + oscillator as f32; // Center y
+        let r = 150_f32 + 1.5 * oscillator as f32; // Radius
         let k = 4.0 / 3.0 * (2.0_f32.sqrt() - 1.0);
-        let res_delta:f32 = 0.01;
 
-        // First Quadrant
-        #[rustfmt::skip]
-        let p0 = PointF32 { x: cx + r,     y: cy };
-        #[rustfmt::skip]
-        let p1 = PointF32 { x: cx + r,     y: cy + r * k };
-        #[rustfmt::skip]
-        let p2 = PointF32 { x: cx + r * k, y: cy + r };
-        #[rustfmt::skip]
-        let p3 = PointF32 { x: cx,         y: cy + r };
-        #[rustfmt::skip]
-        draw::curves::draw_bezier_curve( &mut ctx, &Point::from(p0), &Point::from(p1),
-                                         &Point::from(p2), &Point::from(p3), Some(res_delta) );
 
-        // Second Quadrant
         #[rustfmt::skip]
-        let p0 = PointF32 { x: cx,         y: cy + r };
-        #[rustfmt::skip]
-        let p1 = PointF32 { x: cx - r * k, y: cy + r };
-        #[rustfmt::skip]
-        let p2 = PointF32 { x: cx - r,     y: cy + r * k };
-        #[rustfmt::skip]
-        let p3 = PointF32 { x: cx - r,     y: cy };
-        #[rustfmt::skip]
-        draw::curves::draw_bezier_curve( &mut ctx, &Point::from(p0), &Point::from(p1),
-                                         &Point::from(p2), &Point::from(p3), Some(res_delta) );
-
-        // Third Quadrant
-        #[rustfmt::skip]
-        let p0 = PointF32 { x: cx - r,     y: cy };
-        #[rustfmt::skip]
-        let p1 = PointF32 { x: cx - r,     y: cy - r * k };
-        #[rustfmt::skip]
-        let p2 = PointF32 { x: cx - r * k, y: cy - r };
-        #[rustfmt::skip]
-        let p3 = PointF32 { x: cx,         y: cy - r };
-        #[rustfmt::skip]
-        draw::curves::draw_bezier_curve( &mut ctx, &Point::from(p0), &Point::from(p1),
-                                         &Point::from(p2), &Point::from(p3), Some(res_delta) );
-
-        // Fourth Quadrant
-        #[rustfmt::skip]
-        let p0 = PointF32 { x: cx,         y: cy - r };
-        #[rustfmt::skip]
-        let p1 = PointF32 { x: cx + r * k, y: cy - r };
-        #[rustfmt::skip]
-        let p2 = PointF32 { x: cx + r,     y: cy - r * k };
-        #[rustfmt::skip]
-        let p3 = PointF32 { x: cx + r,     y: cy };
-        #[rustfmt::skip]
-        draw::curves::draw_bezier_curve( &mut ctx, &Point::from(p0), &Point::from(p1),
-                                         &Point::from(p2), &Point::from(p3), Some(res_delta) );
-
+        let circle_points:Vec<Point> = vec![
+            // First Quadrant
+            Point::from(PointF32{ x: cx + r,     y: cy }),
+            Point::from(PointF32{ x: cx + r,     y: cy + r * k }),
+            Point::from(PointF32 { x: cx + r * k, y: cy + r }),
+            Point::from(PointF32 { x: cx,         y: cy + r }),
+            // Second Quadrant
+            Point::from(PointF32{ x: cx,         y: cy + r }),
+            Point::from(PointF32{ x: cx - r * k, y: cy + r }),
+            Point::from(PointF32{ x: cx - r,     y: cy + r * k }),
+            Point::from(PointF32{ x: cx - r,     y: cy }),
+            // Third Quadrant
+            Point::from(PointF32             { x: cx - r,     y: cy }),
+            Point::from(PointF32{ x: cx - r,     y: cy - r * k }),
+            Point::from(PointF32{ x: cx - r * k, y: cy - r }),
+            Point::from(PointF32{ x: cx,         y: cy - r }),
+            // Fourth Quadrant
+            Point::from(PointF32 { x: cx,         y: cy - r }),
+            Point::from(PointF32 { x: cx + r * k, y: cy - r }),
+            Point::from(PointF32 { x: cx + r,     y: cy - r * k }),
+            Point::from(PointF32 { x: cx + r,     y: cy }),
+        ];
+        ctx.default_color = 0x00_00_ff_00;
+        draw_bezier_curve(&mut ctx, &circle_points[0..4], &res_delta);
+        draw_bezier_curve(&mut ctx, &circle_points[4..8], &res_delta);
+        draw_bezier_curve(&mut ctx, &circle_points[8..12], &res_delta);
+        draw_bezier_curve(&mut ctx, &circle_points[12..16], &res_delta);
 
 
         //******************************************************************************************
         //******************************************************************************************
-
-
 
         // Usage of the continuous Bezier curve!
-        let points = vec![
+        let closed_curve = vec![
             Point { x: 50, y: 50 },
             Point { x: 150, y: 150 },
             Point { x: 300, y: 100 },
             Point { x: 350, y: 200 },
-            // More points can follow...
             Point { x: 400, y: 400 },
             Point { x: 300, y: 100 },
             Point { x: 150, y: 100 },
-            // and some more!
-
             Point { x: 100, y: 140 },
             Point { x: 190, y: 190 },
             Point { x: 50, y: 50 },
         ];
-
-        draw_continuous_bezier_curve(&mut ctx, &points, 0.05);
+        ctx.default_color = 0x00_ff_00_ff;
+        draw_bezier_curve(&mut ctx, &closed_curve, &res_delta);
 
         //******************************************************************************************
         //******************************************************************************************
@@ -444,20 +415,21 @@ fn main() {
         );
         //==================================================================================================
 
-
-                       // TESTED! WORKS!
-                       trans_copy(
-                           ctx_draft.buf_view,
-                           ctx.buf_view,
-                           &RectArea {
-                               top_left: Point { x: 0, y: 0 },
-                               dimensions: Dimensions2d { w: 154, h: 154 },
-                           },
-                           &Point { x: state.hero_position.x+140, y: state.hero_position.y-120},
-                           &0x00_44_00_00,
-                           ctx.win
-                       );
-
+        // TESTED! WORKS!
+        trans_copy(
+            ctx_draft.buf_view,
+            ctx.buf_view,
+            &RectArea {
+                top_left: Point { x: 0, y: 0 },
+                dimensions: Dimensions2d { w: 154, h: 154 },
+            },
+            &Point {
+                x: state.hero_position.x + 140,
+                y: state.hero_position.y - 120,
+            },
+            &0x00_44_00_00,
+            ctx.win,
+        );
 
         /*
                       // TESTED! WORKS!
