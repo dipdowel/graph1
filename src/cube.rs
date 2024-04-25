@@ -1,7 +1,7 @@
-use crate::draw::line;
+use crate::graph1::draw::line;
 use crate::tools::primitives::{Pixel, Point, Point3DF32};
 use std::f32::consts::PI;
-use crate::graph_core::context::GraphContext;
+use crate::graph1_core::context::GraphContext;
 
 #[rustfmt::skip]
 static EDGES: [[usize; 2]; 12] = [

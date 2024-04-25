@@ -1,5 +1,7 @@
-use crate::draw;
-use crate::graph_core::context::GraphContext;
+
+use crate::graph1::draw;
+
+use crate::graph1_core::context::GraphContext;
 use crate::tools::fill::fill;
 use crate::tools::primitives::Pixel;
 

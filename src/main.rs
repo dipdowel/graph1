@@ -1,27 +1,32 @@
 // use std::collections::HashMap;
 use std::fmt::Debug;
 
-use crate::tools::color_math::argb_math::argb_math;
+use crate::graph1::utils::color_math::argb_math::argb_math;
 use constants::*;
 use minifb::{Key, KeyRepeat};
 use rand::seq::SliceRandom;
 use rand::Rng;
 
 use crate::cube::Cube;
-use crate::draw::curves::draw_bezier_curve;
-use crate::draw::line;
-use crate::draw::star;
-use crate::graph_core::context::{ContextWindow, GraphContext};
+use crate::graph1::draw::curves::draw_bezier_curve;
+use crate::graph1::draw::line;
+use crate::graph1::draw::star;
+use crate::graph1_core::context::{ContextWindow, GraphContext};
 
 use crate::init::init_window::*;
 use crate::input::handle_keyboard;
 use crate::state::{init_app_state, APP_STATE};
 use crate::tools::fill::fill;
-use crate::tools::operations::ColorOperation;
-use crate::tools::pixel_copy::trans_copy::trans_copy;
-use crate::tools::pixel_copy::trans_copy_math::trans_copy_math;
-use crate::tools::pixel_copy::trans_copy_math_multi_dest::trans_copy_math_multi_dest;
-use crate::tools::pixel_copy::trans_copy_multi_dest::trans_copy_multi_dest;
+
+// graph1::utils::
+use crate::graph1::utils::color_math::operations::ColorOperation;
+
+
+
+use self::graph1::utils::pixel_copy::trans_copy::trans_copy;
+use self::graph1::utils::pixel_copy::trans_copy_math::trans_copy_math;
+use self::graph1::utils::pixel_copy::trans_copy_math_multi_dest::trans_copy_math_multi_dest;
+use self::graph1::utils::pixel_copy::trans_copy_multi_dest::trans_copy_multi_dest;
 use crate::tools::primitives::{
     Dimensions2d, Pixel, Point, Point3DF32, PointF32, RectArea, StarProperties,
 };
@@ -37,8 +42,9 @@ mod init;
 mod constants;
 
 mod cube;
-mod draw;
-mod graph_core;
+mod graph1;
+use graph1::graph1_core;
+
 mod input;
 mod state;
 

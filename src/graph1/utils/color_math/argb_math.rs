@@ -1,4 +1,4 @@
- use crate::tools::operations::ColorOperation;
+use super::operations::ColorOperation;
 
 /// Allows adding or subtracting ARGB color values, color by color.
 /// - `c1` 1st color operand (in case of subtraction, `c2` is subtracted from `c1`

@@ -1,5 +1,5 @@
-use crate::draw::line::between_two_points;
-use crate::graph_core::context::GraphContext;
+use crate::graph1::draw::line::between_two_points;
+use crate::graph1_core::context::GraphContext;
 use crate::tools::primitives::{Pixel, Point};
 
 fn bezier_point(t: &f32, p0: &Point, p1: &Point, p2: &Point, p3: &Point) -> Point {

@@ -1,6 +1,6 @@
 use std::f64::consts::PI;
-use crate::graph_core::context::GraphContext;
-use crate::draw::line::between_two_points;
+use crate::graph1_core::context::GraphContext;
+use crate::graph1::draw::line::between_two_points;
 use crate::tools::primitives::{Pixel, Point, StarProperties};
 
 /// Function to draw a polygon based on provided properties

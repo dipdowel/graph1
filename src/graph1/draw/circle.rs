@@ -1,5 +1,5 @@
-use crate::draw::line;
-use crate::graph_core::context::GraphContext;
+use crate::graph1::draw::line;
+use crate::graph1_core::context::GraphContext;
 use crate::tools::primitives::Pixel;
 
 /// Tries to draw a circle

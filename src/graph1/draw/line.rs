@@ -1,4 +1,4 @@
-use crate::graph_core::context::GraphContext;
+use crate::graph1_core::context::GraphContext;
 use crate::tools::primitives::{Pixel, Point};
 
 /// Attempts to draw a horizontal line (from left to right) with a specified color and length

@@ -1,6 +1,6 @@
-use crate::graph_core::context::ContextWindow;
-use crate::tools::color_math::argb_math::argb_math;
-use crate::tools::operations::ColorOperation;
+use crate::graph1_core::context::ContextWindow;
+use crate::graph1::utils::color_math::argb_math::argb_math;
+use crate::graph1::utils::color_math::operations::ColorOperation;
 use crate::tools::primitives::{Pixel, RectArea};
 
 /// Transparency-aware copy with an applied color math operation
