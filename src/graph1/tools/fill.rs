@@ -1,5 +1,5 @@
 /// Unsafely fills in a buffer with a given color
-pub fn fill(buf_view: &mut [u32], color:u32){
+pub fn buffer(buf_view: &mut [u32], color:u32){
 
     unsafe {
         // Obtain a raw pointer

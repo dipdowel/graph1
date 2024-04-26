@@ -51,23 +51,7 @@ pub struct RectArea {
 }
 
 
-pub struct StarProperties {
-    /// Location of the central point of the star
-    pub center: Pixel,
 
-    /// How many angles the star has
-    pub num_vertices: u32,
-
-    /// Distance from the `center` after which every N+1th  vertex of the star lies
-    pub inner_radius:u32,
-
-    /// Distance from the `center` after which every N+2th  vertex of the star lies
-    pub outer_radius:u32,
-
-    /// Rotation angle in degrees
-    pub(crate) rotation_angle: f64,
-
-}
 
 #[derive(Debug)]
 pub struct Point3D {

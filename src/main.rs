@@ -10,13 +10,18 @@ use rand::Rng;
 use crate::cube::Cube;
 use crate::graph1::draw::curves::draw_bezier_curve;
 use crate::graph1::draw::line;
+
 use crate::graph1::draw::star;
+use star::StarProperties;
+
 use crate::graph1_core::context::{ContextWindow, GraphContext};
+
+use crate::graph1::tools::fill;
 
 use crate::init::init_window::*;
 use crate::input::handle_keyboard;
 use crate::state::{init_app_state, APP_STATE};
-use crate::tools::fill::fill;
+
 
 // graph1::utils::
 use crate::graph1::utils::color_math::operations::ColorOperation;
@@ -28,7 +33,7 @@ use self::graph1::utils::pixel_copy::trans_copy_math::trans_copy_math;
 use self::graph1::utils::pixel_copy::trans_copy_math_multi_dest::trans_copy_math_multi_dest;
 use self::graph1::utils::pixel_copy::trans_copy_multi_dest::trans_copy_multi_dest;
 use crate::tools::primitives::{
-    Dimensions2d, Pixel, Point, Point3DF32, PointF32, RectArea, StarProperties,
+    Dimensions2d, Pixel, Point, Point3DF32, PointF32, RectArea,
 };
 
 // Trait that provides the shuffle method.
@@ -89,9 +94,9 @@ fn main() {
 
     // let mut buf_view = buf_view_2;
 
-    fill(buf_view_1, 0x00_44_00_00);
-    fill(buf_view_3, 0x00_00_44_00);
-    fill(buf_view_4, 0x00_00_00_44);
+    fill::buffer(buf_view_1, 0x00_44_00_00);
+    fill::buffer(buf_view_3, 0x00_00_44_00);
+    fill::buffer(buf_view_4, 0x00_00_00_44);
 
     let context_window: ContextWindow = ContextWindow {
         w: WIN_WIDTH,
@@ -218,9 +223,9 @@ fn main() {
 
         ////////////////////////////////////////////////////////////////////////////////////////////
         // Clear screen
-        fill(ctx_draft.buf_view, 0x00_44_00_00);
+        fill::buffer(ctx_draft.buf_view, 0x00_44_00_00);
 
-        fill(ctx.buf_view, 0x00_04_04_0F);
+        fill::buffer(ctx.buf_view, 0x00_04_04_0F);
 
         // Draw kinda dotted grid
         let grid_factor: usize = 20;
@@ -258,7 +263,7 @@ fn main() {
             rotation_angle: frame_count as f64 * 1.5,
         };
 
-        star(&mut ctx, &star_props_1);
+        star::render(&mut ctx, &star_props_1);
 
         center_pixel.color = argb_math(
             &0xff_22_22_99,
@@ -273,7 +278,7 @@ fn main() {
             rotation_angle: frame_count as f64 * 1.5,
         };
 
-        star(&mut ctx, &star_props_2);
+        star::render(&mut ctx, &star_props_2);
 
         ///////////// STAR END ////////////////////
 

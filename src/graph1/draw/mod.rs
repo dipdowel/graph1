@@ -8,6 +8,6 @@ pub use circle::circle;
 
 
 mod  polygons;
-pub use polygons::star::star;
+pub use polygons::star;
 
 pub mod  curves;
