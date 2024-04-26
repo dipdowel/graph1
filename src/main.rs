@@ -32,7 +32,7 @@ use self::graph1::utils::pixel_copy::trans_copy::trans_copy;
 use self::graph1::utils::pixel_copy::trans_copy_math::trans_copy_math;
 use self::graph1::utils::pixel_copy::trans_copy_math_multi_dest::trans_copy_math_multi_dest;
 use self::graph1::utils::pixel_copy::trans_copy_multi_dest::trans_copy_multi_dest;
-use crate::tools::primitives::{
+use self::graph1::primitives::primitives::{
     Dimensions2d, Pixel, Point, Point3DF32, PointF32, RectArea,
 };
 

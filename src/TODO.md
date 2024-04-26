@@ -1,3 +1,7 @@
+# TODO:
+- Refactor `graph1/primitives/primitives` into separate files per topic!
+- Check if introducing primitive Line (Point, Point) and LineColor (Pixel, Point) would make sense
+- Try to extract different experiments into scene functions instead of commenting them out in `main()`
 
 ## Bezier curves
 + See if `draw_bezier_curve()` can be deleted in favour of `draw_continuous_bezier_curve()`
@@ -16,9 +20,11 @@ Inputs:
 
 
 ## Tools
+### Add "Fill shape" tool. 
+- Consider the existing flood fill algorithm! 
+- Consider a simplified and faster algorithm for symmetrical shapes which are have a guaranteed closed perimeter.
 
-### Add "Fill shape" tool.
-Here's how it can work: 
+- Here's how my own fill algorithm can work: 
 - There should be a starting `Pixel` for filling in an arbitrary shape with a provided colour
 - Start scanning the row on which the pixel is to the left and right, till we reach pixels of a different colour.
 - Start scanning the column in a similar way till we reach pixels of different colours.

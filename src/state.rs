@@ -1,6 +1,6 @@
 use std::sync::Mutex;
 use crate::init::init_window::{WIN_HEIGHT, WIN_WIDTH};
-use crate::tools::primitives::Point;
+use crate::graph1::primitives::primitives::Point;
 
 #[derive(Debug)]
 pub struct HeroMoves {

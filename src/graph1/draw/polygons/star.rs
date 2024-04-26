@@ -1,7 +1,7 @@
 use std::f64::consts::PI;
 use crate::graph1_core::context::GraphContext;
 use crate::graph1::draw::line::between_two_points;
-use crate::tools::primitives::{Pixel, Point};
+use crate::graph1::primitives::primitives::{Pixel, Point};
 
 
 pub struct StarProperties {

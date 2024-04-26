@@ -1,6 +1,6 @@
 use crate::graph1::draw::line;
 use crate::graph1_core::context::GraphContext;
-use crate::tools::primitives::Pixel;
+use crate::graph1::primitives::primitives::Pixel;
 
 /// Tries to draw a circle
 /// TODO: add more details to the RustDoc here
