@@ -1,3 +1,7 @@
+# Learn:
+- Lifetime elision: https://www.youtube.com/results?search_query=rust+lifetime+elision
+- Lifetime: https://chatgpt.com/g/g-X6K3ISxr6-rusty/c/a2027242-b234-489c-8660-05533244faf0
+- 
 # TODO:
 - Refactor `graph1/primitives/primitives` into separate files per topic!
 - Check if introducing primitive Line (Point, Point) and LineColor (Pixel, Point) would make sense
@@ -5,11 +9,10 @@
 
 ## Bezier curves
 + See if `draw_bezier_curve()` can be deleted in favour of `draw_continuous_bezier_curve()`
-1Add mode for visualising the control points, that should help come up with shapes
-2Make the control points draggable by mouse!
-3Make it possible to dump the coordinates of all the start/end and control points into JSON into the console.
+1. Add mode for visualising the control points, that should help come up with shapes
+2. Make the control points draggable by mouse!
+3. Make it possible to dump the coordinates of all the start/end and control points into JSON into the console.
    That should make it easier creating cool curves and then hardcoding their points for animation, etc.
-
 
 ## Text rendering engine
 Inputs:
@@ -32,5 +35,5 @@ Inputs:
 
 #### Nice to haves:
 - Tolerance: how much the scanned pixels can deviate from the colour of the starting Pixel to still be considered of the same colour.
- 
+- Think about playing and visualising audio 
 

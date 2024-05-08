@@ -6,9 +6,9 @@ pub struct ContextWindow {
     pub h_usize: usize,
 }
 
-pub struct GraphContext<'a> {
-    pub win: &'a ContextWindow,
-    pub buf_view: &'a mut[u32],
+pub struct GraphContext<'rendering> {
+    pub win: &'rendering ContextWindow,
+    pub buf_view: &'rendering mut[u32],
     /// Use this to pass a color around when no other means are available, e.g.
     /// can be used to render visual shapes if no `Pixel` is passed
     pub default_color: u32

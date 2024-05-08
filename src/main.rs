@@ -49,9 +49,12 @@ mod constants;
 mod cube;
 mod graph1;
 use graph1::graph1_core;
+use crate::animation_context::{AnimationContext, Oscillators};
 
 mod input;
 mod state;
+mod scenes;
+mod animation_context;
 
 const DEV_MODE: bool = true;
 
@@ -109,6 +112,14 @@ fn main() {
         buf_view,
         win: &context_window,
         default_color: 0x00_ff_00_00
+    };
+
+
+    let mut ani_ctx: AnimationContext = AnimationContext {
+        frame_count: 0,
+        oscillators: Oscillators{
+            o1: 231,
+        }
     };
 
     let mut ctx_draft: GraphContext = GraphContext {
@@ -220,11 +231,11 @@ fn main() {
         let normalized_value = (sine_input + 1.0) / 2.0; // Now between 0 and 1
         let oscillator = (normalized_value * points_len as f64) as usize;
         let oscillator = if oscillator == 0 { 1 } else { oscillator };
+        ani_ctx.oscillators.o1 = oscillator;
 
         ////////////////////////////////////////////////////////////////////////////////////////////
         // Clear screen
         fill::buffer(ctx_draft.buf_view, 0x00_44_00_00);
-
         fill::buffer(ctx.buf_view, 0x00_04_04_0F);
 
         // Draw kinda dotted grid
@@ -239,123 +250,17 @@ fn main() {
                 .copy_within(0..WIN_WIDTH_US, i * grid_factor * WIN_WIDTH_US);
         }
 
-        ///////////// STAR START ////////////////////
 
-        // Example usage
-        let mut center_pixel = Pixel {
-            x: 300 + oscillator as u32,
-            y: 300 - oscillator as u32,
-            color: 0xff_00_ff_dd,
-        };
-        center_pixel.color = argb_math(
-            &0xff_ff_ff_ff,
-            &(frame_count * oscillator as u32),
-            &ColorOperation::Subtract,
-        );
+        ////////////////////////////////////////////////////////////////////////////////////////////
+        // === SCENES START === ////////////////////////////////////////////////////////////////////
 
-        let vertex_num = frame_count % 60;
+        scenes::s02_star::render(&mut ctx, &ani_ctx);
+        scenes::s01_bezier::render(&mut ctx, &ani_ctx);
 
-        let star_props_1 = StarProperties {
-            center: center_pixel,
-            num_vertices: vertex_num, // e.g., a 10-point star
-            outer_radius: 50 + (oscillator / 2) as u32,
-            inner_radius: 40,
-            rotation_angle: frame_count as f64 * 1.5,
-        };
-
-        star::render(&mut ctx, &star_props_1);
-
-        center_pixel.color = argb_math(
-            &0xff_22_22_99,
-            &(frame_count * oscillator as u32),
-            &ColorOperation::Add,
-        );
-        let star_props_2 = StarProperties {
-            center: center_pixel,
-            num_vertices: vertex_num, // e.g., a 10-point star
-            outer_radius: 40 + (oscillator / 4) as u32,
-            inner_radius: 30,
-            rotation_angle: frame_count as f64 * 1.5,
-        };
-
-        star::render(&mut ctx, &star_props_2);
-
-        ///////////// STAR END ////////////////////
-
-        // pub fn draw_bezier_curve(ctx: &mut GraphContext, p0: &Point, p1: &Point, p2: &Point, p3: &Point) {
-        //******************************************************************************************
-        //******************************************************************************************
-        let res_delta: f32 = 0.05;
-
-        let string_curve = vec![
-            Point { x: 0, y: 0 },
-            Point { x: 250, y: 250 - (oscillator) as u32, },
-            Point { x: 350 + oscillator as u32, y: 350 + oscillator as u32,},
-            Point { x: 800, y: 600 },
-        ];
-        ctx.default_color = 0x00_ff_ff_ff;
-        draw_bezier_curve(&mut ctx, &string_curve, &res_delta);
+        // === SCENES END === //////////////////////////////////////////////////////////////////////
+        ////////////////////////////////////////////////////////////////////////////////////////////
 
 
-
-
-        let cx = 30_f32 + (oscillator * 5) as f32; // Center x
-        let cy = 300_f32  + oscillator as f32; // Center y
-        let r = 150_f32 + 1.5 * oscillator as f32; // Radius
-        let k = 4.0 / 3.0 * (2.0_f32.sqrt() - 1.0);
-
-
-        #[rustfmt::skip]
-        let circle_points:Vec<Point> = vec![
-            // First Quadrant
-            Point::from(PointF32{ x: cx + r,     y: cy }),
-            Point::from(PointF32{ x: cx + r,     y: cy + r * k }),
-            Point::from(PointF32 { x: cx + r * k, y: cy + r }),
-            Point::from(PointF32 { x: cx,         y: cy + r }),
-            // Second Quadrant
-            Point::from(PointF32{ x: cx,         y: cy + r }),
-            Point::from(PointF32{ x: cx - r * k, y: cy + r }),
-            Point::from(PointF32{ x: cx - r,     y: cy + r * k }),
-            Point::from(PointF32{ x: cx - r,     y: cy }),
-            // Third Quadrant
-            Point::from(PointF32             { x: cx - r,     y: cy }),
-            Point::from(PointF32{ x: cx - r,     y: cy - r * k }),
-            Point::from(PointF32{ x: cx - r * k, y: cy - r }),
-            Point::from(PointF32{ x: cx,         y: cy - r }),
-            // Fourth Quadrant
-            Point::from(PointF32 { x: cx,         y: cy - r }),
-            Point::from(PointF32 { x: cx + r * k, y: cy - r }),
-            Point::from(PointF32 { x: cx + r,     y: cy - r * k }),
-            Point::from(PointF32 { x: cx + r,     y: cy }),
-        ];
-        ctx.default_color = 0x00_00_ff_00;
-        draw_bezier_curve(&mut ctx, &circle_points[0..4], &res_delta);
-        draw_bezier_curve(&mut ctx, &circle_points[4..8], &res_delta);
-        draw_bezier_curve(&mut ctx, &circle_points[8..12], &res_delta);
-        draw_bezier_curve(&mut ctx, &circle_points[12..16], &res_delta);
-
-
-        //******************************************************************************************
-        //******************************************************************************************
-
-        // Usage of the continuous Bezier curve!
-        let closed_curve = vec![
-            Point { x: 50, y: 50 },
-            Point { x: 150, y: 150 },
-            Point { x: 300, y: 100 },
-            Point { x: 350, y: 200 },
-            Point { x: 400, y: 400 },
-            Point { x: 300, y: 100 },
-            Point { x: 150, y: 100 },
-            Point { x: 100, y: 140 },
-            Point { x: 190, y: 190 },
-            Point { x: 50, y: 50 },
-        ];
-        ctx.default_color = 0x00_ff_00_ff;
-        draw_bezier_curve(&mut ctx, &closed_curve, &res_delta);
-
-        //******************************************************************************************
-        //******************************************************************************************
 
         //----------------------------------------------------------------------------------------------
         // THE CUBE dynamic
@@ -536,6 +441,7 @@ fn main() {
         // println!("State: {:?}", state);
 
         frame_count += 1;
+        ani_ctx.frame_count = frame_count;
 
         // We unwrap here as we want this code to exit if it fails. Real applications may want to handle this in a different way
         window
