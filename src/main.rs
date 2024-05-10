@@ -50,6 +50,7 @@ mod cube;
 mod graph1;
 use graph1::graph1_core;
 use crate::animation_context::{AnimationContext, Oscillators};
+use crate::graph1::utils::mem::slice_buffer_in_4;
 
 mod input;
 mod state;
@@ -58,23 +59,7 @@ mod animation_context;
 
 const DEV_MODE: bool = true;
 
-fn slice_buffer_in_4(buffer: &mut Vec<u32>) -> (&mut [u32], &mut [u32], &mut [u32], &mut [u32]) {
-    // TODO:
-    // TODO: Move this function to a dedicated file!
-    // TODO:
 
-    // Calculate indices for splitting the vector into four equal parts
-    let first_split = PIXEL_PER_PAGE;
-    let second_split = PIXEL_PER_PAGE * 2;
-    let third_split = PIXEL_PER_PAGE * 3;
-
-    // Split the buffer to avoid borrowing conflicts
-    let (first_half, second_half) = buffer.split_at_mut(second_split);
-    let (buf_view_1, buf_view_2) = first_half.split_at_mut(first_split);
-    let (buf_view_3, buf_view_4) = second_half.split_at_mut(first_split);
-
-    (buf_view_1, buf_view_2, buf_view_3, buf_view_4)
-}
 
 fn main() {
     #![allow(unused)]
@@ -235,27 +220,16 @@ fn main() {
 
         ////////////////////////////////////////////////////////////////////////////////////////////
         // Clear screen
+
         fill::buffer(ctx_draft.buf_view, 0x00_44_00_00);
         fill::buffer(ctx.buf_view, 0x00_04_04_0F);
-
-        // Draw kinda dotted grid
-        let grid_factor: usize = 20;
-        for i in 0..WIN_WIDTH_US {
-            if i % grid_factor == 0 {
-                ctx.buf_view[i] = 0x00_55_55_aa;
-            }
-        }
-        for i in 1..WIN_HEIGHT_US / grid_factor {
-            ctx.buf_view
-                .copy_within(0..WIN_WIDTH_US, i * grid_factor * WIN_WIDTH_US);
-        }
-
 
         ////////////////////////////////////////////////////////////////////////////////////////////
         // === SCENES START === ////////////////////////////////////////////////////////////////////
 
-        scenes::s02_star::render(&mut ctx, &ani_ctx);
+        scenes::s00_dot_grid::render(&mut ctx);
         scenes::s01_bezier::render(&mut ctx, &ani_ctx);
+        scenes::s02_star::render(&mut ctx, &ani_ctx);
 
         // === SCENES END === //////////////////////////////////////////////////////////////////////
         ////////////////////////////////////////////////////////////////////////////////////////////
