@@ -20,6 +20,14 @@ Inputs:
 - A location from the draft buffer of how a single pixel needs to be rendered. It can be a large animated cube or a single pixel!
 - A buffer of text to render
 - Destination on the frame buffer, where the first letter should appear. 
+```
+--------------------------------------------------
+C&C Red Alert by N3tRunn3r
+https://www.dafont.com/c-c-red-alert-inet.font
+--------------------------------------------------
+```
+
+
 
 
 ## Tools

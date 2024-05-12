@@ -1,5 +1,6 @@
 use crate::init::init_window::{WIN_HEIGHT, WIN_WIDTH};
 
+
 pub const DEFAULT_BG_COLOR: u32 = 0x00_33_33_33;
 
 pub const PIXEL_PER_PAGE: usize = (WIN_WIDTH * WIN_HEIGHT) as usize;

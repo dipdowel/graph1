@@ -23,6 +23,10 @@ use crate::input::handle_keyboard;
 use crate::state::{init_app_state, APP_STATE};
 
 
+use image::io::Reader as ImageReader;
+use image::GenericImageView;
+
+
 // graph1::utils::
 use crate::graph1::utils::color_math::operations::ColorOperation;
 
@@ -56,6 +60,7 @@ mod input;
 mod state;
 mod scenes;
 mod animation_context;
+mod about;
 
 const DEV_MODE: bool = true;
 
@@ -205,6 +210,46 @@ fn main() {
 
     //----------------------------------------------------------------------------------------------
 
+    let mut image_buf: Vec<u32> = Vec::new();
+
+    // TODO: extract the path after the development will have been finished.
+    let font_name = "assets/fonts/c_c_red_alert_inet0.png";
+    // let font_name = "assets/fonts/empty.dat"; // for testing
+    graph1::utils::io::file::read_image(font_name, &mut image_buf);
+
+    println!("{}","-".repeat(20));
+    println!(">>> image_buf.len: {:?}", image_buf.len());
+
+    // TODO: continue. We read and converted the image, now we can process it as a font :)
+
+    /*
+    // Load the image from a path and handle the result.
+    let img = match ImageReader::open("assets/fonts/c_c_red_alert_inet0__.png") {
+        Ok(reader) => match reader.decode() {
+            Ok(img) => img,
+            Err(e) => {
+                eprintln!("Failed to decode image: {}", e);
+                return;
+            }
+        },
+        Err(e) => {
+            eprintln!("Failed to open image: {}", e);
+            return;
+        }
+    };
+
+
+    // Access the image's pixels.
+    for y in 0..img.height() {
+        for x in 0..img.width() {
+            let pixel = img.get_pixel(x, y);
+            println!("Pixel at ({}, {}) is {:?}", x, y, pixel);
+        }
+    }
+    */
+
+    //----------------------------------------------------------------------------------------------
+
     // Main animation loop
     while window.is_open() && !window.is_key_down(Key::Escape) {
         ////////////////////////////////////////////////////////////////////////////////////////////
@@ -227,9 +272,9 @@ fn main() {
         ////////////////////////////////////////////////////////////////////////////////////////////
         // === SCENES START === ////////////////////////////////////////////////////////////////////
 
-        scenes::s00_dot_grid::render(&mut ctx);
-        scenes::s01_bezier::render(&mut ctx, &ani_ctx);
-        scenes::s02_star::render(&mut ctx, &ani_ctx);
+        // scenes::s00_dot_grid::render(&mut ctx);
+        // scenes::s01_bezier::render(&mut ctx, &ani_ctx);
+        // scenes::s02_star::render(&mut ctx, &ani_ctx);
 
         // === SCENES END === //////////////////////////////////////////////////////////////////////
         ////////////////////////////////////////////////////////////////////////////////////////////
