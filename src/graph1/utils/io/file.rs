@@ -1,15 +1,12 @@
-use image::io::Reader as ImageReader;
 use image::{DynamicImage, GenericImageView, Pixel};
+use image::io::Reader as ImageReader;
 
 use crate::about::AboutApp;
-use crate::graph1::utils::color_math::argb_math::argb_math;
-use crate::graph1::utils::color_math::operations::ColorOperation;
 
 /// Reads a file from an image, converts it to 0RGB format and writes to a provided `buf`.
 /// - On success returns `true`.
 /// - On failure writes an error to `stderr` and returns `false`.
-/// If `buf` is too short, it gets extended to accommodate all the pixels.
-/// If `buf` is too long, the unused memory is left intact (i.e. may contain garbage)
+/// `buf` is cleared before it gets populated by the pixels
 pub fn read_image(path: &str, buf: &mut Vec<u32>) -> bool {
     let file_open_result = ImageReader::open(path);
 
@@ -40,14 +37,17 @@ pub fn read_image(path: &str, buf: &mut Vec<u32>) -> bool {
         }
     };
 
+    // println!("{:?}", image);
+
     convert_to_0rgb(image, buf);
     return true;
 }
 
 /// Converts a `DynamicImage` instance to 0RGB model and writes the result to `buf`
 fn convert_to_0rgb(image: DynamicImage, buf: &mut Vec<u32>) {
-    let mut pixel_index: usize = 0;
-    let buf_len: usize = buf.len();
+
+    // Make sure there's no pre-existing garbage in the buffer
+    buf.clear();
 
     // TODO: 1. Write some unit tests
     // TODO: 2. Use `image_bytes` instead of `image.height() * image.weight()`
@@ -64,17 +64,10 @@ fn convert_to_0rgb(image: DynamicImage, buf: &mut Vec<u32>) {
                 | ((pixel[1] as u32) << 8)
                 | (pixel[2] as u32);
 
-            // TODO: Unit test if this works correctly!!!
-            // Overwrite the existing values in the buffer.
-            // Grow buffer if it's too short.
-            if pixel_index < buf_len {
-                buf[pixel_index] = pixel_0rgb;
-            } else {
-                buf.push(pixel_0rgb);
-            }
+            buf.push(pixel_0rgb);
 
-            println!("Pixel at ({}, {}) is {:?}", x, y, pixel);
-            println!("pixel_0RGB at ({}, {}) is 0x{:08X}", x, y, pixel_0rgb);
+            // println!("Pixel at ({}, {}) is {:?}", x, y, pixel);
+            // println!("pixel_0RGB at ({}, {}) is 0x{:08X}", x, y, pixel_0rgb);
         }
     }
 }
@@ -82,27 +75,56 @@ fn convert_to_0rgb(image: DynamicImage, buf: &mut Vec<u32>) {
 // Unit tests module
 #[cfg(test)]
 mod tests {
-    use image::ColorType;
-    use super::*;
+    use image::{ColorType, ImageBuffer, Rgba, RgbaImage};
 
-    #[test]
-    fn test_pixel_model_conversion() {
-        let mut image_buf: Vec<u32> = Vec::new();
-        let result = read_image("assets/01_test_palette.png", &mut image_buf);
-        assert_eq!(2, 2);
-    }
+    use super::*;
 
     #[test]
     fn test_convert_to_0rgb_right_size() {
         let mut image_buf: Vec<u32> = Vec::new();
 
-        let the_length = 12;
-
-        let d_image = DynamicImage::new(the_length, 1, ColorType::Rgba8);
-
-        assert_eq!(image_buf.len(), the_length as usize);
-
+        let dynamic_image = DynamicImage::new(12, 1, ColorType::Rgba8);
+        let result = convert_to_0rgb(dynamic_image, &mut image_buf);
+        assert_eq!(image_buf.len(), 12);
     }
 
+    #[test]
+    fn test_convert_to_0rgb_conversion() {
+        // Initialise the image
+        let mut rgba_img: RgbaImage = ImageBuffer::new(5, 1);
 
+        let mut pixels = rgba_img.pixels_mut();
+
+        let val = pixels.next().unwrap();
+        *val = Rgba([0xff, 0x00, 0x00, 0xff]);
+        let val = pixels.next().unwrap();
+        *val = Rgba([0x00, 0xff, 0x00, 0xff]);
+        let val = pixels.next().unwrap();
+        *val = Rgba([0x00, 0x00, 0xff, 0xff]);
+        let val = pixels.next().unwrap();
+        *val = Rgba([0xff, 0x00, 0xff, 0xff]);
+        let val = pixels.next().unwrap();
+        *val = Rgba([0xff, 0xff, 0xff, 0xff]);
+
+        let dynamic_image = DynamicImage::from(rgba_img);
+        // println!(">>>> dynamic_image: {:?}", dynamic_image);
+
+        let mut image_buf: Vec<u32> = Vec::new();
+        convert_to_0rgb(dynamic_image, &mut image_buf);
+
+        let expected_values = vec![
+            0x00_ff_00_00,
+            0x00_00_ff_00,
+            0x00_00_00_ff,
+            0x00_ff_00_ff,
+            0x00_ff_ff_ff,
+        ];
+
+        let mut count = 0;
+        for pixel in image_buf {
+            // println!(">>>> test image_buf[{count}]: {:08X}, {:08X}", pixel, expected_values[count]);
+            assert_eq!(pixel, expected_values[count]);
+            count += 1;
+        }
+    }
 }

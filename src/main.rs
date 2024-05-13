@@ -210,15 +210,19 @@ fn main() {
 
     //----------------------------------------------------------------------------------------------
 
-    let mut image_buf: Vec<u32> = Vec::new();
+    let mut font_image_buf: Vec<u32> = Vec::new();
 
     // TODO: extract the path after the development will have been finished.
     let font_name = "assets/fonts/c_c_red_alert_inet0.png";
+    // let font_name = "assets/01_test_palette.png";
     // let font_name = "assets/fonts/empty.dat"; // for testing
-    graph1::utils::io::file::read_image(font_name, &mut image_buf);
+
+    if (!graph1::utils::io::file::read_image(font_name, &mut font_image_buf)){
+        panic!("Font initialization failed!");
+    };
 
     println!("{}","-".repeat(20));
-    println!(">>> image_buf.len: {:?}", image_buf.len());
+    println!(">>> image_buf.len: {:?}", font_image_buf.len());
 
     // TODO: continue. We read and converted the image, now we can process it as a font :)
 
