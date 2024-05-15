@@ -54,6 +54,9 @@ mod cube;
 mod graph1;
 use graph1::graph1_core;
 use crate::animation_context::{AnimationContext, Oscillators};
+use crate::graph1::text::char_map::get_c_c_red_alert_inet0;
+use crate::graph1::text::font;
+use crate::graph1::text::font::PixelFont;
 use crate::graph1::utils::mem::slice_buffer_in_4;
 
 mod input;
@@ -88,7 +91,7 @@ fn main() {
     // let mut buf_view = buf_view_2;
 
     fill::buffer(buf_view_1, 0x00_44_00_00);
-    fill::buffer(buf_view_3, 0x00_00_44_00);
+    fill::buffer(buf_view_3, 0x00_ee_ee_ee);
     fill::buffer(buf_view_4, 0x00_00_00_44);
 
     let context_window: ContextWindow = ContextWindow {
@@ -213,7 +216,7 @@ fn main() {
     let mut font_image_buf: Vec<u32> = Vec::new();
 
     // TODO: extract the path after the development will have been finished.
-    let font_name = "assets/fonts/c_c_red_alert_inet0.png";
+    let font_name = "assets/fonts/c_c_red_alert_inet0_ext.png";
     // let font_name = "assets/01_test_palette.png";
     // let font_name = "assets/fonts/empty.dat"; // for testing
 
@@ -224,7 +227,56 @@ fn main() {
     println!("{}","-".repeat(20));
     println!(">>> image_buf.len: {:?}", font_image_buf.len());
 
-    // TODO: continue. We read and converted the image, now we can process it as a font :)
+    let font_img = Dimensions2d {
+            w: 513,
+            h: 9,
+        };
+
+
+    let font: PixelFont = PixelFont {
+        char_order: font::DEFAULT_CHAR_ORDER,
+        char_map:get_c_c_red_alert_inet0(),
+        image_w:513,
+        image_h:9,
+        default_kerning_px:1
+    };
+
+
+    println!(">>> font: {:?}", font);
+
+    let mut index: usize;
+    let mut pixel: u32;
+    let transparency_color = 0x00_ff_ff_ff;
+    let dst_buf_view_len = buf_view_3.len();
+    let mut dst_x = 0;
+    let mut dst_y = 0;
+
+    for x in 0..font_img.w {
+        for y in 0..font_img.h {
+            index = (font_img.w * y + x) as usize;
+            pixel = font_image_buf[index];
+            if pixel != transparency_color {
+                let dest_index: usize = (context_window.w * dst_y + dst_x) as usize;
+                if dest_index < dst_buf_view_len {
+                    buf_view_3[dest_index] = pixel;
+                }
+            }
+            dst_y += 1;
+        }
+        dst_x += 1;
+        dst_y = 0;
+    }
+
+    /*
+    TODO: continue. We read and converted the image, now we can process it as a font :)
+    1. Make a struct that describes a font:
+    - The PNG file path
+    - The PNG width and height
+    - Come up with how to store meta data about where is what letter,
+      since we may have letters of various width
+    - Come up with how to deal with the font baseline. Do we even need to do that?
+    */
+
 
     /*
     // Load the image from a path and handle the result.
