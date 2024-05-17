@@ -1,3 +1,4 @@
+use std::collections::HashMap;
 // use std::collections::HashMap;
 use std::fmt::Debug;
 
@@ -232,17 +233,43 @@ fn main() {
             h: 9,
         };
 
+    /*
     let font: PixelFont = PixelFont {
         font_image_buf: &font_image_buf,
-        image_w:513,
-        image_h:9,
+        image_w: 513,
+        image_h: 9,
 
-        char_descriptions:get_c_c_red_alert_inet0(),
+        char_descriptions: get_c_c_red_alert_inet0(),
         char_order: font::DEFAULT_CHAR_ORDER,
 
-        default_kerning_px:1
+        kerning_px: 1,
+        // pixel_char_bufs: HashMap::new(),
     };
+*/
 
+    let font: PixelFont = PixelFont::new(
+        &font_image_buf,
+        513,
+        9,
+        font::DEFAULT_CHAR_ORDER,
+        1,
+        get_c_c_red_alert_inet0(),
+    );
+
+
+
+
+    // {
+    //     font_image_buf:
+    //     image_w:513,
+    //     image_h:9,
+    //
+    //     char_descriptions:get_c_c_red_alert_inet0(),
+    //     char_order: font::DEFAULT_CHAR_ORDER,
+    //
+    //     kerning_px:1
+    // };
+    //
 
 
     // println!(">>> font: {:?}", font);

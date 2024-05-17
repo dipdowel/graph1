@@ -1,8 +1,12 @@
+use crate::graph1::primitives::primitives::{Dimensions2d, ImageBuffer, VecImageData0RGB};
+use crate::graph1::text::types::HashMapCharDescriptions;
 use std::collections::HashMap;
 use std::string::ToString;
 
 pub const DEFAULT_CHAR_ORDER: &str = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!\"#$%&'()*+,-./:;<=>?@[\\]^_`{|}~";
 pub const DEFAULT_KERNING_PX: u8 = 1;
+
+/// Location and vertical offset (margin-top) of a single renderable pixel-font character.
 #[derive(Debug)]
 pub struct PixelChar {
     /// Width of a character
@@ -18,11 +22,8 @@ pub struct PixelChar {
     pub margin_top: u8,
 }
 
-type CharDescriptorTable<'a> = HashMap<char, &'a PixelChar>;
-
 #[derive(Debug)]
 pub struct PixelFont<'a> {
-
     /// Buffer with the font source image
     pub font_image_buf: &'a Vec<u32>,
 
@@ -37,16 +38,15 @@ pub struct PixelFont<'a> {
     pub char_order: &'a str,
 
     /// Default horizontal spacing between characters in the file
-    pub default_kerning_px: u8,
+    pub kerning_px: u8,
 
     // FIXME: add some implementation for a dummy char that is shown when an unknown character is requested for rendering
     // pub default_char: PixelChar,
-
     /// A map of a character to a set of character properties
-    // pub char_descriptions: HashMap<char, &'a PixelChar>,
-    pub char_descriptions: CharDescriptorTable<'a>
-}
+    pub char_descriptions: HashMapCharDescriptions<'a>,
 
+    // pixel_char_bufs: HashMap<char, ImageBuffer>,
+}
 
 /*
     impl Person {
@@ -59,35 +59,68 @@ pub struct PixelFont<'a> {
 
 */
 
-
-/*
-impl PixelFont {
-    fn new(
-        /// Buffer with the font source image
-        font_image_buf: &Vec<u32>,
-
-        /// Width of the source image with font
+impl<'a> PixelFont<'a> {
+    /// Creates a new `PixelFont` instance.
+    ///
+    /// # Parameters
+    ///
+    /// - `font_image_buf`: Buffer with the font source image.
+    /// - `image_w`: Width of the source image with font.
+    /// - `image_h`: Height of the source image with font.
+    /// - `char_order`: Order in which characters appear in the font. See `DEFAULT_CHAR_ORDER` for an example.
+    /// - `default_kerning_px`: Default horizontal spacing between characters in the file.
+    /// - `char_descriptions`: Pixel character properties, per character.
+    ///
+    /// # Returns
+    ///
+    /// A new instance of `PixelFont`.
+    pub fn new (
+        font_image_buf: &'a Vec<u32>,
         image_w: u32,
-
-        /// Height of the source image with font
         image_h: u32,
+        char_order: &'a str,
+        kerning_px: u8,
+        char_descriptions:  HashMapCharDescriptions<'a>,
+    ) -> Self {
+        //
+        let mut pixel_char_bufs: HashMap<char, ImageBuffer> = HashMap::new();
 
-        /// Order in which characters appear in the font.
-        /// @See e.g.: `DEFAULT_CHAR_ORDER`
-        char_order: &str,
+        let mut char_count = 0;
+        // For each described character create an individual image buffer.
+        for (&char , &description) in  &char_descriptions {
 
-        /// Default horizontal spacing between characters in the file
-        default_kerning_px: u8,
+            let glyph: VecImageData0RGB = Vec::new();
 
-        /// Pixel character properties, per character
-        char_map: HashMap<char, &'a PixelChar>,
+            let dimensions:Dimensions2d = Dimensions2d {
+                w: description.w as u32,
+                h: description.h as u32,
+            };
 
+            // let img_buf: ImageBuffer = ImageBuffer {
+            //     dimensions,
+            //     buf: glyph,
+            // };
 
-    ) ->Self {
-        return PixelFont{
-            font_image_buf
+            // pixel_char_bufs.insert(char, img_buf);
+            char_count += 1;
         }
+
+        return Self {
+            font_image_buf,
+            image_w,
+            image_h,
+            char_order,
+            kerning_px,
+            char_descriptions,
+            // pixel_char_bufs,
+        };
     }
 
+    pub fn get_glyph(&self, character: &char) -> &ImageBuffer {
+
+        // if self.pixel_char_bufs.contains_key(character) {
+        //     return self.pixel_char_bufs.get(character).unwrap();
+        // }
+        panic!("TODO: Return a default character here!");
+    }
 }
-*/
