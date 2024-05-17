@@ -78,8 +78,8 @@ pub struct Pixel {
 pub type VecImageData0RGB = Vec<u32>;
 
 #[derive(Debug)]
-pub struct ImageBuffer {
-    pub dimensions: Dimensions2d,
-    pub buf: VecImageData0RGB,
+pub struct ImageBuffer<'a> {
+    pub dimensions:   Dimensions2d ,
+    pub buf: &'a mut VecImageData0RGB,
 
 }
