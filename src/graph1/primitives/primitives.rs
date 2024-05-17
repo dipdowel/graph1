@@ -1,4 +1,4 @@
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy)]
 pub struct Dimensions2d {
     pub w: u32,
     pub h: u32,
@@ -72,4 +72,14 @@ pub struct Pixel {
     pub(crate) x: u32,
     pub y: u32,
     pub color: u32,
+}
+
+/// Array of pixels. Each pixel has the `0RGB` model.
+pub type VecImageData0RGB = Vec<u32>;
+
+#[derive(Debug)]
+pub struct ImageBuffer {
+    pub dimensions: Dimensions2d,
+    pub buf: VecImageData0RGB,
+
 }
