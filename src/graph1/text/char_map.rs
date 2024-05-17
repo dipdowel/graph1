@@ -1,6 +1,7 @@
 use std::collections::HashMap;
 use crate::graph1::text::font::PixelChar;
 
+
 const CHAR_7_7_0:PixelChar = PixelChar {
     w: 7,
     h: 7,
@@ -143,7 +144,12 @@ const CHAR_1_7_0:PixelChar = PixelChar {
     margin_top: 0,
 };
 
+//FIXME: use `CharDescriptorTable` as the return type
 pub fn get_c_c_red_alert_inet0<'a>() -> HashMap<char, &'a PixelChar> {
+
+    // TODO: 1. Make a more efficient representation of the charmap by grouping symbols with the same properties into strings
+    // TODO: 2. Maybe extract `CHAR_x_y_z` constants to a dedicated file? May be reused between different fonts
+    // TODO: 3. Rename this file. Maybe make a dir with different font char maps and find a better name than "char map"?
 
     let mut char_map: HashMap<char, &PixelChar> = HashMap::new();
 
