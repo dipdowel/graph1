@@ -55,7 +55,7 @@ mod graph1;
 use graph1::graph1_core;
 use crate::animation_context::{AnimationContext, Oscillators};
 use crate::graph1::text::char_map::get_c_c_red_alert_inet0;
-use crate::graph1::text::font;
+use crate::graph1::text::{font, printer};
 use crate::graph1::text::font::PixelFont;
 use crate::graph1::utils::mem::slice_buffer_in_4;
 
@@ -232,17 +232,20 @@ fn main() {
             h: 9,
         };
 
-
     let font: PixelFont = PixelFont {
-        char_order: font::DEFAULT_CHAR_ORDER,
-        char_map:get_c_c_red_alert_inet0(),
+        font_image_buf: &font_image_buf,
         image_w:513,
         image_h:9,
+
+        char_descriptions:get_c_c_red_alert_inet0(),
+        char_order: font::DEFAULT_CHAR_ORDER,
+
         default_kerning_px:1
     };
 
 
-    println!(">>> font: {:?}", font);
+
+    // println!(">>> font: {:?}", font);
 
     let mut index: usize;
     let mut pixel: u32;
@@ -323,7 +326,8 @@ fn main() {
         // Clear screen
 
         fill::buffer(ctx_draft.buf_view, 0x00_44_00_00);
-        fill::buffer(ctx.buf_view, 0x00_04_04_0F);
+        // fill::buffer(ctx.buf_view, 0x00_04_04_0F);
+        fill::buffer(ctx.buf_view, 0x00_cc_cc_cc);
 
         ////////////////////////////////////////////////////////////////////////////////////////////
         // === SCENES START === ////////////////////////////////////////////////////////////////////
@@ -334,6 +338,13 @@ fn main() {
 
         // === SCENES END === //////////////////////////////////////////////////////////////////////
         ////////////////////////////////////////////////////////////////////////////////////////////
+
+        printer::print(
+            &mut ctx,
+            &Point { x: 100, y: 100 },
+            &font,
+            "Test",
+        );
 
 
 

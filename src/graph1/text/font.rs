@@ -18,12 +18,13 @@ pub struct PixelChar {
     pub margin_top: u8,
 }
 
+type CharDescriptorTable<'a> = HashMap<char, &'a PixelChar>;
+
 #[derive(Debug)]
 pub struct PixelFont<'a> {
 
-    /// Order in which characters appear in the font.
-    /// @See e.g.: `DEFAULT_CHAR_ORDER`
-    pub char_order: &'a str,
+    /// Buffer with the font source image
+    pub font_image_buf: &'a Vec<u32>,
 
     /// Width of the source image with font
     pub image_w: u32,
@@ -31,12 +32,62 @@ pub struct PixelFont<'a> {
     /// Height of the source image with font
     pub image_h: u32,
 
+    /// Order in which characters appear in the font.
+    /// @See e.g.: `DEFAULT_CHAR_ORDER`
+    pub char_order: &'a str,
+
     /// Default horizontal spacing between characters in the file
     pub default_kerning_px: u8,
 
-    // FIXME
+    // FIXME: add some implementation for a dummy char that is shown when an unknown character is requested for rendering
     // pub default_char: PixelChar,
 
-    /// Pixel character properties, per character
-    pub char_map: HashMap<char, &'a PixelChar>,
+    /// A map of a character to a set of character properties
+    // pub char_descriptions: HashMap<char, &'a PixelChar>,
+    pub char_descriptions: CharDescriptorTable<'a>
 }
+
+
+/*
+    impl Person {
+        fn new(name: &str, age: u16) -> Self {
+            return Person {
+                name: name.to_string(),
+                age,
+            };
+        }
+
+*/
+
+
+/*
+impl PixelFont {
+    fn new(
+        /// Buffer with the font source image
+        font_image_buf: &Vec<u32>,
+
+        /// Width of the source image with font
+        image_w: u32,
+
+        /// Height of the source image with font
+        image_h: u32,
+
+        /// Order in which characters appear in the font.
+        /// @See e.g.: `DEFAULT_CHAR_ORDER`
+        char_order: &str,
+
+        /// Default horizontal spacing between characters in the file
+        default_kerning_px: u8,
+
+        /// Pixel character properties, per character
+        char_map: HashMap<char, &'a PixelChar>,
+
+
+    ) ->Self {
+        return PixelFont{
+            font_image_buf
+        }
+    }
+
+}
+*/
