@@ -16,14 +16,14 @@ use crate::graph1::text::font::PixelFont;
 pub fn copy_image_data(
     dst_buf: &mut [u32],
     dst_dimensions: &Dimensions2d,
-    dest_point: Point,
+    dst_point: &Point,
     src_buf: &[u32],
     src_dimensions: &Dimensions2d,
     src_region: RectArea,
 ) {
     // Ensure the dimensions and starting points are within bounds
-    if dest_point.x >= dst_dimensions.w
-        || dest_point.y >= dst_dimensions.h
+    if dst_point.x >= dst_dimensions.w
+        || dst_point.y >= dst_dimensions.h
         || src_region.top_left.x >= src_dimensions.w
         || src_region.top_left.y >= src_dimensions.h
     {
@@ -48,8 +48,8 @@ pub fn copy_image_data(
             let src_index = (src_y * src_dimensions.w + src_x) as usize;
 
             // Calculate destination index
-            let dest_x = dest_point.x + x;
-            let dest_y = dest_point.y + y;
+            let dest_x = dst_point.x + x;
+            let dest_y = dst_point.y + y;
 
             // TODO: Find out whether this check actually works as expected
             // Ensure the destination coordinates are within the screen bounds
@@ -83,16 +83,19 @@ pub fn print(ctx: &mut GraphContext, dst_position: &Point, font: &PixelFont, tex
 
     // let a = ctx.buf_view[0];
 
+    let mut dst_point: Point = Point {
+        x: dst_position.x,
+        y: dst_position.y,
+    };
+
+
     copy_image_data(
         ctx.buf_view,
         &Dimensions2d {
             w: ctx.win.w,
             h: ctx.win.h,
         },
-        Point {
-            x: dst_position.x + 20,
-            y: dst_position.y,
-        },
+        &dst_point,
         font.font_image_buf,
         &Dimensions2d {
             w: font.image_w,
@@ -107,16 +110,15 @@ pub fn print(ctx: &mut GraphContext, dst_position: &Point, font: &PixelFont, tex
         },
     );
 
+
+    dst_point.x += 10;
     copy_image_data(
         ctx.buf_view,
         &Dimensions2d {
             w: ctx.win.w,
             h: ctx.win.h,
         },
-        Point {
-            x: dst_position.x,
-            y: dst_position.y,
-        },
+        &dst_point,
         font.font_image_buf,
         &Dimensions2d {
             w: font.image_w,
