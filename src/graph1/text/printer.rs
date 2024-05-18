@@ -19,7 +19,7 @@ pub fn copy_image_data(
     dst_point: &Point,
     src_buf: &[u32],
     src_dimensions: &Dimensions2d,
-    src_region: RectArea,
+    src_region: &RectArea,
 ) {
     // Ensure the dimensions and starting points are within bounds
     if dst_point.x >= dst_dimensions.w
@@ -101,7 +101,7 @@ pub fn print(ctx: &mut GraphContext, dst_position: &Point, font: &PixelFont, tex
             w: font.image_w,
             h: font.image_h,
         },
-        RectArea {
+        &RectArea {
             dimensions: Dimensions2d {
                 w: char_descriptor.w as u32,
                 h: char_descriptor.h as u32,
@@ -124,7 +124,7 @@ pub fn print(ctx: &mut GraphContext, dst_position: &Point, font: &PixelFont, tex
             w: font.image_w,
             h: font.image_h,
         },
-        RectArea {
+        &RectArea {
             dimensions: Dimensions2d {
                 w: char_descriptor.w as u32,
                 h: char_descriptor.h as u32,
