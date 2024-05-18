@@ -2,134 +2,132 @@ use crate::graph1::graph1_core::context::GraphContext;
 use crate::graph1::primitives::primitives::{Dimensions2d, Point, RectArea};
 use crate::graph1::text::font::PixelFont;
 
-/// Copies a rectangular area from an image buffer to a screen buffer.
+/// Copies image data from a source buffer to a destination buffer, within specified areas and dimensions.
 ///
 /// # Parameters
 ///
-/// - `buf_view`: Mutable reference to the screen buffer.
-/// - `screen_w`: Width of the screen.
-/// - `screen_h`: Height of the screen.
-/// - `buf_image`: Reference to the image buffer.
-/// - `img_w`: Width of the image.
-/// - `img_h`: Height of the image.
-/// - `dest_point`: The point on the screen where the rectangle will be copied.
-/// - `rect_area`: The rectangular area to copy from the image.
+/// - `dst_buf`: The destination buffer for image data.
+/// - `dst_dimensions`: Dimensions of the destination buffer.
+/// - `src_buf`: The source buffer
+/// - `src_dimensions`: Dimensions of the destination buffer.
+/// - `dest_point`: A `Point` specifying the starting point in the destination buffer where the image data will be copied to.
+/// - `rect_area`: A `RectArea` specifying the rectangular area in the source buffer to copy.
 ///
-/// # Examples
-///
-/// ```
-/// let mut screen_buffer = vec![0; screen_width * screen_height];
-/// let image_buffer = vec![0; image_width * image_height];
-/// let destination = Point { x: 10, y: 10 };
-/// let area = RectArea {
-///     top_left: Point { x: 5, y: 5 },
-///     dimensions: Dimensions2d { w: 20, h: 20 },
-/// };
-///
-/// copy_rect_to_screen(&mut screen_buffer, screen_width, screen_height, &image_buffer, image_width, image_height, destination, area);
-/// ```
-pub fn copy_rect_to_screen(
-    buf_view: &mut [u32],      // Mutable reference to the screen buffer
-    screen_w: u32,            // Width of the screen
-    screen_h: u32,            // Height of the screen
-    buf_image: &[u32],        // Reference to the image buffer
-    img_w: u32,               // Width of the image
-    img_h: u32,               // Height of the image
-    dest_point: Point,        // The point on the screen where the rectangle will be copied
-    rect_area: RectArea,      // The rectangular area to copy from the image
+pub fn copy_image_data(
+    dst_buf: &mut [u32],
+    dst_dimensions: &Dimensions2d,
+    dest_point: Point,
+    src_buf: &[u32],
+    src_dimensions: &Dimensions2d,
+    src_region: RectArea,
 ) {
     // Ensure the dimensions and starting points are within bounds
-    if dest_point.x >= screen_w || dest_point.y >= screen_h ||
-        rect_area.top_left.x >= img_w || rect_area.top_left.y >= img_h {
+    if dest_point.x >= dst_dimensions.w
+        || dest_point.y >= dst_dimensions.h
+        || src_region.top_left.x >= src_dimensions.w
+        || src_region.top_left.y >= src_dimensions.h
+    {
         return;
     }
 
-    let rect_width = rect_area.dimensions.w;
-    let rect_height = rect_area.dimensions.h;
+    let rect_width = src_region.dimensions.w;
+    let rect_height = src_region.dimensions.h;
 
     for y in 0..rect_height {
         for x in 0..rect_width {
             // Calculate source index
-            let src_x = rect_area.top_left.x + x;
-            let src_y = rect_area.top_left.y + y;
+            let src_x = src_region.top_left.x + x;
+            let src_y = src_region.top_left.y + y;
 
+            // TODO: Find out whether this check actually works as expected
             // Ensure the source coordinates are within the image bounds
-            if src_x >= img_w || src_y >= img_h {
+            if src_x >= src_dimensions.w || src_y >= src_dimensions.h {
                 continue;
             }
 
-            let src_index = (src_y * img_w + src_x) as usize;
+            let src_index = (src_y * src_dimensions.w + src_x) as usize;
 
             // Calculate destination index
             let dest_x = dest_point.x + x;
             let dest_y = dest_point.y + y;
 
+            // TODO: Find out whether this check actually works as expected
             // Ensure the destination coordinates are within the screen bounds
-            if dest_x >= screen_w || dest_y >= screen_h {
+            if dest_x >= dst_dimensions.w || dest_y >= dst_dimensions.h {
                 continue;
             }
 
-            let dest_index = (dest_y * screen_w + dest_x) as usize;
+            let dest_index = (dest_y * dst_dimensions.w + dest_x) as usize;
 
             // Copy the pixel
-            buf_view[dest_index] = buf_image[src_index];
+            dst_buf[dest_index] = src_buf[src_index];
         }
     }
 }
-pub fn print(
-    ctx: &mut GraphContext,
-    dst_position: &Point,
-    font:&PixelFont,
-    text:&str
-){
 
+pub fn print(ctx: &mut GraphContext, dst_position: &Point, font: &PixelFont, text: &str) {
     // FIXME: remove `.unwrap()`. If a non-existent char is requested, return the default char!
     let text_char = text.chars().next().unwrap();
 
     // if font.char_map.contains_key(&text_char) { }
 
-        let char_descriptor = *font.char_descriptions.get(&text_char).unwrap();
-        // char_descriptor.w
-        // char_descriptor.h
-        // char_descriptor.margin_top
+    let char_descriptor = *font.char_descriptions.get(&text_char).unwrap();
+    // char_descriptor.w
+    // char_descriptor.h
+    // char_descriptor.margin_top
 
     let char_descriptor = *font.char_descriptions.get(&'A').unwrap();
 
-        // ctx.win.w
-        //  ctx.win.h_usize
+    // ctx.win.w
+    //  ctx.win.h_usize
 
-        // let a = ctx.buf_view[0];
+    // let a = ctx.buf_view[0];
 
-        copy_rect_to_screen(
-            ctx.buf_view,
-            ctx.win.w,
-            ctx.win.h,
-            font.font_image_buf,
-            font.image_w,
-            font.image_h,
-            *dst_position,
+    copy_image_data(
+        ctx.buf_view,
+        &Dimensions2d {
+            w: ctx.win.w,
+            h: ctx.win.h,
+        },
+        Point {
+            x: dst_position.x + 20,
+            y: dst_position.y,
+        },
+        font.font_image_buf,
+        &Dimensions2d {
+            w: font.image_w,
+            h: font.image_h,
+        },
+        RectArea {
+            dimensions: Dimensions2d {
+                w: char_descriptor.w as u32,
+                h: char_descriptor.h as u32,
+            },
+            top_left: Point { x: 12, y: 0 },
+        },
+    );
 
-            RectArea{
-                dimensions:Dimensions2d{
-                    w: char_descriptor.w as u32,
-                    h: char_descriptor.h as u32,
-                },
-                top_left:Point{
-                    x:6,
-                    y:0
-                }
-            }
-
-        )
-
-
-    }
-
-
-
-
-
-
-
-
-
+    copy_image_data(
+        ctx.buf_view,
+        &Dimensions2d {
+            w: ctx.win.w,
+            h: ctx.win.h,
+        },
+        Point {
+            x: dst_position.x,
+            y: dst_position.y,
+        },
+        font.font_image_buf,
+        &Dimensions2d {
+            w: font.image_w,
+            h: font.image_h,
+        },
+        RectArea {
+            dimensions: Dimensions2d {
+                w: char_descriptor.w as u32,
+                h: char_descriptor.h as u32,
+            },
+            top_left: Point { x: 0, y: 0 },
+        },
+    );
+}

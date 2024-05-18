@@ -356,6 +356,8 @@ fn main() {
         // fill::buffer(ctx.buf_view, 0x00_04_04_0F);
         fill::buffer(ctx.buf_view, 0x00_cc_cc_cc);
 
+        // drop(ctx.buf_view);
+
         ////////////////////////////////////////////////////////////////////////////////////////////
         // === SCENES START === ////////////////////////////////////////////////////////////////////
 
@@ -365,6 +367,11 @@ fn main() {
 
         // === SCENES END === //////////////////////////////////////////////////////////////////////
         ////////////////////////////////////////////////////////////////////////////////////////////
+
+        // let img_buf = ctx.get_image_buffer();
+        // println!(">>> {}", img_buf.buf.len());
+        // ctx.buf_view = img_buf.buf;
+        // drop(img_buf);
 
         printer::print(
             &mut ctx,
@@ -444,7 +451,9 @@ fn main() {
         );
         //==================================================================================================
 
-        // TESTED! WORKS!
+        /*
+
+        // !!!! THIS IS WHERE THE CUBE GETS COPIED!!!!!
         trans_copy(
             ctx_draft.buf_view,
             ctx.buf_view,
@@ -459,7 +468,7 @@ fn main() {
             &0x00_44_00_00,
             ctx.win,
         );
-
+*/
         /*
                       // TESTED! WORKS!
                         let dest_vec_pixel: Vec<Pixel> = vec![

@@ -75,11 +75,11 @@ pub struct Pixel {
 }
 
 /// Array of pixels. Each pixel has the `0RGB` model.
-pub type VecImageData0RGB = Vec<u32>;
+pub type ImageData0RGB<'a> = &'a mut[u32];
 
-#[derive(Debug)]
-pub struct ImageBuffer<'a> {
-    pub dimensions:   Dimensions2d ,
-    pub buf: &'a mut VecImageData0RGB,
-
-}
+//
+// #[derive(Debug)]
+// pub struct ImageBuffer<'a> {
+//     pub dimensions: &'a  Dimensions2d,
+//     pub buf:  VecImageData0RGB<'a>,
+// }

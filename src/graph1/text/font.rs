@@ -1,7 +1,5 @@
-use crate::graph1::primitives::primitives::{Dimensions2d, ImageBuffer, VecImageData0RGB};
+use crate::graph1::primitives::primitives::{Dimensions2d, ImageData0RGB};
 use crate::graph1::text::types::HashMapCharDescriptions;
-use std::collections::HashMap;
-use std::string::ToString;
 
 pub const DEFAULT_CHAR_ORDER: &str = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!\"#$%&'()*+,-./:;<=>?@[\\]^_`{|}~";
 pub const DEFAULT_KERNING_PX: u8 = 1;
@@ -83,13 +81,13 @@ impl<'a> PixelFont<'a> {
         char_descriptions:  HashMapCharDescriptions<'a>,
     ) -> Self {
         //
-        let mut pixel_char_bufs: HashMap<char, ImageBuffer> = HashMap::new();
+        // let mut pixel_char_bufs: HashMap<char, ImageBuffer> = HashMap::new();
 
         let mut char_count = 0;
         // For each described character create an individual image buffer.
         for (&char , &description) in  &char_descriptions {
 
-            let glyph: VecImageData0RGB = Vec::new();
+            let glyph: ImageData0RGB = &mut Vec::new();
 
             let dimensions:Dimensions2d = Dimensions2d {
                 w: description.w as u32,
@@ -116,11 +114,11 @@ impl<'a> PixelFont<'a> {
         };
     }
 
-    pub fn get_glyph(&self, character: &char) -> &ImageBuffer {
-
-        // if self.pixel_char_bufs.contains_key(character) {
-        //     return self.pixel_char_bufs.get(character).unwrap();
-        // }
-        panic!("TODO: Return a default character here!");
-    }
+    // pub fn get_glyph(&self, character: &char) -> &ImageBuffer {
+    //
+    //     // if self.pixel_char_bufs.contains_key(character) {
+    //     //     return self.pixel_char_bufs.get(character).unwrap();
+    //     // }
+    //     panic!("TODO: Return a default character here!");
+    // }
 }
