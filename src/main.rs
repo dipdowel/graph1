@@ -228,28 +228,11 @@ fn main() {
     println!("{}","-".repeat(20));
     println!(">>> image_buf.len: {:?}", font_image_buf.len());
 
-    let font_img = Dimensions2d {
-            w: 513,
-            h: 9,
-        };
 
-    /*
-    let font: PixelFont = PixelFont {
-        font_image_buf: &font_image_buf,
-        image_w: 513,
-        image_h: 9,
-
-        char_descriptions: get_c_c_red_alert_inet0(),
-        char_order: font::DEFAULT_CHAR_ORDER,
-
-        kerning_px: 1,
-        // pixel_char_bufs: HashMap::new(),
-    };
-*/
 
     let font: PixelFont = PixelFont::new(
         &font_image_buf,
-        521,
+        518,
         9,
         font::DEFAULT_CHAR_ORDER,
         1,
@@ -257,82 +240,6 @@ fn main() {
     );
 
 
-
-
-    // {
-    //     font_image_buf:
-    //     image_w:513,
-    //     image_h:9,
-    //
-    //     char_descriptions:get_c_c_red_alert_inet0(),
-    //     char_order: font::DEFAULT_CHAR_ORDER,
-    //
-    //     kerning_px:1
-    // };
-    //
-
-
-    // println!(">>> font: {:?}", font);
-
-    let mut index: usize;
-    let mut pixel: u32;
-    let transparency_color = 0x00_ff_ff_ff;
-    let dst_buf_view_len = buf_view_3.len();
-    let mut dst_x = 0;
-    let mut dst_y = 0;
-
-    for x in 0..font_img.w {
-        for y in 0..font_img.h {
-            index = (font_img.w * y + x) as usize;
-            pixel = font_image_buf[index];
-            if pixel != transparency_color {
-                let dest_index: usize = (context_window.w * dst_y + dst_x) as usize;
-                if dest_index < dst_buf_view_len {
-                    buf_view_3[dest_index] = pixel;
-                }
-            }
-            dst_y += 1;
-        }
-        dst_x += 1;
-        dst_y = 0;
-    }
-
-    /*
-    TODO: continue. We read and converted the image, now we can process it as a font :)
-    1. Make a struct that describes a font:
-    - The PNG file path
-    - The PNG width and height
-    - Come up with how to store meta data about where is what letter,
-      since we may have letters of various width
-    - Come up with how to deal with the font baseline. Do we even need to do that?
-    */
-
-
-    /*
-    // Load the image from a path and handle the result.
-    let img = match ImageReader::open("assets/fonts/c_c_red_alert_inet0__.png") {
-        Ok(reader) => match reader.decode() {
-            Ok(img) => img,
-            Err(e) => {
-                eprintln!("Failed to decode image: {}", e);
-                return;
-            }
-        },
-        Err(e) => {
-            eprintln!("Failed to open image: {}", e);
-            return;
-        }
-    };
-
-
-    // Access the image's pixels.
-    for y in 0..img.height() {
-        for x in 0..img.width() {
-            let pixel = img.get_pixel(x, y);
-            println!("Pixel at ({}, {}) is {:?}", x, y, pixel);
-        }
-    }
-    */
 
     //----------------------------------------------------------------------------------------------
 
@@ -354,8 +261,10 @@ fn main() {
 
         fill::buffer(ctx_draft.buf_view, 0x00_44_00_00);
         // fill::buffer(ctx.buf_view, 0x00_04_04_0F);
-        // fill::buffer(ctx.buf_view, 0x00_cc_cc_cc);
-        fill::buffer(ctx.buf_view, 0x00_ff_ff_ff);
+        fill::buffer(ctx.buf_view, 0x00_bb_bb_bb);
+        fill::buffer(ctx.buf_view, 0x00_66_33_66);
+        // fill::buffer(ctx.buf_view, 0x00_ff_ff_ff);
+
 
         // drop(ctx.buf_view);
 
@@ -369,25 +278,23 @@ fn main() {
         // === SCENES END === //////////////////////////////////////////////////////////////////////
         ////////////////////////////////////////////////////////////////////////////////////////////
 
-        // let img_buf = ctx.get_image_buffer();
-        // println!(">>> {}", img_buf.buf.len());
-        // ctx.buf_view = img_buf.buf;
-        // drop(img_buf);
 
-         // TODO: 1. All glyphs have the same height
 
-        printer::print(
-            &mut ctx,
-            &Point { x: 100, y: 100 },
-            &font,
-            font::DEFAULT_CHAR_ORDER,
-        );
+        // Debug output of the entire charset
+        printer::print( &mut ctx, &Point { x: 100, y: 100 }, &font, font::DEFAULT_CHAR_ORDER);
 
         printer::print(
             &mut ctx,
             &Point { x: 100, y: 200 },
             &font,
             "Alright, let's see what we can see... Everybody's online, looking good!",
+        );
+
+        printer::print(
+            &mut ctx,
+            &Point { x: 100, y: 150 },
+            &font,
+            "I totally love this: -=[ HaCK ]=- ",
         );
 
 

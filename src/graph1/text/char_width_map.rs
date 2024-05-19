@@ -7,10 +7,10 @@ pub fn get_c_c_red_alert_inet0<'a>() -> HashMap<char, u8> {
 
     // Map character width to the characters with that width
     let mut width_to_chars: HashMap<u8, &str> = HashMap::new();
-    width_to_chars.insert(7, " MWmw#%@_~");
+    width_to_chars.insert(7, "MWmw#%@_~");
     width_to_chars.insert(6, "*/\\");
     width_to_chars.insert(5, "ABCDGHKNOPQRSTUVXYZabcdeghnopqrsuvxyz023456789$+^");
-    width_to_chars.insert(4, "EFJLfk&<=>?");
+    width_to_chars.insert(4, " EFJLfk&<=>?");
     width_to_chars.insert(3, "jt1\"()-[]{}");
     width_to_chars.insert(2, "',.:;`");
     width_to_chars.insert(1, "Iil!|");

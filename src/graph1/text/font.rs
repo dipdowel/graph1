@@ -95,6 +95,6 @@ impl<'a> PixelFont<'a> {
         if self.glyphs.contains_key(character) {
             return self.glyphs.get(character).unwrap();
         }
-        panic!("TODO: Return a default character here!");
+        panic!("TODO: Return a default glyph here if a requested character does not have a glyph!!");
     }
 }
