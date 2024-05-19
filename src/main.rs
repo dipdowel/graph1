@@ -55,7 +55,7 @@ mod cube;
 mod graph1;
 use graph1::graph1_core;
 use crate::animation_context::{AnimationContext, Oscillators};
-use crate::graph1::text::char_map::get_c_c_red_alert_inet0;
+use crate::graph1::text::char_width_map::get_c_c_red_alert_inet0;
 use crate::graph1::text::{font, printer};
 use crate::graph1::text::font::PixelFont;
 use crate::graph1::utils::mem::slice_buffer_in_4;
@@ -373,9 +373,7 @@ fn main() {
         // ctx.buf_view = img_buf.buf;
         // drop(img_buf);
 
-        // TODO: Simplify the content of `char_map.rs`:
-        // TODO: 1. All glyphs have the same height
-        // TODO: 2. margin-top is not needed, so make a map of char -> width (as u8)
+         // TODO: 1. All glyphs have the same height
 
         printer::print(
             &mut ctx,
