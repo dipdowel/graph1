@@ -6,12 +6,7 @@ use crate::graph1::utils::color_math::argb_math::argb_math;
 use crate::graph1::utils::color_math::operations::ColorOperation;
 use crate::graph1::utils::pixel_copy::image_data;
 
-
 pub fn print(ctx: &mut GraphContext, dst_position: &Point, font: &PixelFont, text: &str) {
-
-
-
-
     let dst_dimensions: Dimensions2d = Dimensions2d {
         w: ctx.win.w,
         h: ctx.win.h,
@@ -22,19 +17,11 @@ pub fn print(ctx: &mut GraphContext, dst_position: &Point, font: &PixelFont, tex
         y: dst_position.y,
     };
 
-    fn transformer(color:u32, x:u32, y:u32) ->u32 {
-        // if y>3 {
-        // return 0x00_ff_ff_ff;
-        // }
-        // if y>3 {
-        //     return 0x00_ff_cc_cc;
-        // }
-        // return 0x00_ff_00_00;
-        return argb_math(&0x00_ff_ff_ff,&(y*0x0019ee19), &ColorOperation::Subtract)
+    fn transformer(color: u32, x: u32, y: u32) -> u32 {
+        return argb_math(&0x00_ff_ff_ff, &(y * 0x0019ee19), &ColorOperation::Subtract);
     }
 
-
-    for text_char in text.chars(){
+    for text_char in text.chars() {
         let the_glyph = font.get_glyph(&text_char);
 
         // image_data::copy_non_transparent(
@@ -50,9 +37,31 @@ pub fn print(ctx: &mut GraphContext, dst_position: &Point, font: &PixelFont, tex
         //     0x00_ff_ff_ff
         // );
 
+        //
+        // image_data::copy_with_transform(
+        //     ctx.buf_view,
+        //     &dst_dimensions,
+        //     &dst_point,
+        //     font.font_image_buf,
+        //     &Dimensions2d {
+        //         w: font.image_w,
+        //         h: font.image_h,
+        //     },
+        //     &the_glyph,
+        //     0x00_ff_ff_ff,
+        //     transformer
+        // );
 
+        let props: image_data::ImageDataCopyProps = image_data::ImageDataCopyProps {
+            fill_color: Some(0x00_ff_77_ff),
+            // fill_color: None,
+            // transparency_color: None,
+            transparency_color: Some(0x00_ff_ff_ff),
+            // color_transformer: Some(transformer),
+            color_transformer: None
+        };
 
-        image_data::copy_with_transform(
+        image_data::copy(
             ctx.buf_view,
             &dst_dimensions,
             &dst_point,
@@ -62,16 +71,11 @@ pub fn print(ctx: &mut GraphContext, dst_position: &Point, font: &PixelFont, tex
                 h: font.image_h,
             },
             &the_glyph,
-            0x00_ff_ff_ff,
-            transformer
+            Some(&props),
+            // None
         );
 
         // dst_point.x += the_glyph.dimensions.w + ;
         dst_point.x += the_glyph.dimensions.w + font.kerning_px as u32;
-
     }
-
-
-
-
 }
