@@ -8,10 +8,11 @@ use crate::graph1::text::font::PixelFont;
 ///
 /// - `dst_buf`: The destination buffer for image data.
 /// - `dst_dimensions`: Dimensions of the destination buffer.
+/// - `dest_point`: A `Point` specifying the starting point in the destination buffer where the image data will be copied to.
+///
 /// - `src_buf`: The source buffer
 /// - `src_dimensions`: Dimensions of the destination buffer.
-/// - `dest_point`: A `Point` specifying the starting point in the destination buffer where the image data will be copied to.
-/// - `rect_area`: A `RectArea` specifying the rectangular area in the source buffer to copy.
+/// - `src_region`: A `RectArea` specifying the rectangular area in the source buffer to copy.
 ///
 pub fn copy_image_data(
     dst_buf: &mut [u32],
@@ -67,21 +68,14 @@ pub fn copy_image_data(
 
 pub fn print(ctx: &mut GraphContext, dst_position: &Point, font: &PixelFont, text: &str) {
     // FIXME: remove `.unwrap()`. If a non-existent char is requested, return the default char!
-    let text_char = text.chars().next().unwrap();
 
-    // if font.char_map.contains_key(&text_char) { }
 
-    let char_descriptor = *font.char_descriptions.get(&text_char).unwrap();
-    // char_descriptor.w
-    // char_descriptor.h
-    // char_descriptor.margin_top
 
-    let char_descriptor = *font.char_descriptions.get(&'A').unwrap();
 
-    // ctx.win.w
-    //  ctx.win.h_usize
-
-    // let a = ctx.buf_view[0];
+    let dst_dimensions: Dimensions2d = Dimensions2d {
+        w: ctx.win.w,
+        h: ctx.win.h,
+    };
 
     let mut dst_point: Point = Point {
         x: dst_position.x,
@@ -89,47 +83,27 @@ pub fn print(ctx: &mut GraphContext, dst_position: &Point, font: &PixelFont, tex
     };
 
 
-    copy_image_data(
-        ctx.buf_view,
-        &Dimensions2d {
-            w: ctx.win.w,
-            h: ctx.win.h,
-        },
-        &dst_point,
-        font.font_image_buf,
-        &Dimensions2d {
-            w: font.image_w,
-            h: font.image_h,
-        },
-        &RectArea {
-            dimensions: Dimensions2d {
-                w: char_descriptor.w as u32,
-                h: char_descriptor.h as u32,
+    for text_char in text.chars(){
+        let the_glyph = font.get_glyph(&text_char);
+
+        copy_image_data(
+            ctx.buf_view,
+            &dst_dimensions,
+            &dst_point,
+            font.font_image_buf,
+            &Dimensions2d {
+                w: font.image_w,
+                h: font.image_h,
             },
-            top_left: Point { x: 12, y: 0 },
-        },
-    );
+            &the_glyph
+        );
+
+        // dst_point.x += the_glyph.dimensions.w + font.kerning_px as u32;
+        dst_point.x += the_glyph.dimensions.w + 2;
+
+    }
 
 
-    dst_point.x += 10;
-    copy_image_data(
-        ctx.buf_view,
-        &Dimensions2d {
-            w: ctx.win.w,
-            h: ctx.win.h,
-        },
-        &dst_point,
-        font.font_image_buf,
-        &Dimensions2d {
-            w: font.image_w,
-            h: font.image_h,
-        },
-        &RectArea {
-            dimensions: Dimensions2d {
-                w: char_descriptor.w as u32,
-                h: char_descriptor.h as u32,
-            },
-            top_left: Point { x: 0, y: 0 },
-        },
-    );
+
+
 }

@@ -111,37 +111,37 @@ const CHAR_3_1_3:PixelChar = PixelChar {
 
 const CHAR_2_7_1:PixelChar = PixelChar {
     w: 2,
-    h: 7,
+    h: 9,
     margin_top: 1,
 };
 const CHAR_2_6_1:PixelChar = PixelChar {
     w: 2,
-    h: 6,
+    h: 9,
     margin_top: 1,
 };
 
 const CHAR_2_3_5:PixelChar = PixelChar {
     w: 2,
-    h: 3,
+    h: 9,
     margin_top: 5,
 };
 
 const CHAR_2_3_0:PixelChar = PixelChar {
     w: 2,
-    h: 3,
+    h: 9,
     margin_top: 0,
 };
 
 
 const CHAR_2_2_5:PixelChar = PixelChar {
     w: 2,
-    h: 2,
+    h: 9,
     margin_top: 5,
 };
 
 const CHAR_1_7_0:PixelChar = PixelChar {
     w: 1,
-    h: 7,
+    h: 9,
     margin_top: 0,
 };
 
@@ -152,6 +152,8 @@ pub fn get_c_c_red_alert_inet0<'a>() -> HashMapCharDescriptions<'a> {
     // TODO: 3. Rename this file. Maybe make a dir with different font char maps and find a better name than "char map"?
 
     let mut char_map: HashMap<char, &PixelChar> = HashMap::new();
+
+    char_map.insert(' ', &CHAR_7_7_0);
 
     for character in 'A'..='D' {
         char_map.insert(character, &CHAR_5_7_0);

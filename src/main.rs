@@ -249,7 +249,7 @@ fn main() {
 
     let font: PixelFont = PixelFont::new(
         &font_image_buf,
-        513,
+        521,
         9,
         font::DEFAULT_CHAR_ORDER,
         1,
@@ -373,11 +373,15 @@ fn main() {
         // ctx.buf_view = img_buf.buf;
         // drop(img_buf);
 
+        // TODO: Simplify the content of `char_map.rs`:
+        // TODO: 1. All glyphs have the same height
+        // TODO: 2. margin-top is not needed, so make a map of char -> width (as u8)
+
         printer::print(
             &mut ctx,
             &Point { x: 100, y: 100 },
             &font,
-            "Test",
+            font::DEFAULT_CHAR_ORDER,
         );
 
 

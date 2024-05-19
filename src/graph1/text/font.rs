@@ -1,7 +1,8 @@
-use crate::graph1::primitives::primitives::{Dimensions2d, ImageData0RGB};
+use std::collections::HashMap;
+use crate::graph1::primitives::primitives::{Dimensions2d, ImageData0RGB, Point, RectArea};
 use crate::graph1::text::types::HashMapCharDescriptions;
 
-pub const DEFAULT_CHAR_ORDER: &str = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!\"#$%&'()*+,-./:;<=>?@[\\]^_`{|}~";
+pub const DEFAULT_CHAR_ORDER: &str = " ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!\"#$%&'()*+,-./:;<=>?@[\\]^_`{|}~";
 pub const DEFAULT_KERNING_PX: u8 = 1;
 
 /// Location and vertical offset (margin-top) of a single renderable pixel-font character.
@@ -19,6 +20,9 @@ pub struct PixelChar {
     /// which are "taller"
     pub margin_top: u8,
 }
+
+
+
 
 #[derive(Debug)]
 pub struct PixelFont<'a> {
@@ -43,6 +47,7 @@ pub struct PixelFont<'a> {
     /// A map of a character to a set of character properties
     pub char_descriptions: HashMapCharDescriptions<'a>,
 
+    glyphs: HashMap<char, RectArea>
     // pixel_char_bufs: HashMap<char, ImageBuffer>,
 }
 
@@ -81,27 +86,63 @@ impl<'a> PixelFont<'a> {
         char_descriptions:  HashMapCharDescriptions<'a>,
     ) -> Self {
         //
-        // let mut pixel_char_bufs: HashMap<char, ImageBuffer> = HashMap::new();
 
+
+
+        let mut glyphs: HashMap<char, RectArea> = HashMap::new();
         let mut char_count = 0;
-        // For each described character create an individual image buffer.
-        for (&char , &description) in  &char_descriptions {
 
-            let glyph: ImageData0RGB = &mut Vec::new();
+        // let mut top_left:Point = Point{x:0,y:0};
 
-            let dimensions:Dimensions2d = Dimensions2d {
-                w: description.w as u32,
-                h: description.h as u32,
+        let mut width_count: u32 = 0;
+
+        for character in char_order.chars() {
+            let description = *char_descriptions.get(&character).unwrap();
+
+            let glyph = RectArea {
+                top_left: Point{
+                    x: width_count,
+                    y: 0
+                },
+                dimensions: Dimensions2d{
+                    w: description.w as u32,
+                    // h: description.h as u32
+                    h: 9
+
+
+                },
             };
 
-            // let img_buf: ImageBuffer = ImageBuffer {
-            //     dimensions,
-            //     buf: glyph,
-            // };
+            width_count += glyph.dimensions.w + kerning_px as u32;
+            glyphs.insert(character, glyph);
+            char_count += 1;
 
-            // pixel_char_bufs.insert(char, img_buf);
+        }
+
+
+
+        /*
+        for (&char , &description) in  &char_descriptions {
+
+            let glyph = RectArea {
+                top_left: Point{
+                    x: width_count,
+                    y: 0
+                },
+                dimensions: Dimensions2d{
+                    w: description.w as u32,
+                    h: description.h as u32
+
+            },
+            };
+
+            width_count = glyph.dimensions.w + kerning_px as u32;
+            glyphs.insert(char, glyph);
             char_count += 1;
         }
+*/
+        // println!(">>> da glyphs! {:?}", glyphs);
+        // println!(">>> da char_descriptions! {:?}", char_descriptions);
 
         return Self {
             font_image_buf,
@@ -110,15 +151,19 @@ impl<'a> PixelFont<'a> {
             char_order,
             kerning_px,
             char_descriptions,
-            // pixel_char_bufs,
+            glyphs
         };
     }
 
-    // pub fn get_glyph(&self, character: &char) -> &ImageBuffer {
-    //
-    //     // if self.pixel_char_bufs.contains_key(character) {
-    //     //     return self.pixel_char_bufs.get(character).unwrap();
-    //     // }
-    //     panic!("TODO: Return a default character here!");
-    // }
+    pub fn get_glyph(&self, character: &char) -> &RectArea {
+        // println!(">>> self.glyphs: {:?}",self.glyphs);
+
+        if self.glyphs.contains_key(character) {
+
+            // println!(">>> self.glyphs.get({character}).unwrap(): {:?}",self.glyphs.get(character).unwrap());
+
+            return self.glyphs.get(character).unwrap();
+        }
+        panic!("TODO: Return a default character here!");
+    }
 }
