@@ -4,6 +4,12 @@ pub struct Dimensions2d {
     pub h: u32,
 }
 
+// TODO:
+// TODO:
+// TODO: Review this whole module. It may need some good refactoring!
+// TODO:
+// TODO:
+
 
 // [ START ] ///////////////////////////////////////////////////////////////////////////////////////
 // ========= Point 2D, + conversions from u32 to f32 coordinates and back ==========================
@@ -76,6 +82,9 @@ pub struct Pixel {
 
 /// Array of pixels. Each pixel has the `0RGB` model.
 pub type ImageData0RGB<'a> = &'a mut[u32];
+
+/// Accepts a pixel value and its coordinates and returns a new pixel value based on the input
+pub type PixelColorTransformerFn = fn (color:u32, x:u32, y:u32) ->u32;
 
 //
 // #[derive(Debug)]
