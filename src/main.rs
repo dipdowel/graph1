@@ -354,7 +354,8 @@ fn main() {
 
         fill::buffer(ctx_draft.buf_view, 0x00_44_00_00);
         // fill::buffer(ctx.buf_view, 0x00_04_04_0F);
-        fill::buffer(ctx.buf_view, 0x00_cc_cc_cc);
+        // fill::buffer(ctx.buf_view, 0x00_cc_cc_cc);
+        fill::buffer(ctx.buf_view, 0x00_ff_ff_ff);
 
         // drop(ctx.buf_view);
 
@@ -380,6 +381,13 @@ fn main() {
             &Point { x: 100, y: 100 },
             &font,
             font::DEFAULT_CHAR_ORDER,
+        );
+
+        printer::print(
+            &mut ctx,
+            &Point { x: 100, y: 200 },
+            &font,
+            "Alright, let's see what we can see... Everybody's online, looking good!",
         );
 
 
