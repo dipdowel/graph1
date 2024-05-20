@@ -208,13 +208,37 @@ use crate::graph1::text::printer::print;
 //         }
 //     }
 // }
+//
+// /// Additional options for modifying the copied image data (pixels)
+// pub struct ImageDataCopyProps {
+//     pub transparency_color: Option<u32>,
+//     pub fill_color: Option<u32>,
+//     pub color_transformer: Option<PixelColorTransformerFn>,
+// }
 
 
+/// Additional options for modifying the copied image data (pixels).
 pub struct ImageDataCopyProps {
+    /// An optional color used to specify transparency.
+    ///
+    /// If provided, any pixel matching this color will be considered transparent
+    /// and won't be copied to the destination buffer
     pub transparency_color: Option<u32>,
+
+    /// An optional fill color to repaint the copied pixels.
+    ///
+    /// If provided, each copied pixel will end up in the destination in this color
+    /// If `fill_color` is present, then `color_transformer` is ignored and not applied.
     pub fill_color: Option<u32>,
+
+    /// An optional custom function for transforming pixel colors.
+    ///
+    /// If provided, this function will be applied to each pixel's color value
+    /// to perform custom color transformations based on the original color, x and y of the pixel
     pub color_transformer: Option<PixelColorTransformerFn>,
 }
+
+
 
 
 
@@ -229,7 +253,14 @@ pub struct ImageDataCopyProps {
 /// - `src_buf`: The source buffer
 /// - `src_dimensions`: Dimensions of the destination buffer.
 /// - `src_region`: A `RectArea` specifying the rectangular area in the source buffer to copy.
-///  FIXME: add documentation for `properties`
+/// - `properties` options for modifying the copied pixels. @See `ImageDataCopyProps` for details
+/// # Rules of how `properties` are applied
+///  1. Pixels matching the value of `transparency_color` are not copied to the destination.
+///  2. If no `transparency_color` provided, then only the `color_transformer` function will be applied
+///     to each copied filter (if provided). `fill_color` is ignored.
+///  3. If `transparency_color` is provided and both `fill_color` and `color_transformer` are provided,
+///     then `fill_color` is applied to the copied pixels and `color_transformer` is ignored.
+///
 pub fn copy(
     dst_buf: &mut [u32],
     dst_dimensions: &Dimensions2d,
@@ -262,9 +293,6 @@ pub fn copy(
         transparency_color: None,
     });
 
-    // if properties.is_none() {
-    //     properties =
-    // }
 
     // Figure out if transparency needs to be applied and for what color
     let check_transparency = props.transparency_color.is_some();
@@ -282,16 +310,13 @@ pub fn copy(
 
     // Figure out if we need to execute `color_transformer` per pixel
     let check_color_transformer = props.color_transformer.is_some();
-    let mut color_transformer: PixelColorTransformerFn = |color: u32, x: u32, y: u32| -> u32{
+    let mut color_transformer: PixelColorTransformerFn = |color: u32, x: u32, y: u32, w:u32, h:u32 | -> u32{
         color
     };
     if check_color_transformer {
         color_transformer = props.color_transformer.unwrap();
     }
 //--------------------------------------------------------------------------------------------------
-
-
-
 
     for y in 0..rect_height {
         for x in 0..rect_width {
@@ -323,7 +348,7 @@ pub fn copy(
             if !check_transparency {
                 // Color transformer: transform the color and copy the pixel
                 if check_color_transformer {
-                    dst_buf[dest_index] = color_transformer(src_buf[src_index], x, y);
+                    dst_buf[dest_index] = color_transformer(src_buf[src_index], x, y, rect_width, rect_height);
                     continue;
                 }
                 // No color transformer: just copy the pixel
@@ -353,7 +378,7 @@ pub fn copy(
             // Transformer has the lowest priority.
             // If no fill color is provided but the transformer is provided, then apply the transformer
             if check_color_transformer {
-                dst_buf[dest_index] = color_transformer(src_buf[src_index], x, y);
+                dst_buf[dest_index] = color_transformer(src_buf[src_index], x, y, rect_width, rect_height);
                 continue;
             }
 
