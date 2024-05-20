@@ -1,4 +1,4 @@
-use crate::graph1::primitives::primitives::{ImageData0RGB};
+use crate::graph1::primitives::primitives::{Dimensions2d, ImageData0RGB};
 
 // FIXME: Rename to `WindowContext`!
 pub struct ContextWindow {
@@ -7,6 +7,16 @@ pub struct ContextWindow {
     pub w_usize: usize,
     pub h_usize: usize,
 }
+impl ContextWindow {
+    /// Returns the window's width and height as a `Dimensions2d` instance
+    pub fn get_dimensions(&self) -> Dimensions2d {
+        Dimensions2d{
+            w:self.w,
+            h:self.h
+        }
+    }
+}
+
 
 pub struct GraphContext<'c> {
     pub win: &'c ContextWindow,
