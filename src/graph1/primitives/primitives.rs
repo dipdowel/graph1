@@ -83,8 +83,27 @@ pub struct Pixel {
 /// Array of pixels. Each pixel has the `0RGB` model.
 pub type ImageData0RGB<'a> = &'a mut[u32];
 
-/// Accepts a pixel value and its coordinates and returns a new pixel value based on the input
-pub type PixelColorTransformerFn = fn (color:u32, x:u32, y:u32) ->u32;
+
+/// A function that transforms a pixel's color based on its value and coordinates.
+///
+/// This type alias defines a function type that takes a pixel's color value,
+/// its (x, y) coordinates, and the width and height of the whole image data. The function
+/// returns a new pixel color value based on the input parameters.
+///
+/// # Parameters
+///
+/// - `color`: The original color of the pixel as 0RGB
+/// - `x`: The x-coordinate of the pixel in the image.
+/// - `y`: The y-coordinate of the pixel in the image.
+/// - `w`: The width of the image data in pixels.
+/// - `h`: The height of the image data in pixels.
+///
+/// # Returns
+///
+/// A 0RGB value representing the transformed pixel
+pub type PixelColorTransformerFn = fn(color: u32, x: u32, y: u32, w: u32, h: u32) -> u32;
+
+
 
 //
 // #[derive(Debug)]
