@@ -3,5 +3,6 @@ pub mod pixel_copy;
 pub mod mem;
 
 pub mod io;
+mod misc;
 
 
