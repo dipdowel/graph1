@@ -62,7 +62,6 @@ pub fn print_line(
             // None
         );
 
-        // dst_point.x += the_glyph.dimensions.w + ;
         dst_point.x += the_glyph.dimensions.w + font.kerning_px as u32;
     }
 }

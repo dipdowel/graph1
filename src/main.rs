@@ -23,23 +23,19 @@ use crate::init::init_window::*;
 use crate::input::handle_keyboard;
 use crate::state::{init_app_state, APP_STATE};
 
-
 use image::io::Reader as ImageReader;
 use image::GenericImageView;
-
 
 // graph1::utils::
 use crate::graph1::utils::color_math::operations::ColorOperation;
 
-
-
+use self::graph1::primitives::primitives::{
+    Dimensions2d, Pixel, Point, Point3DF32, PointF32, RectArea,
+};
 use self::graph1::utils::pixel_copy::trans_copy::trans_copy;
 use self::graph1::utils::pixel_copy::trans_copy_math::trans_copy_math;
 use self::graph1::utils::pixel_copy::trans_copy_math_multi_dest::trans_copy_math_multi_dest;
 use self::graph1::utils::pixel_copy::trans_copy_multi_dest::trans_copy_multi_dest;
-use self::graph1::primitives::primitives::{
-    Dimensions2d, Pixel, Point, Point3DF32, PointF32, RectArea,
-};
 
 // Trait that provides the shuffle method.
 
@@ -53,22 +49,21 @@ mod constants;
 
 mod cube;
 mod graph1;
-use graph1::graph1_core;
 use crate::animation_context::{AnimationContext, Oscillators};
 use crate::graph1::text::char_width_map::get_c_c_red_alert_inet0;
-use crate::graph1::text::{font, printer};
 use crate::graph1::text::font::PixelFont;
+use crate::graph1::text::{font, printer};
 use crate::graph1::utils::mem::slice_buffer_in_4;
+use crate::graph1::utils::pixel_copy::image_data;
+use graph1::graph1_core;
 
-mod input;
-mod state;
-mod scenes;
-mod animation_context;
 mod about;
+mod animation_context;
+mod input;
+mod scenes;
+mod state;
 
 const DEV_MODE: bool = true;
-
-
 
 fn main() {
     #![allow(unused)]
@@ -105,21 +100,18 @@ fn main() {
     let mut ctx: GraphContext = GraphContext {
         buf_view,
         win: &context_window,
-        default_color: 0x00_ff_00_00
+        default_color: 0x00_ff_00_00,
     };
-
 
     let mut ani_ctx: AnimationContext = AnimationContext {
         frame_count: 0,
-        oscillators: Oscillators{
-            o1: 231,
-        }
+        oscillators: Oscillators { o1: 231 },
     };
 
     let mut ctx_draft: GraphContext = GraphContext {
         buf_view: buf_view_1,
         win: &context_window,
-        default_color: 0x00_00_ff_00
+        default_color: 0x00_00_ff_00,
     };
 
     match dev_window {
@@ -221,28 +213,59 @@ fn main() {
     // let font_name = "assets/01_test_palette.png";
     // let font_name = "assets/fonts/empty.dat"; // for testing
 
-    if (!graph1::utils::io::file::read_image(font_name, &mut font_image_buf)){
+    if (!graph1::utils::io::file::read_image(font_name, &mut font_image_buf)) {
         panic!("Font initialization failed!");
     };
 
-    println!("{}","-".repeat(20));
+    println!("{}", "-".repeat(20));
     println!(">>> image_buf.len: {:?}", font_image_buf.len());
 
+    let font_2x_len = 518 * 19 * 2;
+    let mut font_image_buf_2x: Vec<u32> = Vec::new();
+
+    font_image_buf_2x.resize(font_2x_len, 0);
+    let font_image_buf_2x_dim: Dimensions2d = Dimensions2d {
+        w: 518 * 2,
+        h: 9 * 2,
+    };
 
 
-    let mut font : PixelFont = PixelFont::new(
+    image_data::scale_up(
+        &mut font_image_buf_2x,
+        &font_image_buf_2x_dim,
+        &POINT_ZERO,
+        &font_image_buf,
+        &Dimensions2d { w: 518, h: 9 },
+        &RectArea {
+            top_left: POINT_ZERO,
+            dimensions: Dimensions2d { w: 518, h: 9 },
+        },
+        2
+    );
+
+    let mut font: PixelFont = PixelFont::new(
         &font_image_buf,
         518,
         9,
         font::DEFAULT_CHAR_ORDER,
         2,
         4,
-        get_c_c_red_alert_inet0(),
+        get_c_c_red_alert_inet0(1),
+        1
     );
 
 
 
-
+    let mut font_2x: PixelFont = PixelFont::new(
+        &font_image_buf_2x,
+        font_image_buf_2x_dim.w,
+        font_image_buf_2x_dim.h,
+        font::DEFAULT_CHAR_ORDER,
+        3,
+        4,
+        get_c_c_red_alert_inet0(2),
+        2
+    );
 
     //----------------------------------------------------------------------------------------------
 
@@ -268,7 +291,6 @@ fn main() {
         fill::buffer(ctx.buf_view, 0x00_66_33_66);
         // fill::buffer(ctx.buf_view, 0x00_ff_ff_ff);
 
-
         // drop(ctx.buf_view);
 
         ////////////////////////////////////////////////////////////////////////////////////////////
@@ -281,11 +303,12 @@ fn main() {
         // === SCENES END === //////////////////////////////////////////////////////////////////////
         ////////////////////////////////////////////////////////////////////////////////////////////
 
-
-        let text_data = vec!["Alright, let's see what we can see... Everybody's online, looking good!",
-        "Next line of text here.",
-        "We all are living in a yellow submarine, yellow submarine, yellow submarine..." ,
-                             "Shitheads support the fucking barbarians :-("
+        let text_data = vec![
+            "Alright, let's see what we can see... Everybody's online, looking good!",
+            "Next line of text here.",
+            "We all are living in a yellow submarine, yellow submarine, yellow submarine...",
+            "Boys and Girls come out to play,",
+            "On the busy motorway"
         ];
 
         fn transformer(color: u32, x: u32, y: u32, w: u32, h: u32) -> u32 {
@@ -299,19 +322,40 @@ fn main() {
             color_transformer: None,
         };
 
-
         // Debug output of the entire charset
-        printer::print_line(&mut ctx, &Point { x: 100, y: 100 }, &font, &color_props, font::DEFAULT_CHAR_ORDER);
+        printer::print_line(
+            &mut ctx,
+            &Point { x: 100, y: 100 },
+            &font,
+            &color_props,
+            font::DEFAULT_CHAR_ORDER,
+        );
 
         printer::print(
             &mut ctx,
             &Point { x: 100, y: 120 },
             &font,
             &color_props,
-            &text_data
-
+            &text_data,
         );
 
+        printer::print(
+            &mut ctx,
+            &Point { x: 10, y: 200 },
+            &font_2x,
+            &color_props,
+            &text_data,
+        );
+
+
+        // // // Helps debugging a scaled-up font!
+        // image_data::copy(ctx.buf_view, &ctx.win.get_dimensions(), &POINT_ZERO, &font_image_buf_2x, &font_image_buf_2x_dim,
+        //                  &RectArea {
+        //                      top_left: POINT_ZERO,
+        //                      dimensions: font_image_buf_2x_dim,
+        //                  },
+        //                None
+        // );
 
 
 
@@ -386,22 +430,22 @@ fn main() {
 
         /*
 
-        // !!!! THIS IS WHERE THE CUBE GETS COPIED!!!!!
-        trans_copy(
-            ctx_draft.buf_view,
-            ctx.buf_view,
-            &RectArea {
-                top_left: Point { x: 0, y: 0 },
-                dimensions: Dimensions2d { w: 154, h: 154 },
-            },
-            &Point {
-                x: state.hero_position.x + 140,
-                y: state.hero_position.y - 120,
-            },
-            &0x00_44_00_00,
-            ctx.win,
-        );
-*/
+                // !!!! THIS IS WHERE THE CUBE GETS COPIED!!!!!
+                trans_copy(
+                    ctx_draft.buf_view,
+                    ctx.buf_view,
+                    &RectArea {
+                        top_left: Point { x: 0, y: 0 },
+                        dimensions: Dimensions2d { w: 154, h: 154 },
+                    },
+                    &Point {
+                        x: state.hero_position.x + 140,
+                        y: state.hero_position.y - 120,
+                    },
+                    &0x00_44_00_00,
+                    ctx.win,
+                );
+        */
         /*
                       // TESTED! WORKS!
                         let dest_vec_pixel: Vec<Pixel> = vec![
