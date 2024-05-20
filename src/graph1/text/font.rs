@@ -56,11 +56,10 @@ impl<'a> PixelFont<'a> {
         glyph_widths_px: HashMap<char, u8>,
     ) -> Self {
         let mut glyphs: HashMap<char, RectArea> = HashMap::new();
-        let mut char_count = 0;
-
         let mut width_count: u32 = 0;
 
         for character in char_order.chars() {
+
             let width = *glyph_widths_px.get(&character).unwrap();
 
             let glyph = RectArea {
@@ -70,14 +69,12 @@ impl<'a> PixelFont<'a> {
                 },
                 dimensions: Dimensions2d {
                     w: width as u32,
-                    // h: description.h as u32
-                    h: 9,
+                    h: image_h
                 },
             };
 
             width_count += glyph.dimensions.w + kerning_px as u32;
             glyphs.insert(character, glyph);
-            char_count += 1;
         }
 
         return Self {
