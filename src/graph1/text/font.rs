@@ -47,6 +47,7 @@ impl<'a> PixelFont<'a> {
     /// - `char_order`: Order in which characters appear in the font. See `DEFAULT_CHAR_ORDER` for an example.
     /// - `default_kerning_px`: Default horizontal spacing between characters in the file.
     /// - `glyph_widths_px`: Pixel character glyph width, in pixels
+    /// - `src_kerning_px`: Distance between characters in the source font image.
     ///
     /// # Returns
     ///
@@ -59,7 +60,14 @@ impl<'a> PixelFont<'a> {
         kerning_px: u8,
         leading_px: u8,
         glyph_widths_px: HashMap<char, u8>,
+        src_kerning_px: u8,
     ) -> Self {
+
+        let mut src_kerning_px: u32 = src_kerning_px as u32;
+        if src_kerning_px == 0 {
+            src_kerning_px = DEFAULT_KERNING_PX as u32;
+        }
+
         let mut glyphs: HashMap<char, RectArea> = HashMap::new();
 
         let mut width_count: u32 = 0;
@@ -79,7 +87,7 @@ impl<'a> PixelFont<'a> {
                 },
             };
 
-            width_count += glyph.dimensions.w + DEFAULT_KERNING_PX as u32;
+            width_count += glyph.dimensions.w +  src_kerning_px;
             glyphs.insert(character, glyph);
         }
 
