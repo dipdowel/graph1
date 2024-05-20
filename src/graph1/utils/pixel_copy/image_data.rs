@@ -42,6 +42,10 @@ pub struct ImageDataCopyProps {
 ///  3. If `transparency_color` is provided and both `fill_color` and `color_transformer` are provided,
 ///     then `fill_color` is applied to the copied pixels and `color_transformer` is ignored.
 ///
+/// TODO: Add multiple destination points!
+/// TODO: Add multiple destination points!
+/// TODO: Add multiple destination points!
+/// TODO: Add multiple destination points!
 pub fn copy(
     dst_buf: &mut [u32],
     dst_dimensions: &Dimensions2d,
