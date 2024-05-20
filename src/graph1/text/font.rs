@@ -3,8 +3,9 @@ use std::collections::HashMap;
 use crate::graph1::primitives::primitives::{Dimensions2d, Point, RectArea};
 
 pub const DEFAULT_CHAR_ORDER: &str = " ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!\"#$%&'()*+,-./:;<=>?@[\\]^_`{|}~";
-pub const DEFAULT_KERNING_PX: u8 = 1;
 
+/// Space between glyphs in the font source image file
+pub const DEFAULT_KERNING_PX: u8 = 1;
 
 #[derive(Debug)]
 pub struct PixelFont<'a> {
@@ -21,8 +22,11 @@ pub struct PixelFont<'a> {
     /// @See e.g.: `DEFAULT_CHAR_ORDER`
     pub char_order: &'a str,
 
-    /// Default horizontal spacing between characters in the file
+    /// Horizontal spacing between characters
     pub kerning_px: u8,
+
+    /// Vertical spacing between lines of characters
+    pub leading_px: u8,
 
     // FIXME: add some implementation for a dummy char that is shown when an unknown character is requested for rendering
     // pub default_char: PixelChar,
@@ -53,13 +57,15 @@ impl<'a> PixelFont<'a> {
         image_h: u32,
         char_order: &'a str,
         kerning_px: u8,
+        leading_px: u8,
         glyph_widths_px: HashMap<char, u8>,
     ) -> Self {
         let mut glyphs: HashMap<char, RectArea> = HashMap::new();
+
         let mut width_count: u32 = 0;
 
+        // collect and save information about each glyph of the charset (x,y,w,h)
         for character in char_order.chars() {
-
             let width = *glyph_widths_px.get(&character).unwrap();
 
             let glyph = RectArea {
@@ -69,11 +75,11 @@ impl<'a> PixelFont<'a> {
                 },
                 dimensions: Dimensions2d {
                     w: width as u32,
-                    h: image_h
+                    h: image_h,
                 },
             };
 
-            width_count += glyph.dimensions.w + kerning_px as u32;
+            width_count += glyph.dimensions.w + DEFAULT_KERNING_PX as u32;
             glyphs.insert(character, glyph);
         }
 
@@ -83,6 +89,7 @@ impl<'a> PixelFont<'a> {
             image_h,
             char_order,
             kerning_px,
+            leading_px,
             char_descriptions: glyph_widths_px,
             glyphs,
         };
@@ -92,6 +99,8 @@ impl<'a> PixelFont<'a> {
         if self.glyphs.contains_key(character) {
             return self.glyphs.get(character).unwrap();
         }
-        panic!("TODO: Return a default glyph here if a requested character does not have a glyph!!");
+        panic!(
+            "TODO: Return a default glyph here if a requested character does not have a glyph!!"
+        );
     }
 }

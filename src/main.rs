@@ -230,16 +230,17 @@ fn main() {
 
 
 
-    let font: PixelFont = PixelFont::new(
+    let mut font : PixelFont = PixelFont::new(
         &font_image_buf,
         518,
         9,
         font::DEFAULT_CHAR_ORDER,
-        1,
+        2,
+        4,
         get_c_c_red_alert_inet0(),
     );
 
-    // font.kerning_px
+
 
 
 
@@ -281,23 +282,36 @@ fn main() {
         ////////////////////////////////////////////////////////////////////////////////////////////
 
 
+        let text_data = vec!["Alright, let's see what we can see... Everybody's online, looking good!",
+        "Next line of text here.",
+        "We all are living in a yellow submarine, yellow submarine, yellow submarine..." ,
+                             "Shitheads support the fucking barbarians :-("
+        ];
+
+        fn transformer(color: u32, x: u32, y: u32, w: u32, h: u32) -> u32 {
+            if y < (h / 2) {
+                return 0x00_ff_ff_ff;
+            }
+            return 0x00_ff_55_ff;
+        }
+        let color_props: printer::ColorProperties = printer::ColorProperties {
+            color: Some(0x00_ff_dd_ee),
+            color_transformer: None,
+        };
+
 
         // Debug output of the entire charset
-        printer::print( &mut ctx, &Point { x: 100, y: 100 }, &font, font::DEFAULT_CHAR_ORDER);
+        printer::print_line(&mut ctx, &Point { x: 100, y: 100 }, &font, &color_props, font::DEFAULT_CHAR_ORDER);
 
         printer::print(
             &mut ctx,
-            &Point { x: 100, y: 200 },
+            &Point { x: 100, y: 120 },
             &font,
-            "Alright, let's see what we can see... Everybody's online, looking good!",
+            &color_props,
+            &text_data
+
         );
 
-        printer::print(
-            &mut ctx,
-            &Point { x: 100, y: 150 },
-            &font,
-            "I totally love this: -=[ HaCK ]=- ",
-        );
 
 
 
