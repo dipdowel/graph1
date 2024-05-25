@@ -1,19 +1,28 @@
-use std::collections::HashMap;
 // use std::collections::HashMap;
-use std::fmt::Debug;
 
-use crate::graph1::utils::color_math::argb_math::argb_math;
+use std::fmt::Debug;
+use std::fs::File;
+use std::io::Read;
+use std::io::Write;
+
+// use crate::graph1::utils::color_math::argb_math::argb_math;
+// use crate::graph1::draw::curves::draw_bezier_curve;
+// use star::StarProperties;
+// use crate::graph1::draw::star;
+// graph1::utils::
+// use crate::graph1::utils::color_math::operations::ColorOperation;
+
 use constants::*;
 use minifb::{Key, KeyRepeat};
 use rand::seq::SliceRandom;
 use rand::Rng;
 
 use crate::cube::Cube;
-use crate::graph1::draw::curves::draw_bezier_curve;
+
 use crate::graph1::draw::line;
 
-use crate::graph1::draw::star;
-use star::StarProperties;
+
+
 
 use crate::graph1_core::context::{ContextWindow, GraphContext};
 
@@ -23,24 +32,23 @@ use crate::init::init_window::*;
 use crate::input::handle_keyboard;
 use crate::state::{init_app_state, APP_STATE};
 
-use image::io::Reader as ImageReader;
+// use image::io::Reader as ImageReader;
 use image::GenericImageView;
 
-// graph1::utils::
-use crate::graph1::utils::color_math::operations::ColorOperation;
+
 
 use self::graph1::primitives::primitives::{
     Dimensions2d, Pixel, Point, Point3DF32, PointF32, RectArea,
 };
-use self::graph1::utils::pixel_copy::trans_copy::trans_copy;
-use self::graph1::utils::pixel_copy::trans_copy_math::trans_copy_math;
-use self::graph1::utils::pixel_copy::trans_copy_math_multi_dest::trans_copy_math_multi_dest;
-use self::graph1::utils::pixel_copy::trans_copy_multi_dest::trans_copy_multi_dest;
+// use self::graph1::utils::pixel_copy::trans_copy::trans_copy;
+// use self::graph1::utils::pixel_copy::trans_copy_math::trans_copy_math;
+// use self::graph1::utils::pixel_copy::trans_copy_math_multi_dest::trans_copy_math_multi_dest;
+// use self::graph1::utils::pixel_copy::trans_copy_multi_dest::trans_copy_multi_dest;
 
 // Trait that provides the shuffle method.
-
 // use crate::tools::draw::RectOptions;
 // use tools::draw;
+
 mod tools;
 
 mod init;
@@ -67,6 +75,14 @@ const DEV_MODE: bool = true;
 
 fn main() {
     #![allow(unused)]
+
+    // font_manager::increment_counter();
+    // println!("Da counter: {}", font_manager::get_counter());
+    // font_manager::increment_counter();
+    // font_manager::increment_counter();
+    // println!("Da counter: {}", font_manager::get_counter());
+    // println!("EXPERIMENTING!!!!");
+    // return;
 
     init_app_state();
 
@@ -220,6 +236,112 @@ fn main() {
     println!("{}", "-".repeat(20));
     println!(">>> image_buf.len: {:?}", font_image_buf.len());
 
+    // ==============================================================================================
+    // =========[ BEGIN writing font data ]=========================================================
+
+    let font_image_path = "c_c_red_alert_inet0.rbf";
+
+    // font header consists of 4 u16 values.
+    // [0] - font image width
+    // [1] - font  image height
+    // [2] - `0x0` -- reserved for the future
+    // [3] - `0x0` -- reserved for the future
+    let font_header: Vec<u16> = vec![518, 9, 0, 0];
+    let font_body: Vec<u8> = font_image_buf
+        .clone()
+        .into_iter()
+        .map(|x| if x == 0 { 0x00_u8 } else { 0xff_u8 })
+        .collect();
+
+    // let mut binary_font_asset: Vec<u32> = font_header; //.append(font_image_buf);
+    // binary_font_asset.extend(font_image_buf.clone());
+
+    let mut file = File::create(font_image_path).unwrap();
+
+    for num in font_header {
+        file.write_all(&num.to_le_bytes()).unwrap(); // Using little endian encoding
+    }
+    for num in font_body {
+        file.write_all(&num.to_le_bytes()).unwrap(); // Using little endian encoding
+    }
+    // =========[ END writing font data ]=========================================================
+    //
+    //
+    //
+    // =========[ BEGIN reading font data ]=========================================================
+/*
+    let mut file = File::open(font_image_path).unwrap();
+    let mut buffer = vec![0u8; 8]; // Buffer to hold the first 4 bytes
+    file.read_exact(&mut buffer).unwrap();
+
+    // Convert the first 4 bytes into a Vec<u16>
+    let font_header_raw: Vec<u16> = buffer
+        .chunks(2)
+        .map(|chunk| {
+            let mut array = [0u8; 2];
+            array.copy_from_slice(chunk);
+            u16::from_le_bytes(array) // Decode from little endian and return
+        })
+        .collect();
+
+    // Read the remaining bytes into a Vec<u8>
+    let mut font_body_raw = vec![];
+    file.read_to_end(&mut font_body_raw).unwrap();
+
+
+    // let font_header: Vec<u32> = font_header_raw.into_iter().map(|x| x as u32).collect();
+    let font_header: Vec<u32> = font_header_raw.into_iter().map(u32::from).collect();
+
+    let font_body: Vec<u32> = font_body_raw
+        .into_iter()
+        .map(|x| if x == 0x0_u8 { 0x0_u32 } else { 0x00_ff_ff_ff })
+        .collect();
+
+    let font_1_width = font_header[0];
+    let font_1_height = font_header[1];
+*/
+    // =========[ END writing font data ]=========================================================
+
+    // =========[ BEGIN EmBEDDiNG font data ]=========================================================
+
+    let mut data: &[u8] = include_bytes!("graph1/text/rbf_data/c_c_red_alert_inet0.rbf");
+
+
+    let mut buffer = vec![0u8; 8]; // Buffer to hold the first 4 bytes
+    data.read_exact(&mut buffer).unwrap();
+
+    // Convert the first 4 bytes into a Vec<u16>
+    let font_header_raw: Vec<u16> = buffer
+        .chunks(2)
+        .map(|chunk| {
+            let mut array = [0u8; 2];
+            array.copy_from_slice(chunk);
+            u16::from_le_bytes(array) // Decode from little endian and return
+        })
+        .collect();
+
+    // Read the remaining bytes into a Vec<u8>
+    let mut font_body_raw = vec![];
+    data.read_to_end(&mut font_body_raw).unwrap();
+
+
+
+    // let font_header: Vec<u32> = font_header_raw.into_iter().map(|x| x as u32).collect();
+    let font_header: Vec<u32> = font_header_raw.into_iter().map(u32::from).collect();
+
+    let font_body: Vec<u32> = font_body_raw
+        .into_iter()
+        .map(|x| if x == 0x0_u8 { 0x0_u32 } else { 0x00_ff_ff_ff })
+        .collect();
+
+    let font_1_width = font_header[0];
+    let font_1_height = font_header[1];
+
+    // =========[ END writing font data ]=========================================================
+
+
+    // ==============================================================================================
+
     let font_2x_len = 518 * 19 * 2;
     let mut font_image_buf_2x: Vec<u32> = Vec::new();
 
@@ -228,7 +350,6 @@ fn main() {
         w: 518 * 2,
         h: 9 * 2,
     };
-
 
     image_data::scale_up(
         &mut font_image_buf_2x,
@@ -240,21 +361,32 @@ fn main() {
             top_left: POINT_ZERO,
             dimensions: Dimensions2d { w: 518, h: 9 },
         },
-        2
+        2,
     );
 
+
     let mut font: PixelFont = PixelFont::new(
-        &font_image_buf,
-        518,
-        9,
+        &font_body,
+        font_1_width,
+        font_1_height,
         font::DEFAULT_CHAR_ORDER,
         2,
         4,
         get_c_c_red_alert_inet0(1),
-        1
+        1,
     );
 
-
+    // Old font creation, directly from PNG
+    // let mut font: PixelFont = PixelFont::new(
+    //     &font_image_buf,
+    //     518,
+    //     9,
+    //     font::DEFAULT_CHAR_ORDER,
+    //     2,
+    //     4,
+    //     get_c_c_red_alert_inet0(1),
+    //     1,
+    // );
 
     let mut font_2x: PixelFont = PixelFont::new(
         &font_image_buf_2x,
@@ -264,7 +396,7 @@ fn main() {
         3,
         4,
         get_c_c_red_alert_inet0(2),
-        2
+        2,
     );
 
     //----------------------------------------------------------------------------------------------
@@ -308,18 +440,18 @@ fn main() {
             "Next line of text here.",
             "We all are living in a yellow submarine, yellow submarine, yellow submarine...",
             "Boys and Girls come out to play,",
-            "On the busy motorway"
+            "On the busy motorway",
         ];
 
-        fn transformer(color: u32, x: u32, y: u32, w: u32, h: u32) -> u32 {
-            if y < (h / 2) {
-                return 0x00_ff_ff_ff;
-            }
-            return 0x00_ff_55_ff;
-        }
         let color_props: printer::ColorProperties = printer::ColorProperties {
-            color: Some(0x00_ff_dd_ee),
-            color_transformer: None,
+            color: Some(0x00_ff_44_ff),
+            // color: None,
+            color_transformer: None, // color_transformer: Some( |color:u32, x:u32, y:u32, w:u32, h:u32| -> u32  {
+                                     //     if y % 2 == 0 {
+                                     //         return 0x00_ff_ee_ff;
+                                     //     }
+                                     //     return 0x00_99_33_99
+                                     // })
         };
 
         // Debug output of the entire charset
@@ -347,7 +479,6 @@ fn main() {
             &text_data,
         );
 
-
         // // // Helps debugging a scaled-up font!
         // image_data::copy(ctx.buf_view, &ctx.win.get_dimensions(), &POINT_ZERO, &font_image_buf_2x, &font_image_buf_2x_dim,
         //                  &RectArea {
@@ -356,8 +487,6 @@ fn main() {
         //                  },
         //                None
         // );
-
-
 
         //----------------------------------------------------------------------------------------------
         // THE CUBE dynamic
