@@ -374,15 +374,17 @@ fn main() {
         ];
 
         let color_props: printer::ColorProperties = printer::ColorProperties {
-            color: Some(0x00_ff_44_ff),
-            // color: None,
-            color_transformer: None, // color_transformer: Some( |color:u32, x:u32, y:u32, w:u32, h:u32| -> u32  {
-                                     //     if y % 2 == 0 {
-                                     //         return 0x00_ff_ee_ff;
-                                     //     }
-                                     //     return 0x00_99_33_99
-                                     // })
+            // color: Some(0x00_ff_44_ff),
+            color: None,
+            // color_transformer: None,
+            color_transformer: Some( |color:u32, x:u32, y:u32, w:u32, h:u32| -> u32  {
+                if y % 2 == 0 {
+                    return 0x00_ff_ee_ff;
+                }
+                return 0x00_99_33_99
+            })
         };
+
 
         let font = instantiate_embedded_font(EmbeddedFonts::CCRedAlertInet0, 1, None, None, None);
         let font_2x = instantiate_embedded_font(
@@ -390,8 +392,8 @@ fn main() {
             2,
             None,
             Some(Spacing {
-                kerning_px: 1,
-                leading_px: 4,
+                kerning_px: 3,
+                leading_px: 2,
             }),
             None,
         );
