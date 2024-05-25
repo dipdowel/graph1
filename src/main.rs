@@ -21,9 +21,6 @@ use crate::cube::Cube;
 
 use crate::graph1::draw::line;
 
-
-
-
 use crate::graph1_core::context::{ContextWindow, GraphContext};
 
 use crate::graph1::tools::fill;
@@ -34,8 +31,6 @@ use crate::state::{init_app_state, APP_STATE};
 
 // use image::io::Reader as ImageReader;
 use image::GenericImageView;
-
-
 
 use self::graph1::primitives::primitives::{
     Dimensions2d, Pixel, Point, Point3DF32, PointF32, RectArea,
@@ -60,11 +55,11 @@ mod graph1;
 use crate::animation_context::{AnimationContext, Oscillators};
 use crate::graph1::text::char_width_map::get_c_c_red_alert_inet0;
 use crate::graph1::text::font::{PixelFont, Spacing};
+use crate::graph1::text::font_embedder::{instantiate_embedded_font, EmbeddedFonts};
 use crate::graph1::text::{font, printer};
 use crate::graph1::utils::mem::slice_buffer_in_4;
 use crate::graph1::utils::pixel_copy::image_data;
 use graph1::graph1_core;
-use crate::graph1::text::font_embedder::{EmbeddedFonts, instantiate_embedded_font};
 
 mod about;
 mod animation_context;
@@ -76,14 +71,6 @@ const DEV_MODE: bool = true;
 
 fn main() {
     #![allow(unused)]
-
-    // font_manager::increment_counter();
-    // println!("Da counter: {}", font_manager::get_counter());
-    // font_manager::increment_counter();
-    // font_manager::increment_counter();
-    // println!("Da counter: {}", font_manager::get_counter());
-    // println!("EXPERIMENTING!!!!");
-    // return;
 
     init_app_state();
 
@@ -222,6 +209,8 @@ fn main() {
     drop(state);
 
     //----------------------------------------------------------------------------------------------
+    //----------------------------------------------------------------------------------------------
+    // TODO: Move font reading / writing functionality into a separate project!
 
     let mut font_image_buf: Vec<u32> = Vec::new();
 
@@ -270,43 +259,42 @@ fn main() {
     //
     //
     // =========[ BEGIN reading font data ]=========================================================
-/*
-    let mut file = File::open(font_image_path).unwrap();
-    let mut buffer = vec![0u8; 8]; // Buffer to hold the first 4 bytes
-    file.read_exact(&mut buffer).unwrap();
+    /*
+        let mut file = File::open(font_image_path).unwrap();
+        let mut buffer = vec![0u8; 8]; // Buffer to hold the first 4 bytes
+        file.read_exact(&mut buffer).unwrap();
 
-    // Convert the first 4 bytes into a Vec<u16>
-    let font_header_raw: Vec<u16> = buffer
-        .chunks(2)
-        .map(|chunk| {
-            let mut array = [0u8; 2];
-            array.copy_from_slice(chunk);
-            u16::from_le_bytes(array) // Decode from little endian and return
-        })
-        .collect();
+        // Convert the first 4 bytes into a Vec<u16>
+        let font_header_raw: Vec<u16> = buffer
+            .chunks(2)
+            .map(|chunk| {
+                let mut array = [0u8; 2];
+                array.copy_from_slice(chunk);
+                u16::from_le_bytes(array) // Decode from little endian and return
+            })
+            .collect();
 
-    // Read the remaining bytes into a Vec<u8>
-    let mut font_body_raw = vec![];
-    file.read_to_end(&mut font_body_raw).unwrap();
+        // Read the remaining bytes into a Vec<u8>
+        let mut font_body_raw = vec![];
+        file.read_to_end(&mut font_body_raw).unwrap();
 
 
-    // let font_header: Vec<u32> = font_header_raw.into_iter().map(|x| x as u32).collect();
-    let font_header: Vec<u32> = font_header_raw.into_iter().map(u32::from).collect();
+        // let font_header: Vec<u32> = font_header_raw.into_iter().map(|x| x as u32).collect();
+        let font_header: Vec<u32> = font_header_raw.into_iter().map(u32::from).collect();
 
-    let font_body: Vec<u32> = font_body_raw
-        .into_iter()
-        .map(|x| if x == 0x0_u8 { 0x0_u32 } else { 0x00_ff_ff_ff })
-        .collect();
+        let font_body: Vec<u32> = font_body_raw
+            .into_iter()
+            .map(|x| if x == 0x0_u8 { 0x0_u32 } else { 0x00_ff_ff_ff })
+            .collect();
 
-    let font_1_width = font_header[0];
-    let font_1_height = font_header[1];
-*/
+        let font_1_width = font_header[0];
+        let font_1_height = font_header[1];
+    */
     // =========[ END writing font data ]=========================================================
 
     // =========[ BEGIN EmBEDDiNG font data ]=========================================================
 
     let mut data: &[u8] = include_bytes!("graph1/text/rbf_data/c_c_red_alert_inet0.rbf");
-
 
     let mut buffer = vec![0u8; 8]; // Buffer to hold the first 4 bytes
     data.read_exact(&mut buffer).unwrap();
@@ -325,8 +313,6 @@ fn main() {
     let mut font_body_raw = vec![];
     data.read_to_end(&mut font_body_raw).unwrap();
 
-
-
     // let font_header: Vec<u32> = font_header_raw.into_iter().map(|x| x as u32).collect();
     let font_header: Vec<u32> = font_header_raw.into_iter().map(u32::from).collect();
 
@@ -340,12 +326,7 @@ fn main() {
 
     // =========[ END writing font data ]=========================================================
 
-
     // ==============================================================================================
-
-
-
-
 
     //----------------------------------------------------------------------------------------------
 
@@ -389,6 +370,7 @@ fn main() {
             "We all are living in a yellow submarine, yellow submarine, yellow submarine...",
             "Boys and Girls come out to play,",
             "On the busy motorway",
+            "Окей, что тут?",
         ];
 
         let color_props: printer::ColorProperties = printer::ColorProperties {
@@ -402,9 +384,17 @@ fn main() {
                                      // })
         };
 
-
-        let font = instantiate_embedded_font(EmbeddedFonts::CCRedAlertInet0, 1, None, None);
-        let font_2x = instantiate_embedded_font(EmbeddedFonts::CCRedAlertInet0, 2, None,Some(Spacing{kerning_px:1, leading_px:4}));
+        let font = instantiate_embedded_font(EmbeddedFonts::CCRedAlertInet0, 1, None, None, None);
+        let font_2x = instantiate_embedded_font(
+            EmbeddedFonts::CCRedAlertInet0,
+            2,
+            None,
+            Some(Spacing {
+                kerning_px: 1,
+                leading_px: 4,
+            }),
+            None,
+        );
         // let font_4x = instantiate_embedded_font(EmbeddedFonts::CCRedAlertInet0, 4, None,None);
 
         // Debug output of the entire charset
@@ -416,17 +406,14 @@ fn main() {
             font::DEFAULT_CHAR_ORDER,
         );
 
-                printer::print(
-                    &mut ctx,
-                    &Point { x: 100, y: 120 },
-                    // &font_4x,
-                    &font,
-                    &color_props,
-                    &text_data,
-                );
-
-
-
+        printer::print(
+            &mut ctx,
+            &Point { x: 100, y: 120 },
+            // &font_4x,
+            &font,
+            &color_props,
+            &text_data,
+        );
 
         printer::print(
             &mut ctx,

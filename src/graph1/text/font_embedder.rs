@@ -22,11 +22,21 @@ pub enum EmbeddedFonts {
     CCRedAlertInet0,
 }
 
+/// Instantiates an embedded pixel font
+///
+/// # Parameters
+///
+/// - `font_name`: The name of the embedded font to instantiate.
+/// - `font_scale_factor`: scale up the font size, valid values are powers of two (1,2,4,8, etc,)
+/// - `char_order`: Order of the characters on the source font image
+/// - `spacing`: Kerning and Leading
+/// - `default_char`: An optional character to use as the default character if a specified character is not found.
 pub fn instantiate_embedded_font(
     font_name: EmbeddedFonts,
     font_scale_factor: u8,
     char_order: Option<&str>,
     spacing: Option<Spacing>,
+    default_char: Option<char>,
 ) -> PixelFont {
 
     let scale_factor: u8 =
@@ -103,12 +113,14 @@ pub fn instantiate_embedded_font(
     let char_order: &str = char_order.unwrap_or_else(|| font::DEFAULT_CHAR_ORDER);
 
     let spacing = spacing.unwrap_or_else(|| Spacing { kerning_px: 2, leading_px: 4 });
+    let default_char = default_char.unwrap_or_else(|| '?');
 
     PixelFont::new(
         font_image_buf,
         font_image_width,
         font_image_height,
         char_order,
+        default_char,
         spacing,
         get_c_c_red_alert_inet0(scale_factor),
         1 * scale_factor,

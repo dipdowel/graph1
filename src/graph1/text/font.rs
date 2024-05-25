@@ -32,6 +32,9 @@ pub struct PixelFont<'a> {
     /// @See e.g.: `DEFAULT_CHAR_ORDER`
     pub char_order: &'a str,
 
+    /// Character to display when a requested character is not present in the charset
+    pub default_char: char,
+
     /// Font spacing properties (typography)
     pub spacing: Spacing,
 
@@ -67,6 +70,7 @@ impl<'a> PixelFont<'a> {
         image_w: u32,
         image_h: u32,
         char_order: &'a str,
+        default_char: char,
         spacing: Spacing,
         glyph_widths_px: HashMap<char, u8>,
         src_kerning_px: u8,
@@ -105,6 +109,7 @@ impl<'a> PixelFont<'a> {
             image_w,
             image_h,
             char_order,
+            default_char,
             spacing,
             glyph_widths_px,
             glyphs,
@@ -115,8 +120,7 @@ impl<'a> PixelFont<'a> {
         if self.glyphs.contains_key(character) {
             return self.glyphs.get(character).unwrap();
         }
-        panic!(
-            "TODO: Return a default glyph here if a requested character does not have a glyph!!"
-        );
+        // Character not found, return glyph for the default character
+        return self.glyphs.get(&self.default_char).unwrap();
     }
 }

@@ -16,6 +16,8 @@
    That should make it easier creating cool curves and then hardcoding their points for animation, etc.
 
 ## Text rendering engine
+
+- Make a stand-alone convertor from PNG (and other formats too, maybe?) to RBF
 Inputs:
 - A pixel font.
 - A location from the draft buffer of how a single pixel needs to be rendered. It can be a large animated cube or a single pixel!
