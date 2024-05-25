@@ -52,7 +52,7 @@ pub fn print_line(
             ctx.buf_view,
             &dst_dimensions,
             &dst_point,
-            font.font_image_buf,
+            &font.font_image_buf,
             &Dimensions2d {
                 w: font.image_w,
                 h: font.image_h,
@@ -62,7 +62,7 @@ pub fn print_line(
             // None
         );
 
-        dst_point.x += the_glyph.dimensions.w + font.kerning_px as u32;
+        dst_point.x += the_glyph.dimensions.w + font.spacing.kerning_px as u32;
     }
 }
 
@@ -85,6 +85,6 @@ pub fn print(
 
     for text_line in text {
         print_line(ctx, &position, font, color_props, text_line);
-        position.y += (font.image_h + font.leading_px as u32);
+        position.y += (font.image_h + font.spacing.leading_px as u32);
     }
 }

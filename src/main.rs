@@ -59,11 +59,12 @@ mod cube;
 mod graph1;
 use crate::animation_context::{AnimationContext, Oscillators};
 use crate::graph1::text::char_width_map::get_c_c_red_alert_inet0;
-use crate::graph1::text::font::PixelFont;
+use crate::graph1::text::font::{PixelFont, Spacing};
 use crate::graph1::text::{font, printer};
 use crate::graph1::utils::mem::slice_buffer_in_4;
 use crate::graph1::utils::pixel_copy::image_data;
 use graph1::graph1_core;
+use crate::graph1::text::font_embedder::{EmbeddedFonts, instantiate_embedded_font};
 
 mod about;
 mod animation_context;
@@ -342,62 +343,9 @@ fn main() {
 
     // ==============================================================================================
 
-    let font_2x_len = 518 * 19 * 2;
-    let mut font_image_buf_2x: Vec<u32> = Vec::new();
-
-    font_image_buf_2x.resize(font_2x_len, 0);
-    let font_image_buf_2x_dim: Dimensions2d = Dimensions2d {
-        w: 518 * 2,
-        h: 9 * 2,
-    };
-
-    image_data::scale_up(
-        &mut font_image_buf_2x,
-        &font_image_buf_2x_dim,
-        &POINT_ZERO,
-        &font_image_buf,
-        &Dimensions2d { w: 518, h: 9 },
-        &RectArea {
-            top_left: POINT_ZERO,
-            dimensions: Dimensions2d { w: 518, h: 9 },
-        },
-        2,
-    );
 
 
-    let mut font: PixelFont = PixelFont::new(
-        &font_body,
-        font_1_width,
-        font_1_height,
-        font::DEFAULT_CHAR_ORDER,
-        2,
-        4,
-        get_c_c_red_alert_inet0(1),
-        1,
-    );
 
-    // Old font creation, directly from PNG
-    // let mut font: PixelFont = PixelFont::new(
-    //     &font_image_buf,
-    //     518,
-    //     9,
-    //     font::DEFAULT_CHAR_ORDER,
-    //     2,
-    //     4,
-    //     get_c_c_red_alert_inet0(1),
-    //     1,
-    // );
-
-    let mut font_2x: PixelFont = PixelFont::new(
-        &font_image_buf_2x,
-        font_image_buf_2x_dim.w,
-        font_image_buf_2x_dim.h,
-        font::DEFAULT_CHAR_ORDER,
-        3,
-        4,
-        get_c_c_red_alert_inet0(2),
-        2,
-    );
 
     //----------------------------------------------------------------------------------------------
 
@@ -454,6 +402,11 @@ fn main() {
                                      // })
         };
 
+
+        let font = instantiate_embedded_font(EmbeddedFonts::CCRedAlertInet0, 1, None, None);
+        let font_2x = instantiate_embedded_font(EmbeddedFonts::CCRedAlertInet0, 2, None,Some(Spacing{kerning_px:1, leading_px:4}));
+        // let font_4x = instantiate_embedded_font(EmbeddedFonts::CCRedAlertInet0, 4, None,None);
+
         // Debug output of the entire charset
         printer::print_line(
             &mut ctx,
@@ -463,13 +416,17 @@ fn main() {
             font::DEFAULT_CHAR_ORDER,
         );
 
-        printer::print(
-            &mut ctx,
-            &Point { x: 100, y: 120 },
-            &font,
-            &color_props,
-            &text_data,
-        );
+                printer::print(
+                    &mut ctx,
+                    &Point { x: 100, y: 120 },
+                    // &font_4x,
+                    &font,
+                    &color_props,
+                    &text_data,
+                );
+
+
+
 
         printer::print(
             &mut ctx,
@@ -478,15 +435,6 @@ fn main() {
             &color_props,
             &text_data,
         );
-
-        // // // Helps debugging a scaled-up font!
-        // image_data::copy(ctx.buf_view, &ctx.win.get_dimensions(), &POINT_ZERO, &font_image_buf_2x, &font_image_buf_2x_dim,
-        //                  &RectArea {
-        //                      top_left: POINT_ZERO,
-        //                      dimensions: font_image_buf_2x_dim,
-        //                  },
-        //                None
-        // );
 
         //----------------------------------------------------------------------------------------------
         // THE CUBE dynamic

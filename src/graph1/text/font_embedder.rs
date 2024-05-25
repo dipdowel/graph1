@@ -4,27 +4,29 @@
 
    "RBF" stands for "Raw Bitmap/Binary Font". See `/README.md` for details.
 */
-/*
+
+use std::io::Read;
+
 use crate::constants::POINT_ZERO;
 use crate::graph1::primitives::primitives::{Dimensions2d, RectArea};
 use crate::graph1::text::char_width_map::get_c_c_red_alert_inet0;
 use crate::graph1::text::font;
-use std::io::Read;
-
-use crate::graph1::text::font::PixelFont;
+use crate::graph1::text::font::{PixelFont, Spacing};
 use crate::graph1::utils::pixel_copy::image_data;
 
+// Embed fonts data
 const DATA_C_C_RED_ALERT_INET0: &[u8] = include_bytes!("./rbf_data/c_c_red_alert_inet0.rbf");
 
+// List of available embedded fonts
 pub enum EmbeddedFonts {
     CCRedAlertInet0,
 }
 
 pub fn instantiate_embedded_font(
-    mut font_image_buf: Vec<u32>,
     font_name: EmbeddedFonts,
     font_scale_factor: u8,
     char_order: Option<&str>,
+    spacing: Option<Spacing>,
 ) -> PixelFont {
 
     let scale_factor: u8 =
@@ -66,11 +68,7 @@ pub fn instantiate_embedded_font(
     let font_image_width = font_header[0] * scale_factor as u32;
     let font_image_height = font_header[1] * scale_factor as u32;
 
-    // if scale_factor >1 {
-    //
-    // }
-
-    font_image_buf = font_body.clone();
+    let mut font_image_buf: Vec<u32>= font_body.clone();
 
     let font_image_buf_dim: Dimensions2d = Dimensions2d {
         w: font_image_width,
@@ -83,6 +81,9 @@ pub fn instantiate_embedded_font(
             w: font_header[0],
             h: font_header[1],
         };
+
+        font_image_buf.resize((font_image_width*font_image_height) as usize, 0);
+
         image_data::scale_up(
             &mut font_image_buf,
             &font_image_buf_dim,
@@ -101,15 +102,15 @@ pub fn instantiate_embedded_font(
     }
     let char_order: &str = char_order.unwrap_or_else(|| font::DEFAULT_CHAR_ORDER);
 
+    let spacing = spacing.unwrap_or_else(|| Spacing { kerning_px: 2, leading_px: 4 });
+
     PixelFont::new(
-        &font_image_buf,
+        font_image_buf,
         font_image_width,
         font_image_height,
         char_order,
-        2, // FIXME: should not be hardcoded!
-        4, // FIXME: should not be hardcoded!
+        spacing,
         get_c_c_red_alert_inet0(scale_factor),
-        1 * scale_factor, //TODO: Check if this breaks with values greater than 1!
+        1 * scale_factor,
     )
 }
-*/

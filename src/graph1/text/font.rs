@@ -8,9 +8,19 @@ pub const DEFAULT_CHAR_ORDER: &str = " ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmno
 pub const DEFAULT_KERNING_PX: u8 = 1;
 
 #[derive(Debug)]
+/// Font spacing properties (typography)
+pub struct Spacing {
+    /// Horizontal spacing between characters
+    pub kerning_px: u8,
+
+    /// Vertical spacing between lines of characters
+    pub leading_px: u8,
+}
+
+#[derive(Debug)]
 pub struct PixelFont<'a> {
     /// Buffer with the font source image
-    pub font_image_buf: &'a Vec<u32>,
+    pub font_image_buf: Vec<u32>,
 
     /// Width of the source image with font
     pub image_w: u32,
@@ -22,18 +32,18 @@ pub struct PixelFont<'a> {
     /// @See e.g.: `DEFAULT_CHAR_ORDER`
     pub char_order: &'a str,
 
-    /// Horizontal spacing between characters
-    pub kerning_px: u8,
+    /// Font spacing properties (typography)
+    pub spacing: Spacing,
 
-    /// Vertical spacing between lines of characters
-    pub leading_px: u8,
+    /// A map of a character to a glyph width
+    glyph_widths_px: HashMap<char, u8>,
+
+    /// Map of `chat` to where in `font_image_buf` its glyph can be found
+    glyphs: HashMap<char, RectArea>,
 
     // FIXME: add some implementation for a dummy char that is shown when an unknown character is requested for rendering
     // pub default_char: PixelChar,
-    /// A map of a character to a glyph width
-    char_descriptions: HashMap<char, u8>,
 
-    glyphs: HashMap<char, RectArea>,
 }
 
 impl<'a> PixelFont<'a> {
@@ -45,7 +55,7 @@ impl<'a> PixelFont<'a> {
     /// - `image_w`: Width of the source image with font.
     /// - `image_h`: Height of the source image with font.
     /// - `char_order`: Order in which characters appear in the font. See `DEFAULT_CHAR_ORDER` for an example.
-    /// - `default_kerning_px`: Default horizontal spacing between characters in the file.
+    /// - `spacing`: Font spacing properties (typography)
     /// - `glyph_widths_px`: Pixel character glyph width, in pixels
     /// - `src_kerning_px`: Distance between characters in the source font image.
     ///
@@ -53,12 +63,11 @@ impl<'a> PixelFont<'a> {
     ///
     /// A new instance of `PixelFont`.
     pub fn new(
-        font_image_buf: &'a Vec<u32>,
+        font_image_buf: Vec<u32>,
         image_w: u32,
         image_h: u32,
         char_order: &'a str,
-        kerning_px: u8,
-        leading_px: u8,
+        spacing: Spacing,
         glyph_widths_px: HashMap<char, u8>,
         src_kerning_px: u8,
     ) -> Self {
@@ -96,9 +105,8 @@ impl<'a> PixelFont<'a> {
             image_w,
             image_h,
             char_order,
-            kerning_px,
-            leading_px,
-            char_descriptions: glyph_widths_px,
+            spacing,
+            glyph_widths_px,
             glyphs,
         };
     }
