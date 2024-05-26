@@ -1,7 +1,7 @@
 use crate::graph1::primitives::primitives::{
     Dimensions2d, PixelColorTransformerFn, Point, RectArea,
 };
-use crate::graph1::utils::misc::is_power_of_two;
+use crate::graph1::utils::math::is_power_of_two;
 
 /// Additional options for modifying the copied image data (pixels).
 pub struct ImageDataCopyProps {

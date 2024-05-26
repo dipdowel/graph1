@@ -17,6 +17,10 @@
 
 ## Text rendering engine
 
+- Modify header. We need to include the widths of characters into the header as well. 
+  - Maybe the character order should also be included into the file?
+  - Maybe the char-to-glyph map should also be included into the file? 
+  - Is there a way to serialise a hashmap?
 - Make a stand-alone convertor from PNG (and other formats too, maybe?) to RBF
 Inputs:
 - A pixel font.
@@ -30,6 +34,13 @@ https://www.dafont.com/c-c-red-alert-inet.font
 --------------------------------------------------
 ```
 
+
+
+REPOS:
+- graph1
+- graph1_examples
+- graph1_demo
+- graph1_tools  // to creates assets like fonts?
 
 
 

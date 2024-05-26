@@ -12,6 +12,7 @@ use crate::graph1::primitives::primitives::{Dimensions2d, RectArea};
 use crate::graph1::text::char_width_map::get_c_c_red_alert_inet0;
 use crate::graph1::text::font;
 use crate::graph1::text::font::{PixelFont, Spacing};
+use crate::graph1::utils::bit_operations;
 use crate::graph1::utils::pixel_copy::image_data;
 
 // Embed fonts data
@@ -40,7 +41,7 @@ pub fn instantiate_embedded_font(
 ) -> PixelFont {
 
     let scale_factor: u8 =
-        crate::graph1::utils::misc::nearest_power_of_two_towards_zero(font_scale_factor as u32)
+        crate::graph1::utils::math::nearest_power_of_two_towards_zero(font_scale_factor as u32)
             as u8;
 
     let mut font_data: &[u8] = match font_name {
@@ -69,11 +70,7 @@ pub fn instantiate_embedded_font(
     // Normalise the font header to Vec<u32>
     // let font_header: Vec<u32> = font_header_raw.into_iter().map(|x| x as u32).collect();
     let font_header: Vec<u32> = font_header_raw.into_iter().map(u32::from).collect();
-
-    let font_body:  Vec<u32> = font_body_raw
-        .into_iter()
-        .map(|x| if x == 0x0_u8 { 0x0_u32 } else { 0x00_ff_ff_ff })
-        .collect();
+    let font_body: Vec<u32> = bit_operations::one_bit_image_to_rgb(&font_body_raw);
 
     let font_image_width = font_header[0] * scale_factor as u32;
     let font_image_height = font_header[1] * scale_factor as u32;

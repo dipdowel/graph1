@@ -27,7 +27,7 @@ mod tests {
     use super::*;
 
     // TESTS FOR `is_power_of_two()`
-    //------------------------------
+    //==============================================================================================
     #[test]
     fn test_is_power_of_two() {
         assert_eq!(is_power_of_two(1), true);
@@ -49,7 +49,7 @@ mod tests {
     }
 
     // TESTS FOR `nearest_power_of_two_less_than()`
-    //------------------------------
+    //==============================================================================================
     #[test]
     fn test_zero() {
         assert_eq!(nearest_power_of_two_towards_zero(0), 0);

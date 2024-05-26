@@ -3,6 +3,7 @@ pub mod pixel_copy;
 pub mod mem;
 
 pub mod io;
-pub mod misc;
+pub mod math;
+pub mod bit_operations;
 
 

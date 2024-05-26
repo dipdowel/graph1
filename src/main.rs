@@ -27,13 +27,13 @@ use crate::graph1::tools::fill;
 
 use crate::init::init_window::*;
 use crate::input::handle_keyboard;
-use crate::state::{init_app_state, APP_STATE};
+use crate::state::{APP_STATE, init_app_state};
 
 // use image::io::Reader as ImageReader;
 use image::GenericImageView;
 
 use self::graph1::primitives::primitives::{
-    Dimensions2d, Pixel, Point, Point3DF32, PointF32, RectArea,
+    Pixel, Point, Point3DF32,
 };
 // use self::graph1::utils::pixel_copy::trans_copy::trans_copy;
 // use self::graph1::utils::pixel_copy::trans_copy_math::trans_copy_math;
@@ -53,13 +53,12 @@ mod constants;
 mod cube;
 mod graph1;
 use crate::animation_context::{AnimationContext, Oscillators};
-use crate::graph1::text::char_width_map::get_c_c_red_alert_inet0;
-use crate::graph1::text::font::{PixelFont, Spacing};
-use crate::graph1::text::font_embedder::{instantiate_embedded_font, EmbeddedFonts};
+use crate::graph1::text::font::Spacing;
+use crate::graph1::text::font_embedder::{EmbeddedFonts, instantiate_embedded_font};
 use crate::graph1::text::{font, printer};
 use crate::graph1::utils::mem::slice_buffer_in_4;
-use crate::graph1::utils::pixel_copy::image_data;
 use graph1::graph1_core;
+use crate::graph1::utils::bit_operations;
 
 mod about;
 mod animation_context;
@@ -209,7 +208,7 @@ fn main() {
     drop(state);
 
     //----------------------------------------------------------------------------------------------
-    //----------------------------------------------------------------------------------------------
+     //----------------------------------------------------------------------------------------------
     // TODO: Move font reading / writing functionality into a separate project!
 
     let mut font_image_buf: Vec<u32> = Vec::new();
@@ -228,7 +227,7 @@ fn main() {
 
     // ==============================================================================================
     // =========[ BEGIN writing font data ]=========================================================
-
+/*
     let font_image_path = "c_c_red_alert_inet0.rbf";
 
     // font header consists of 4 u16 values.
@@ -254,10 +253,42 @@ fn main() {
     for num in font_body {
         file.write_all(&num.to_le_bytes()).unwrap(); // Using little endian encoding
     }
+    */
     // =========[ END writing font data ]=========================================================
     //
-    //
-    //
+    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    // =========[ BEGIN BITWISE writing font data ]=================================================
+        let font_image_path = "c_c_red_alert_inet0.rbf";
+
+    // font header consists of 4 u16 values.
+    // [0] - font image width
+    // [1] - font  image height
+    // [2] - `0x0` -- reserved for the future
+    // [3] - `0x0` -- reserved for the future
+    let font_header: Vec<u16> = vec![518, 9, 0, 0];
+
+    //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+
+    //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+    let font_body: Vec<u8> = bit_operations::rgb_to_one_bit_image(&font_image_buf);
+
+    // let mut binary_font_asset: Vec<u32> = font_header; //.append(font_image_buf);
+    // binary_font_asset.extend(font_image_buf.clone());
+
+    let mut file = File::create(font_image_path).unwrap();
+
+    for num in font_header {
+        file.write_all(&num.to_le_bytes()).unwrap(); // Using little endian encoding
+    }
+    for num in font_body {
+        file.write_all(&num.to_le_bytes()).unwrap(); // Using little endian encoding
+    }
+
+
+    // =========[ END BITWISE writing font data ]===================================================
+    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     // =========[ BEGIN reading font data ]=========================================================
     /*
         let mut file = File::open(font_image_path).unwrap();
