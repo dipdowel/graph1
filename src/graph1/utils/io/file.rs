@@ -1,4 +1,4 @@
-use image::{DynamicImage, GenericImageView, Pixel};
+use image::{DynamicImage, GenericImageView};
 use image::io::Reader as ImageReader;
 
 use crate::about::AboutApp;

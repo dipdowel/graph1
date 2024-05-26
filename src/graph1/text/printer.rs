@@ -85,6 +85,6 @@ pub fn print(
 
     for text_line in text {
         print_line(ctx, &position, font, color_props, text_line);
-        position.y += (font.image_h + font.spacing.leading_px as u32);
+        position.y += font.image_h + font.spacing.leading_px as u32;
     }
 }

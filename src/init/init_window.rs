@@ -1,5 +1,5 @@
-use minifb::{CursorStyle, ScaleMode, Window, WindowOptions};
-use std::fmt::Debug;
+use minifb::{CursorStyle, /*ScaleMode,*/ Window, WindowOptions};
+// use std::fmt::Debug;
 use std::time::Duration;
 
 /*

@@ -27,14 +27,14 @@ By default, the following pixel fonts are available in Graph1 framework:
 - `c_c_red_alert_inet0` by [N3tRunn3r](https://forums.cncnet.org/profile/30740-n3trunn3r/)
 - `c_c_red_alert_inet1 (LAN)` by [N3tRunn3r](https://forums.cncnet.org/profile/30740-n3trunn3r/)
 
-The default fonts are stored in the Graph1 sourcecode and are encoded in RBF format (see below).
+The default fonts are stored in the Graph1 sourcecode and are encoded in CBF format (see below).
 They are embedded directly into a compiled application using `include_bytes!()`. 
 
 It is also possible to load and use your custom pixel fonts (see section "Using custom pixel fonts").
 
-### RBF font format
-"RBF" stands for "Raw Bitmap/Binary Font". It is a simple non-compressed binary format for storing pixel fonts as raw binary data.
-An RBF-file contains a header with metadata and a body with the font itself.  
+### CBF font format
+"CBF" stands for "Compact Bitmap Font". It is a simple non-compressed binary format for storing pixel fonts as raw binary data.
+An CBF-file contains a header with metadata and a body with the font itself.  
 
 #### The header
 The font header consists of 4 u16 values.
@@ -47,7 +47,7 @@ The font header consists of 4 u16 values.
 The font body consists of u8 values, encoding black with `0x00` and white with any other value. It is recommended, however,
 to use `0xff` to encode white.
 
-### RBF parsing
+### CBF parsing
 Graph1 parses an
 
 ### Creating and/or using your own pixel fonts

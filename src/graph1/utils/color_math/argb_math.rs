@@ -5,7 +5,7 @@ use super::operations::ColorOperation;
 /// - `c2` 2nd color operand
 /// - `op` operation to apply to `c1` and `c2`
 pub fn argb_math(c1: &u32, c2: &u32, op: &ColorOperation) -> u32 {
-    unsafe {
+
         let a = match op {
             ColorOperation::Add =>{
                 let result = ((c1 >> 24) & 0xff).wrapping_add((c2 >> 24) & 0xff);
@@ -46,7 +46,7 @@ pub fn argb_math(c1: &u32, c2: &u32, op: &ColorOperation) -> u32 {
 
         // Recombine using bitwise OR, no checks
         (a << 24) | (r << 16) | (g << 8) | b
-    }
+
 }
 
 

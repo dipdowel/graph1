@@ -1,8 +1,8 @@
 /*
-   This module embeds font source images in rbf format into the compiled executable and provides
+   This module embeds font source images in CBF format into the compiled executable and provides
    a method for instantiating the embedded fonts for usage.
 
-   "RBF" stands for "Raw Bitmap/Binary Font". See `/README.md` for details.
+   "CBF" stands for "Compact Bitmap Font". See `/README.md` for details.
 */
 
 use std::io::Read;
@@ -16,7 +16,7 @@ use crate::graph1::utils::bit_operations;
 use crate::graph1::utils::pixel_copy::image_data;
 
 // Embed fonts data
-const DATA_C_C_RED_ALERT_INET0: &[u8] = include_bytes!("./rbf_data/c_c_red_alert_inet0.rbf");
+const DATA_C_C_RED_ALERT_INET0: &[u8] = include_bytes!("cbf_data/c_c_red_alert_inet0.cbf");
 
 // List of available embedded fonts
 pub enum EmbeddedFonts {

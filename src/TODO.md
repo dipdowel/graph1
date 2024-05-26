@@ -21,7 +21,7 @@
   - Maybe the character order should also be included into the file?
   - Maybe the char-to-glyph map should also be included into the file? 
   - Is there a way to serialise a hashmap?
-- Make a stand-alone convertor from PNG (and other formats too, maybe?) to RBF
+- Make a stand-alone convertor from PNG (and other formats too, maybe?) to CBF
 Inputs:
 - A pixel font.
 - A location from the draft buffer of how a single pixel needs to be rendered. It can be a large animated cube or a single pixel!

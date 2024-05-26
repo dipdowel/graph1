@@ -1,4 +1,4 @@
-use minifb::{CursorStyle, Key, KeyRepeat};
+use minifb::{ Key, /*CursorStyle, KeyRepeat*/};
 use crate::state::APP_STATE;
 
 pub fn handle_keyboard( keys_pressed: &Vec<Key>, keys_released: &Vec<Key>) {

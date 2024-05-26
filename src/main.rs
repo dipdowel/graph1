@@ -1,6 +1,6 @@
 // use std::collections::HashMap;
 
-use std::fmt::Debug;
+// use std::fmt::Debug;
 use std::fs::File;
 use std::io::Read;
 use std::io::Write;
@@ -14,7 +14,7 @@ use std::io::Write;
 
 use constants::*;
 use minifb::{Key, KeyRepeat};
-use rand::seq::SliceRandom;
+// use rand::seq::SliceRandom;
 use rand::Rng;
 
 use crate::cube::Cube;
@@ -30,7 +30,7 @@ use crate::input::handle_keyboard;
 use crate::state::{APP_STATE, init_app_state};
 
 // use image::io::Reader as ImageReader;
-use image::GenericImageView;
+// use image::GenericImageView;
 
 use self::graph1::primitives::primitives::{
     Pixel, Point, Point3DF32,
@@ -55,7 +55,7 @@ mod graph1;
 use crate::animation_context::{AnimationContext, Oscillators};
 use crate::graph1::text::font::Spacing;
 use crate::graph1::text::font_embedder::{EmbeddedFonts, instantiate_embedded_font};
-use crate::graph1::text::{font, printer};
+use crate::graph1::text::{char_width_map, font, printer};
 use crate::graph1::utils::mem::slice_buffer_in_4;
 use graph1::graph1_core;
 use crate::graph1::utils::bit_operations;
@@ -226,46 +226,29 @@ fn main() {
     println!(">>> image_buf.len: {:?}", font_image_buf.len());
 
     // ==============================================================================================
-    // =========[ BEGIN writing font data ]=========================================================
-/*
-    let font_image_path = "c_c_red_alert_inet0.rbf";
 
-    // font header consists of 4 u16 values.
-    // [0] - font image width
-    // [1] - font  image height
-    // [2] - `0x0` -- reserved for the future
-    // [3] - `0x0` -- reserved for the future
-    let font_header: Vec<u16> = vec![518, 9, 0, 0];
-    let font_body: Vec<u8> = font_image_buf
-        .clone()
-        .into_iter()
-        .map(|x| if x == 0 { 0x00_u8 } else { 0xff_u8 })
-        .collect();
-
-    // let mut binary_font_asset: Vec<u32> = font_header; //.append(font_image_buf);
-    // binary_font_asset.extend(font_image_buf.clone());
-
-    let mut file = File::create(font_image_path).unwrap();
-
-    for num in font_header {
-        file.write_all(&num.to_le_bytes()).unwrap(); // Using little endian encoding
-    }
-    for num in font_body {
-        file.write_all(&num.to_le_bytes()).unwrap(); // Using little endian encoding
-    }
-    */
-    // =========[ END writing font data ]=========================================================
-    //
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     // =========[ BEGIN BITWISE writing font data ]=================================================
-        let font_image_path = "c_c_red_alert_inet0.rbf";
+        let font_image_path = "c_c_red_alert_inet0.cbf";
 
     // font header consists of 4 u16 values.
-    // [0] - font image width
-    // [1] - font  image height
-    // [2] - `0x0` -- reserved for the future
-    // [3] - `0x0` -- reserved for the future
+
+
+    // [2b] - magic number `CBF0` - Compact Bitmap F0nt
+    // [2b] - version of CBF format
+    // [2b] - font image width
+    // [2b] - font  image height
+    // [2b] - size of `char_order`
+    // [2b] - size of `chat_width`
+    // [1b] - default kerning
+    // [1b] - default leading
+    // [2b] - `0x0` -- reserved for the future
     let font_header: Vec<u16> = vec![518, 9, 0, 0];
+
+    // Char order in the font as bytes
+    let char_order = font::DEFAULT_CHAR_ORDER.as_bytes();
+    let char_map = char_width_map::get_c_c_red_alert_inet0(1);
+    let char_widths: Vec<u8> = font::DEFAULT_CHAR_ORDER.chars().map(|ch| { *char_map.get(&ch).unwrap() }).collect();
 
     //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -325,7 +308,7 @@ fn main() {
 
     // =========[ BEGIN EmBEDDiNG font data ]=========================================================
 
-    let mut data: &[u8] = include_bytes!("graph1/text/rbf_data/c_c_red_alert_inet0.rbf");
+    let mut data: &[u8] = include_bytes!("graph1/text/cbf_data/c_c_red_alert_inet0.cbf");
 
     let mut buffer = vec![0u8; 8]; // Buffer to hold the first 4 bytes
     data.read_exact(&mut buffer).unwrap();
