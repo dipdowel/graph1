@@ -12,7 +12,6 @@ pub const DEFAULT_KERNING_PX: u8 = 1;
 pub struct Spacing {
     /// Horizontal spacing between characters
     pub kerning_px: u8,
-
     /// Vertical spacing between lines of characters
     pub leading_px: u8,
 }
@@ -21,29 +20,19 @@ pub struct Spacing {
 pub struct PixelFont {
     /// Buffer with the font source image
     pub font_image_buf: Vec<u32>,
-
-    /// Width of the source image with font
-    pub image_w: u32,
-
-    /// Height of the source image with font
-    pub image_h: u32,
-
+    /// Width and height of the source image with font
+    pub img_dimensions:Dimensions2d,
     /// Order in which characters appear in the font.
     /// @See e.g.: `DEFAULT_CHAR_ORDER`
     pub char_order: String,
-
     /// Character to display when a requested character is not present in the charset
     pub default_char: char,
-
     /// Font spacing properties (typography)
     pub spacing: Spacing,
-
     /// A map of a character to a glyph width
     glyph_widths_px: HashMap<char, u8>,
-
     /// Map of `chat` to where in `font_image_buf` its glyph can be found
     glyphs: HashMap<char, RectArea>,
-
     // FIXME: add some implementation for a dummy char that is shown when an unknown character is requested for rendering
     // pub default_char: PixelChar,
 
@@ -67,8 +56,7 @@ impl PixelFont {
     /// A new instance of `PixelFont`.
     pub fn new(
         font_image_buf: Vec<u32>,
-        image_w: u32,
-        image_h: u32,
+        img_dimensions:Dimensions2d,
         char_order: String,
         default_char: char,
         spacing: Spacing,
@@ -96,7 +84,7 @@ impl PixelFont {
                 },
                 dimensions: Dimensions2d {
                     w: width as u32,
-                    h: image_h,
+                    h: img_dimensions.h,
                 },
             };
 
@@ -104,10 +92,10 @@ impl PixelFont {
             glyphs.insert(character, glyph);
         }
 
+
         return Self {
             font_image_buf,
-            image_w,
-            image_h,
+            img_dimensions,
             char_order,
             default_char,
             spacing,

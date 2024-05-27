@@ -53,10 +53,7 @@ pub fn print_line(
             &dst_dimensions,
             &dst_point,
             &font.font_image_buf,
-            &Dimensions2d {
-                w: font.image_w,
-                h: font.image_h,
-            },
+            &font.img_dimensions,
             &the_glyph,
             Some(&props),
             // None
@@ -85,6 +82,6 @@ pub fn print(
 
     for text_line in text {
         print_line(ctx, &position, font, color_props, text_line);
-        position.y += font.image_h + font.spacing.leading_px as u32;
+        position.y += font.img_dimensions.h + font.spacing.leading_px as u32;
     }
 }

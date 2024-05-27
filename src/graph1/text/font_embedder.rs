@@ -237,10 +237,14 @@ pub fn instantiate_embedded_font(
 
     let default_char = default_char.unwrap_or_else(|| native_default_char);
 
+    let img_dimensions = Dimensions2d {
+        w:  font_image_buf_dim.w,
+        h:  font_image_buf_dim.h,
+    };
+
     PixelFont::new(
         font_image_buf,
-        font_image_buf_dim.w  ,
-        font_image_buf_dim.h ,
+        img_dimensions,
         char_order,
         default_char,
         spacing,
