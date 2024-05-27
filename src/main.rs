@@ -4,7 +4,8 @@
 use std::fs::File;
 use std::io::Read;
 use std::io::Write;
-
+use image::EncodableLayout;
+use chrono::prelude::*;
 // use crate::graph1::utils::color_math::argb_math::argb_math;
 // use crate::graph1::draw::curves::draw_bezier_curve;
 // use star::StarProperties;
@@ -59,6 +60,7 @@ use crate::graph1::text::{char_width_map, font, printer};
 use crate::graph1::utils::mem::slice_buffer_in_4;
 use graph1::graph1_core;
 use crate::graph1::utils::bit_operations;
+use crate::graph1::utils::text::utf8_char_to_u16_vec;
 
 mod about;
 mod animation_context;
@@ -229,33 +231,90 @@ fn main() {
 
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     // =========[ BEGIN BITWISE writing font data ]=================================================
-        let font_image_path = "c_c_red_alert_inet0.cbf";
+        let font_image_path = "src/graph1/text/cbf_data/c_c_red_alert_inet0.cbf";
 
-    // font header consists of 4 u16 values.
-
-
-    // [2b] - magic number `CBF0` - Compact Bitmap F0nt
-    // [2b] - version of CBF format
-    // [2b] - font image width
-    // [2b] - font  image height
-    // [2b] - size of `char_order`
-    // [2b] - size of `chat_width`
-    // [1b] - default kerning
-    // [1b] - default leading
-    // [2b] - `0x0` -- reserved for the future
-    let font_header: Vec<u16> = vec![518, 9, 0, 0];
 
     // Char order in the font as bytes
-    let char_order = font::DEFAULT_CHAR_ORDER.as_bytes();
+    let char_order_bytes = font::DEFAULT_CHAR_ORDER.as_bytes();
     let char_map = char_width_map::get_c_c_red_alert_inet0(1);
     let char_widths: Vec<u8> = font::DEFAULT_CHAR_ORDER.chars().map(|ch| { *char_map.get(&ch).unwrap() }).collect();
 
     //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    //  Header consists of a bunch of `u16` values:
+    // -----------------------------------------------------------------------------------
+    // [00] - magic number `CBF0` for "Compact Bitmap F0nt"
+    // [01] - version of CBF format
+    // [02] - font image width
+    // [03] - font image height
+    // [04] - size of `char_order`
+    // [05] - size of `chat_width`
+    // [06] - spacing props: lower byte -- kerning, higher byte -- leading.
+    // [07] - UTF8 default char: lower 2 bytes.
+    // [08] - UTF8 default char: higher 2 bytes.
+    // [09] - date: year
+    // [10] - date: lower byte -- day, higher byte -- month.
+    // [11] - version of the font
+    // [12] - size of `author_signature`, size of the author's name
+    // -----------------------------------------------------------------------------------
+    // Font body fields:
+    //      * author_signature -- A string with the name of the author of the font.
+    //      * char_order -- order of characters in the font.
+    //      * char_widths -- how many pixels wide a char is. In the order of `char_order`
+    //      * font_pixel_data -- 1-bit image data of the font (0 for black, 1 for white)
+    let mut font_header: Vec<u16> = vec![0; 13];
 
+
+
+    font_header[0] = 0xF0_CB; // to get `CBF0` in the file
+    font_header[1] = 0x0001;   // CBF format version
+    font_header[2] = 518_u16;  // src image width
+    font_header[3] = 9_u16;    // src image height
+    font_header[4] = char_order_bytes.len() as u16;
+    font_header[5] = char_widths.len() as u16;
+    font_header[6] = 0x04_02; // 0x_leading_kerning
+
+    // let test_default_char = '😀';
+    let test_default_char = '?';
+    println!(">>> test_default_char len: {}", test_default_char.len_utf8());
+
+    let default_char_as_u16 = utf8_char_to_u16_vec(test_default_char);
+
+    font_header[7] = default_char_as_u16[0];
+    font_header[8] = default_char_as_u16[1];
+
+    let now = Utc::now();
+
+    // Extract year, month, and day as integers
+    let year = now.year() as u16;
+    let month = now.month() as u8;
+    let day = now.day() as u8;
+
+
+    let year: u16 = 2008;
+    let month: u8 = 02;
+    let day: u8 = 06;
+    // let day = now.day() as u8;
+
+
+    font_header[9] = year;
+    font_header[10] = ((month as u16) << 8) | (day as u16);
+
+    println!(">>> [!]Current date: {}-{}-{}", year, month, day);
+
+
+    font_header[11] = 1002; // version of the font
+
+    let author_signature = "N3tRunn3r :: N3tRunn3r@hotmail.de".as_bytes();
+
+    font_header[12] = author_signature.len() as u16;
 
     //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-    let font_body: Vec<u8> = bit_operations::rgb_to_one_bit_image(&font_image_buf);
+    let mut font_body: Vec<u8> = Vec::from(author_signature);
+    font_body.extend(char_order_bytes);
+    font_body.extend(char_widths.as_bytes());
+    font_body.extend(bit_operations::rgb_to_one_bit_image(&font_image_buf).as_bytes());
+    // let mut font_body: Vec<u8> = bit_operations::rgb_to_one_bit_image(&font_image_buf);
 
     // let mut binary_font_asset: Vec<u32> = font_header; //.append(font_image_buf);
     // binary_font_asset.extend(font_image_buf.clone());
@@ -308,35 +367,35 @@ fn main() {
 
     // =========[ BEGIN EmBEDDiNG font data ]=========================================================
 
-    let mut data: &[u8] = include_bytes!("graph1/text/cbf_data/c_c_red_alert_inet0.cbf");
-
-    let mut buffer = vec![0u8; 8]; // Buffer to hold the first 4 bytes
-    data.read_exact(&mut buffer).unwrap();
-
-    // Convert the first 4 bytes into a Vec<u16>
-    let font_header_raw: Vec<u16> = buffer
-        .chunks(2)
-        .map(|chunk| {
-            let mut array = [0u8; 2];
-            array.copy_from_slice(chunk);
-            u16::from_le_bytes(array) // Decode from little endian and return
-        })
-        .collect();
-
-    // Read the remaining bytes into a Vec<u8>
-    let mut font_body_raw = vec![];
-    data.read_to_end(&mut font_body_raw).unwrap();
-
-    // let font_header: Vec<u32> = font_header_raw.into_iter().map(|x| x as u32).collect();
-    let font_header: Vec<u32> = font_header_raw.into_iter().map(u32::from).collect();
-
-    let font_body: Vec<u32> = font_body_raw
-        .into_iter()
-        .map(|x| if x == 0x0_u8 { 0x0_u32 } else { 0x00_ff_ff_ff })
-        .collect();
-
-    let font_1_width = font_header[0];
-    let font_1_height = font_header[1];
+    // let mut data: &[u8] = include_bytes!("graph1/text/cbf_data/c_c_red_alert_inet0.cbf");
+    //
+    // let mut buffer = vec![0u8; 8]; // Buffer to hold the first 4 bytes
+    // data.read_exact(&mut buffer).unwrap();
+    //
+    // // Convert the first 4 bytes into a Vec<u16>
+    // let font_header_raw: Vec<u16> = buffer
+    //     .chunks(2)
+    //     .map(|chunk| {
+    //         let mut array = [0u8; 2];
+    //         array.copy_from_slice(chunk);
+    //         u16::from_le_bytes(array) // Decode from little endian and return
+    //     })
+    //     .collect();
+    //
+    // // Read the remaining bytes into a Vec<u8>
+    // let mut font_body_raw = vec![];
+    // data.read_to_end(&mut font_body_raw).unwrap();
+    //
+    // // let font_header: Vec<u32> = font_header_raw.into_iter().map(|x| x as u32).collect();
+    // let font_header: Vec<u32> = font_header_raw.into_iter().map(u32::from).collect();
+    //
+    // let font_body: Vec<u32> = font_body_raw
+    //     .into_iter()
+    //     .map(|x| if x == 0x0_u8 { 0x0_u32 } else { 0x00_ff_ff_ff })
+    //     .collect();
+    //
+    // let font_1_width = font_header[0];
+    // let font_1_height = font_header[1];
 
     // =========[ END writing font data ]=========================================================
 
@@ -388,8 +447,8 @@ fn main() {
         ];
 
         let color_props: printer::ColorProperties = printer::ColorProperties {
-            // color: Some(0x00_ff_44_ff),
-            color: None,
+            color: Some(0x00_ff_44_ff),
+            // color: None,
             // color_transformer: None,
             color_transformer: Some( |color:u32, x:u32, y:u32, w:u32, h:u32| -> u32  {
                 if y % 2 == 0 {
@@ -400,11 +459,11 @@ fn main() {
         };
 
 
-        let font = instantiate_embedded_font(EmbeddedFonts::CCRedAlertInet0, 1, None, None, None);
+        let font = instantiate_embedded_font(EmbeddedFonts::CCRedAlertInet0, 1,  None, None);
+
         let font_2x = instantiate_embedded_font(
             EmbeddedFonts::CCRedAlertInet0,
             2,
-            None,
             Some(Spacing {
                 kerning_px: 3,
                 leading_px: 2,
@@ -422,14 +481,22 @@ fn main() {
             font::DEFAULT_CHAR_ORDER,
         );
 
-        printer::print(
+        printer::print_line(
             &mut ctx,
-            &Point { x: 100, y: 120 },
-            // &font_4x,
+            &Point { x: 100, y: 130 },
             &font,
             &color_props,
-            &text_data,
+            ""
         );
+
+        // printer::print(
+        //     &mut ctx,
+        //     &Point { x: 100, y: 120 },
+        //     // &font_4x,
+        //     &font,
+        //     &color_props,
+        //     &text_data,
+        // );
 
         printer::print(
             &mut ctx,

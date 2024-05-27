@@ -18,7 +18,7 @@ pub struct Spacing {
 }
 
 #[derive(Debug)]
-pub struct PixelFont<'a> {
+pub struct PixelFont {
     /// Buffer with the font source image
     pub font_image_buf: Vec<u32>,
 
@@ -30,7 +30,7 @@ pub struct PixelFont<'a> {
 
     /// Order in which characters appear in the font.
     /// @See e.g.: `DEFAULT_CHAR_ORDER`
-    pub char_order: &'a str,
+    pub char_order: String,
 
     /// Character to display when a requested character is not present in the charset
     pub default_char: char,
@@ -49,7 +49,7 @@ pub struct PixelFont<'a> {
 
 }
 
-impl<'a> PixelFont<'a> {
+impl PixelFont {
     /// Creates a new `PixelFont` instance.
     ///
     /// # Parameters
@@ -69,7 +69,7 @@ impl<'a> PixelFont<'a> {
         font_image_buf: Vec<u32>,
         image_w: u32,
         image_h: u32,
-        char_order: &'a str,
+        char_order: String,
         default_char: char,
         spacing: Spacing,
         glyph_widths_px: HashMap<char, u8>,

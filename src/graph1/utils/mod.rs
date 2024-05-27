@@ -5,5 +5,6 @@ pub mod mem;
 pub mod io;
 pub mod math;
 pub mod bit_operations;
+pub mod text;
 
 

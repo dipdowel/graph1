@@ -16,11 +16,10 @@
    That should make it easier creating cool curves and then hardcoding their points for animation, etc.
 
 ## Text rendering engine
-
-- Modify header. We need to include the widths of characters into the header as well. 
-  - Maybe the character order should also be included into the file?
-  - Maybe the char-to-glyph map should also be included into the file? 
-  - Is there a way to serialise a hashmap?
+- Write clear documentation on the font format CBF
+- Add field `name` for font name to the CBF format and header!
+- `font.rs` add all that new meta info (name, date, etc.) to struct `PixelFont`
+- Add `.to_string()` to struct `PixelFont`
 - Make a stand-alone convertor from PNG (and other formats too, maybe?) to CBF
 Inputs:
 - A pixel font.
