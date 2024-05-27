@@ -1,4 +1,6 @@
 use std::collections::HashMap;
+use std::fmt;
+use std::fmt::{Display};
 
 use crate::graph1::primitives::primitives::{Dimensions2d, Point, RectArea};
 
@@ -17,11 +19,21 @@ pub struct Spacing {
 }
 
 #[derive(Debug)]
+pub struct PixelFontMeta {
+    pub font_ver: u16,
+    pub date_year: u16,
+    pub date_month: u8,
+    pub date_day: u8,
+    pub font_name: String,
+    pub author_signature: String,
+}
+
+#[derive(Debug)]
 pub struct PixelFont {
     /// Buffer with the font source image
     pub font_image_buf: Vec<u32>,
     /// Width and height of the source image with font
-    pub img_dimensions:Dimensions2d,
+    pub img_dimensions: Dimensions2d,
     /// Order in which characters appear in the font.
     /// @See e.g.: `DEFAULT_CHAR_ORDER`
     pub char_order: String,
@@ -35,7 +47,7 @@ pub struct PixelFont {
     glyphs: HashMap<char, RectArea>,
     // FIXME: add some implementation for a dummy char that is shown when an unknown character is requested for rendering
     // pub default_char: PixelChar,
-
+    meta: PixelFontMeta,
 }
 
 impl PixelFont {
@@ -56,14 +68,14 @@ impl PixelFont {
     /// A new instance of `PixelFont`.
     pub fn new(
         font_image_buf: Vec<u32>,
-        img_dimensions:Dimensions2d,
+        img_dimensions: Dimensions2d,
         char_order: String,
         default_char: char,
         spacing: Spacing,
         glyph_widths_px: HashMap<char, u8>,
         src_kerning_px: u8,
+        meta: PixelFontMeta,
     ) -> Self {
-
         let mut src_kerning_px: u32 = src_kerning_px as u32;
         if src_kerning_px == 0 {
             src_kerning_px = DEFAULT_KERNING_PX as u32;
@@ -88,10 +100,9 @@ impl PixelFont {
                 },
             };
 
-            width_count += glyph.dimensions.w +  src_kerning_px;
+            width_count += glyph.dimensions.w + src_kerning_px;
             glyphs.insert(character, glyph);
         }
-
 
         return Self {
             font_image_buf,
@@ -101,6 +112,7 @@ impl PixelFont {
             spacing,
             glyph_widths_px,
             glyphs,
+            meta,
         };
     }
 
@@ -110,5 +122,26 @@ impl PixelFont {
         }
         // Character not found, return glyph for the default character
         return self.glyphs.get(&self.default_char).unwrap();
+    }
+
+}
+
+
+impl Display for PixelFont {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+
+        let PixelFontMeta {
+            font_ver,
+            date_year,
+            date_month,
+            date_day,
+            font_name,
+            author_signature,
+        } = &self.meta;
+
+        let output = format!("[PixelFont] {} ver. {} | Author: {} | Created: {}-{}-{} ",
+                             font_name, font_ver, author_signature, date_day, date_month, date_year);
+
+        f.write_str(&output)
     }
 }

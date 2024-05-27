@@ -11,7 +11,7 @@ use std::io::Read;
 use crate::constants::POINT_ZERO;
 use crate::graph1::primitives::primitives::{Dimensions2d, RectArea};
 use crate::graph1::text::{font, font_constants};
-use crate::graph1::text::font::{PixelFont, Spacing};
+use crate::graph1::text::font::{PixelFont, PixelFontMeta, Spacing};
 use crate::graph1::utils::bit_operations;
 use crate::graph1::utils::math::nearest_power_of_two_towards_zero;
 use crate::graph1::utils::pixel_copy::image_data;
@@ -121,10 +121,10 @@ pub fn instantiate_embedded_font(
     let default_char_part_1 = font_header[9];
     let default_char_part_2 = font_header[10];
 
-    let font_version = font_header[11];
+    let font_ver = font_header[11];
 
     // Font creation date
-    let year = font_header[12];
+    let date_year = font_header[12];
     let month_day = font_header[13];
 
 
@@ -137,11 +137,11 @@ pub fn instantiate_embedded_font(
     // Reassemble the default char
     let native_default_char = u16_vec_to_utf8_char(vec![default_char_part_1, default_char_part_2]);
 
-    let month = (month_day & 0x00FF) as u8;
-    let day = (month_day >> 8) as u8;
+    let date_month = (month_day & 0x00FF) as u8;
+    let date_day = (month_day >> 8) as u8;
 
     // println!(">>> [!] FONT CREATION DATE: {}-{}-{}", year, month, day);
-    // println!(">>> [!] FONT VER: {font_version}");
+    // println!(">>> [!] FONT VER: {font_ver}");
 
     // READ THE BODY
     // -------------
@@ -250,5 +250,14 @@ pub fn instantiate_embedded_font(
         spacing,
         char_map,
         1* scale_factor,
+        PixelFontMeta{
+            font_ver,
+            font_name,
+            author_signature,
+            date_year,
+            date_month,
+            date_day
+
+        }
     )
 }

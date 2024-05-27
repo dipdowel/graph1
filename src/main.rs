@@ -287,7 +287,7 @@ fn main() {
 
 
     let font_name = "C&C Red Alert [internet]".as_bytes();
-    let author_signature = "N3tRunn3r :: N3tRunn3r@hotmail.de".as_bytes();
+    let author_signature = "N3tRunn3r (N3tRunn3r@hotmail.de)".as_bytes();
 
     // Char order in the font as bytes
     let char_order = font::DEFAULT_CHAR_ORDER.as_bytes();
@@ -487,6 +487,7 @@ fn main() {
 
         let font = instantiate_embedded_font(EmbeddedFonts::CCRedAlertInet0, 1,  None, None);
 
+
         let font_2x = instantiate_embedded_font(
             EmbeddedFonts::CCRedAlertInet0,
             2,
@@ -512,8 +513,18 @@ fn main() {
             &Point { x: 100, y: 130 },
             &font,
             &color_props,
-            ""
+            &font.to_string()
         );
+
+
+        //
+        // printer::print_line(
+        //     &mut ctx,
+        //     &Point { x: 100, y: 130 },
+        //     &font,
+        //     &color_props,
+        //     ""
+        // );
 
         // printer::print(
         //     &mut ctx,
