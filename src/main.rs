@@ -56,7 +56,7 @@ mod graph1;
 use crate::animation_context::{AnimationContext, Oscillators};
 use crate::graph1::text::font::Spacing;
 use crate::graph1::text::font_embedder::{EmbeddedFonts, instantiate_embedded_font};
-use crate::graph1::text::{char_width_map, font, printer};
+use crate::graph1::text::{char_width_map, font, font_constants, printer};
 use crate::graph1::utils::mem::slice_buffer_in_4;
 use graph1::graph1_core;
 use crate::graph1::utils::bit_operations;
@@ -231,56 +231,40 @@ fn main() {
 
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     // =========[ BEGIN BITWISE writing font data ]=================================================
-        let font_image_path = "src/graph1/text/cbf_data/c_c_red_alert_inet0.cbf";
-
-
-    // Char order in the font as bytes
-    let char_order_bytes = font::DEFAULT_CHAR_ORDER.as_bytes();
-    let char_map = char_width_map::get_c_c_red_alert_inet0(1);
-    let char_widths: Vec<u8> = font::DEFAULT_CHAR_ORDER.chars().map(|ch| { *char_map.get(&ch).unwrap() }).collect();
 
     //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
     //  Header consists of a bunch of `u16` values:
     // -----------------------------------------------------------------------------------
     // [00] - magic number `CBF0` for "Compact Bitmap F0nt"
     // [01] - version of CBF format
-    // [02] - font image width
-    // [03] - font image height
+    // [02] - size of `font_name`, size of the name of the font
+    // [03] - size of `author_signature`, size of the author's name
     // [04] - size of `char_order`
-    // [05] - size of `chat_width`
-    // [06] - spacing props: lower byte -- kerning, higher byte -- leading.
-    // [07] - UTF8 default char: lower 2 bytes.
-    // [08] - UTF8 default char: higher 2 bytes.
-    // [09] - date: year
-    // [10] - date: lower byte -- day, higher byte -- month.
+    // [05] - size of `char_width`
+    // [06] - font image width
+    // [07] - font image height
+    // [08] - spacing props: lower byte -- kerning, higher byte -- leading.
+    // [09] - UTF8 default char: lower 2 bytes.
+    // [10] - UTF8 default char: higher 2 bytes.
     // [11] - version of the font
-    // [12] - size of `author_signature`, size of the author's name
+    // [12] - date: year
+    // [13] - date: lower byte -- day, higher byte -- month.
     // -----------------------------------------------------------------------------------
     // Font body fields:
+    //      * font_name -- A string with the name of the font.
     //      * author_signature -- A string with the name of the author of the font.
     //      * char_order -- order of characters in the font.
     //      * char_widths -- how many pixels wide a char is. In the order of `char_order`
     //      * font_pixel_data -- 1-bit image data of the font (0 for black, 1 for white)
-    let mut font_header: Vec<u16> = vec![0; 13];
 
+    // PREPARE DATA FOR THE HEADER
+    // ---------------------------
+    let font_image_path = "src/graph1/text/cbf_data/c_c_red_alert_inet0.cbf";
+    let font_image_width: u16 = 518;
+    let font_image_height: u16 = 9;
+    let spacing_props:u16 = 0x_04_02; // 0x_leading_kerning
+    let font_version:u16 = 1002;
 
-
-    font_header[0] = 0xF0_CB; // to get `CBF0` in the file
-    font_header[1] = 0x0001;   // CBF format version
-    font_header[2] = 518_u16;  // src image width
-    font_header[3] = 9_u16;    // src image height
-    font_header[4] = char_order_bytes.len() as u16;
-    font_header[5] = char_widths.len() as u16;
-    font_header[6] = 0x04_02; // 0x_leading_kerning
-
-    // let test_default_char = '😀';
-    let test_default_char = '?';
-    println!(">>> test_default_char len: {}", test_default_char.len_utf8());
-
-    let default_char_as_u16 = utf8_char_to_u16_vec(test_default_char);
-
-    font_header[7] = default_char_as_u16[0];
-    font_header[8] = default_char_as_u16[1];
 
     let now = Utc::now();
 
@@ -289,35 +273,77 @@ fn main() {
     let month = now.month() as u8;
     let day = now.day() as u8;
 
-
     let year: u16 = 2008;
     let month: u8 = 02;
     let day: u8 = 06;
-    // let day = now.day() as u8;
+    let month_day: u16 = ((month as u16) << 8) | (day as u16);
 
 
-    font_header[9] = year;
-    font_header[10] = ((month as u16) << 8) | (day as u16);
+    // let test_default_char = '😀';
+    let test_default_char = '?';
+    println!(">>> test_default_char len: {}", test_default_char.len_utf8());
 
-    println!(">>> [!]Current date: {}-{}-{}", year, month, day);
+    let default_char_parts = utf8_char_to_u16_vec(test_default_char);
 
 
-    font_header[11] = 1002; // version of the font
-
+    let font_name = "C&C Red Alert [internet]".as_bytes();
     let author_signature = "N3tRunn3r :: N3tRunn3r@hotmail.de".as_bytes();
 
-    font_header[12] = author_signature.len() as u16;
+    // Char order in the font as bytes
+    let char_order = font::DEFAULT_CHAR_ORDER.as_bytes();
+    let char_map = char_width_map::get_c_c_red_alert_inet0(1);
+    let char_widths: Vec<u8> = font::DEFAULT_CHAR_ORDER.chars().map(|ch| { *char_map.get(&ch).unwrap() }).collect();
 
-    //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    // VALIDATE VARIABLE-LENGTH DATA SIZES
+    // -----------------------------------
+    let max_string_size = (u16::MAX- 1) as usize;
+    if(font_name.len() > max_string_size){
+        panic!("Font name is too big!"); // TODO: replace with returning a result with enum variant `NameTooBig(usize)`
+    }
+    if(char_order.len() > max_string_size){
+        panic!("Char order is too big!"); // TODO: replace with returning a result with enum variant `CharOrderTooBig(usize)`
+    }
 
-    let mut font_body: Vec<u8> = Vec::from(author_signature);
-    font_body.extend(char_order_bytes);
-    font_body.extend(char_widths.as_bytes());
+    if(char_widths.len() > max_string_size){
+        panic!("Char widths are is too big!"); // TODO: replace with returning a result with enum variant `CharWidthTooBig(usize)`
+    }
+
+    // FILL IN THE HEADER
+    // ------------------
+    let mut font_header: Vec<u16> = vec![0; 14];
+
+    // File identification
+    font_header[0] = font_constants::CBF_MAGIC_NUMBER; // The `CBF0` magic number
+    font_header[1] = font_constants::CBF_VERSION;       // CBF format version
+
+    // Sizes of the variable-length data fields
+    font_header[2] = font_name.len() as u16;
+    font_header[3] = author_signature.len() as u16;
+    font_header[4] = char_order.len() as u16;
+    font_header[5] = char_widths.len() as u16;
+
+    // Font image and font properties
+    font_header[6] = font_image_width;
+    font_header[7] = font_image_height;
+    font_header[8] = spacing_props;
+
+    // The font's default char (utf8, hence can be up to 4 bytes, hence 2 u16 values needed.
+    font_header[9] = default_char_parts[0];
+    font_header[10] = default_char_parts[1];
+
+    // Date of creation of the font
+    font_header[11] = font_version;
+    font_header[12] = year;
+    font_header[13] = month_day;
+
+    // FILL IN THE BODY
+    // ----------------
+    let mut font_body: Vec<u8> = Vec::from(font_name);
+    font_body.extend(author_signature);
+    font_body.extend(char_order);
+    font_body.extend(char_widths);
     font_body.extend(bit_operations::rgb_to_one_bit_image(&font_image_buf).as_bytes());
-    // let mut font_body: Vec<u8> = bit_operations::rgb_to_one_bit_image(&font_image_buf);
 
-    // let mut binary_font_asset: Vec<u32> = font_header; //.append(font_image_buf);
-    // binary_font_asset.extend(font_image_buf.clone());
 
     let mut file = File::create(font_image_path).unwrap();
 

@@ -25,6 +25,17 @@ pub enum EmbeddedFonts {
     CCRedAlertInet0,
 }
 
+fn validate_cbf_basics(cbf_magic_number:u16, cbf_ver:u16) {
+    if cbf_magic_number != font_constants::CBF_MAGIC_NUMBER {
+        panic!("CBF is possibly malformed (wrong magic number: {:08X})", cbf_magic_number);
+    }
+
+    if cbf_ver != font_constants::CBF_VERSION {
+        panic!("Expected a CBF of version {}", font_constants::CBF_VERSION);
+    }
+
+}
+
 /// Instantiates an embedded pixel font
 ///
 /// # Parameters
@@ -48,7 +59,7 @@ pub fn instantiate_embedded_font(
     };
 
     // Buffer to hold the font header
-    let mut buffer = vec![0u8; 13*2];
+    let mut buffer = vec![0u8; 14*2];
     font_data.read_exact(&mut buffer).unwrap();
 
     // Read the header bytes into a Vec<u16>
@@ -61,51 +72,61 @@ pub fn instantiate_embedded_font(
         })
         .collect();
 
+    //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
     //  Header consists of a bunch of `u16` values:
     // -----------------------------------------------------------------------------------
     // [00] - magic number `CBF0` for "Compact Bitmap F0nt"
     // [01] - version of CBF format
-    // [02] - font image width
-    // [03] - font image height
+    // [02] - size of `font_name`, size of the name of the font
+    // [03] - size of `author_signature`, size of the author's name
     // [04] - size of `char_order`
-    // [05] - size of `chat_width`
-    // [06] - spacing props: lower byte -- kerning, higher byte -- leading.
-    // [07] - UTF8 default char: lower 2 bytes.
-    // [08] - UTF8 default char: higher 2 bytes.
-    // [09] - date: year
-    // [10] - date: lower byte -- day, higher byte -- month.
+    // [05] - size of `char_width`
+    // [06] - font image width
+    // [07] - font image height
+    // [08] - spacing props: lower byte -- kerning, higher byte -- leading.
+    // [09] - UTF8 default char: lower 2 bytes.
+    // [10] - UTF8 default char: higher 2 bytes.
     // [11] - version of the font
-    // [12] - size of `author_signature`, size of the author's name
+    // [12] - date: year
+    // [13] - date: lower byte -- day, higher byte -- month.
     // -----------------------------------------------------------------------------------
     // Font body fields:
+    //      * font_name -- A string with the name of the font.
     //      * author_signature -- A string with the name of the author of the font.
     //      * char_order -- order of characters in the font.
     //      * char_widths -- how many pixels wide a char is. In the order of `char_order`
     //      * font_pixel_data -- 1-bit image data of the font (0 for black, 1 for white)
 
 
+    // READ THE HEADER
+    // ---------------
 
-    let cbf_magic_number = font_header[0]; // TODO: Check the magic number!
-    let cbf_version = font_header[1];      // TODO: Check the version! If unsupported -- panic!
-    let font_image_width = font_header[2] as u32;
-    let font_image_height = font_header[3] as u32;
+    // CBF file identification
+    let cbf_magic_number = font_header[0];
+    let cbf_version = font_header[1];
+    validate_cbf_basics(cbf_magic_number, cbf_version);
+
+    // Sizes of the variable-length data fields
+    let font_name_size = font_header[2] as usize;
+    let author_signature_size = font_header[3] as usize;
     let char_order_size = font_header[4] as usize;
     let char_widths_size = font_header[5] as usize;
-    let spacing_props = font_header[6];
-    let default_char_part_1 = font_header[7];
-    let default_char_part_2 = font_header[8];
-    let year = font_header[9];
-    let month_day = font_header[10];
+
+    // Font properties
+    let font_image_width = font_header[6] as u32;
+    let font_image_height = font_header[7] as u32;
+    let spacing_props = font_header[8];
+
+    // Default char
+    let default_char_part_1 = font_header[9];
+    let default_char_part_2 = font_header[10];
+
     let font_version = font_header[11];
-    let author_signature_size = font_header[12] as usize;
 
-    if cbf_magic_number != font_constants::CBF_MAGIC_NUMBER {
-        panic!("CBF is possibly malformed (wrong magic number: {:08X})", cbf_magic_number);
-    }
+    // Font creation date
+    let year = font_header[12];
+    let month_day = font_header[13];
 
-    if cbf_version != font_constants::CBF_VERSION {
-        panic!("Expected a CBF of version {}", font_constants::CBF_VERSION);
-    }
 
     // Default kerning of the font is stored in the lower byte of `spacing_props`
     let font_native_kerning_px = (spacing_props & 0x00FF) as u8;
@@ -113,9 +134,8 @@ pub fn instantiate_embedded_font(
     // Default leading of the font is stored in the higher byte of `spacing_props`
     let font_native_leading_px = (spacing_props >> 8) as u8;
 
+    // Reassemble the default char
     let native_default_char = u16_vec_to_utf8_char(vec![default_char_part_1, default_char_part_2]);
-
-    // println!(">>> native_default_char decoded: {native_default_char}");
 
     let month = (month_day & 0x00FF) as u8;
     let day = (month_day >> 8) as u8;
@@ -123,13 +143,22 @@ pub fn instantiate_embedded_font(
     // println!(">>> [!] FONT CREATION DATE: {}-{}-{}", year, month, day);
     // println!(">>> [!] FONT VER: {font_version}");
 
+    // READ THE BODY
+    // -------------
+
+    // Read the font name
+    let mut font_name_buf = Vec::new();
+    font_name_buf.resize(font_name_size, 0);
+    font_data.read_exact(&mut font_name_buf).unwrap();
+    let font_name = String::from_utf8(font_name_buf).unwrap_or_else(|er| "A font with no name".to_string());
+     // println!(">>>> font_name: {}", font_name);
+
     // Read the signature of the author of the font
     let mut author_signature_buf = Vec::new();
     author_signature_buf.resize(author_signature_size, 0);
     font_data.read_exact(&mut author_signature_buf).unwrap();
     let author_signature = String::from_utf8(author_signature_buf).unwrap_or_else(|er| "No author name set".to_string());
     // println!(">>>> author_signature: {}", author_signature);
-
 
     // Read character order in the font
     let mut char_order_buf = Vec::new();
@@ -152,15 +181,12 @@ pub fn instantiate_embedded_font(
         char_index += 1;
     }
 
-
     // Read the font bitmap data
     let mut font_pixel_data = vec![];
     font_data.read_to_end(&mut font_pixel_data).unwrap();
 
-
-    let font_body: Vec<u32> = bit_operations::one_bit_image_to_rgb(&font_pixel_data);
-
-    let mut font_image_buf: Vec<u32> = font_body.clone();
+    let src_font_image: Vec<u32> = bit_operations::one_bit_image_to_rgb(&font_pixel_data);
+    let mut font_image_buf: Vec<u32> = src_font_image.clone();
 
     let mut font_image_buf_dim: Dimensions2d = Dimensions2d {
         w: font_image_width,
@@ -190,7 +216,7 @@ pub fn instantiate_embedded_font(
             &mut font_image_buf,
             &font_image_buf_dim,
             &POINT_ZERO,
-            &font_body,
+            &src_font_image,
             &src_font_image_dim,
             &RectArea {
                 top_left: POINT_ZERO,
