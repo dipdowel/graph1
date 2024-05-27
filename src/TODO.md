@@ -19,10 +19,8 @@
 
 ## Text rendering engine
 - Write clear documentation on the font format CBF
-- Add field `name` for font name to the CBF format and header!
-- `font.rs` add all that new meta info (name, date, etc.) to struct `PixelFont`
-- Add `.to_string()` to struct `PixelFont`
 - Make a stand-alone convertor from PNG (and other formats too, maybe?) to CBF
+- 
 Inputs:
 - A pixel font.
 - A location from the draft buffer of how a single pixel needs to be rendered. It can be a large animated cube or a single pixel!

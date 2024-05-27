@@ -4,12 +4,12 @@
 
 ## What Graph1 is and what it does
 - Graph1 is a zero-dependency library for producing and manipulating graphical primitives, e.g. lines, curves,
-  simple geometric shapes. It also can render texts in pixel fonts.
-- Graph1 can be used for creating static images, animations, 2D computer game graphics (non-GPU).
+  simple geometric shapes. It also can render texts using pixel fonts.
+- Graph1 can be used for creating static images, animations, 2D computer game graphics (non-GPU), etc.
 
-## What Graph1 is not and what it does not
-- Graph1 does not read or write files, but it can accept data from files read by the application code 
-- Keeping any static state is outside Graph1 scope. This should be done in the application code 
+## What Graph1 is not and what it does not do
+- Graph1 does not read or write files, but it can accept data from files read by your application code.
+- Keeping any static state is outside the scope of Graph1. This should be done in the application code. 
 
 ## Working with color
 At the moment of writing, `Graph1` uses `0RGB` encoding for a pixel, which means that the upper 8-bits are ignored, 
