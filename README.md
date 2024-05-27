@@ -34,23 +34,43 @@ It is also possible to load and use your custom pixel fonts (see section "Using 
 
 ### CBF font format
 "CBF" stands for "Compact Bitmap Font". It is a simple non-compressed binary format for storing pixel fonts as raw binary data.
-An CBF-file contains a header with metadata and a body with the font itself.  
+An CBF-file contains a header with metadata and some data sizes, and a body with some textual information 
+and the bits representing the font itself.  
 
 #### The header
-The font header consists of 4 u16 values.
-- `[0]` - font image width
-- `[1]` - font  image height
-- `[2]` - `0x00_00` -- reserved for the future
-- `[3]` - `0x00_00` -- reserved for the future
-- 
-#### The body
-The font body consists of u8 values, encoding black with `0x00` and white with any other value. It is recommended, however,
-to use `0xff` to encode white.
+Header consists of a bunch of `u16` values:
+-----------------------------------------------------------------------------------
+- [0x0] - magic number `CBF0` for "Compact Bitmap F0nt"
+- [0x1] - version of CBF format
+- [0x2] - size of `font_name`, size of the name of the font
+- [0x3] - size of `author_signature`, size of the author's name
+- [0x4] - size of `char_order`
+- [0x5] - size of `char_width`
+- [0x6] - font image width
+- [0x7] - font image height
+- [0x8] - spacing props: lower byte -- kerning, higher byte -- leading.
+- [0x9] - UTF8 default char: lower 2 bytes.
+- [0xa] - UTF8 default char: higher 2 bytes.
+- [0xb] - version of the font
+- [0xc] - date: year
+- [0xd] - date: lower byte -- day, higher byte -- month.
+-----------------------------------------------------------------------------------
 
+ 
+#### The body
+The font body consists of a few fields of variable length. All the lengths are listed in the header.
+
+Font body fields:
+- `font_name` - A string with the name of the font.
+- `author_signature` - A string with the name of the author of the font.
+- `char_order` - order of characters in the font.
+- `char_widths` - how many pixels wide each char is. The order of values matches the order of chars in `char_order`
+- `font_pixel_data` - 1-bit image data of the font (0 for black, 1 for white)
+  
 ### CBF parsing
 Graph1 parses an
 
 ### Creating and/or using your own pixel fonts
-- `TODO:` Come up with how to create and addcustom fonts 
+- `TODO:` Come up with how to create and add custom fonts 
 - `TODO:` Explain how to add custom fonts, etc. 
  

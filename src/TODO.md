@@ -3,6 +3,8 @@
 - Lifetime: https://chatgpt.com/g/g-X6K3ISxr6-rusty/c/a2027242-b234-489c-8660-05533244faf0
 - Lifetime finally explained! https://www.youtube.com/watch?v=juIINGuZyBc
 - (!) How a Rust binary is executed by the OS: https://www.youtube.com/watch?v=7_o-YRxf_cc,  https://www.youtube.com/watch?v=rDoqT-a6UFg
+- [How to stringify in Rust](https://loige.co/how-to-to-string-in-rust/)
+
 # TODO:
 - Refactor `graph1/primitives/primitives` into separate files per topic!
 - Check if introducing primitive Line (Point, Point) and LineColor (Pixel, Point) would make sense
