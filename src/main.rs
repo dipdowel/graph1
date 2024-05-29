@@ -485,11 +485,11 @@ fn main() {
         };
 
 
-        let font = instantiate_embedded_font(EmbeddedFonts::CCRedAlertInet0, 1,  None, None);
+        let font = instantiate_embedded_font(EmbeddedFonts::CCRedAlertInet, 1, None, None);
 
 
         let font_2x = instantiate_embedded_font(
-            EmbeddedFonts::CCRedAlertInet0,
+            EmbeddedFonts::CCRedAlertInet,
             2,
             Some(Spacing {
                 kerning_px: 3,
@@ -497,7 +497,7 @@ fn main() {
             }),
             None,
         );
-        // let font_4x = instantiate_embedded_font(EmbeddedFonts::CCRedAlertInet0, 4, None,None);
+        let font_lan = instantiate_embedded_font(EmbeddedFonts::CCRedAlertLan, 1, None,None);
 
         // Debug output of the entire charset
         printer::print_line(
@@ -514,6 +514,22 @@ fn main() {
             &font,
             &color_props,
             &font.to_string()
+        );
+
+        printer::print_line(
+            &mut ctx,
+            &Point { x: 100, y: 160 },
+            &font_lan,
+            &color_props,
+            font::DEFAULT_CHAR_ORDER,
+        );
+
+        printer::print_line(
+            &mut ctx,
+            &Point { x: 100, y: 190 },
+            &font_lan,
+            &color_props,
+            &font_lan.to_string()
         );
 
 
@@ -537,7 +553,7 @@ fn main() {
 
         printer::print(
             &mut ctx,
-            &Point { x: 10, y: 200 },
+            &Point { x: 10, y: 260 },
             &font_2x,
             &color_props,
             &text_data,

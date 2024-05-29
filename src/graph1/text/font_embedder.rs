@@ -18,11 +18,13 @@ use crate::graph1::utils::pixel_copy::image_data;
 use crate::graph1::utils::text::u16_vec_to_utf8_char;
 
 // Embed fonts data
-const DATA_C_C_RED_ALERT_INET0: &[u8] = include_bytes!("cbf_data/c_c_red_alert_inet0.cbf");
+const DATA_C_C_RED_ALERT_INET: &[u8] = include_bytes!("cbf_data/c_c_red_alert_inet0.cbf");
+const DATA_C_C_RED_ALERT_LAN: &[u8] = include_bytes!("cbf_data/cc_red_alert_lan.cbf");
 
 // List of available embedded fonts
 pub enum EmbeddedFonts {
-    CCRedAlertInet0,
+    CCRedAlertInet,
+    CCRedAlertLan,
 }
 
 fn validate_cbf_basics(cbf_magic_number:u16, cbf_ver:u16) {
@@ -54,8 +56,9 @@ pub fn instantiate_embedded_font(
     let scale_factor: u8 = nearest_power_of_two_towards_zero(font_scale_factor as u32) as u8;
 
     let mut font_data: &[u8] = match font_name {
-        EmbeddedFonts::CCRedAlertInet0 => DATA_C_C_RED_ALERT_INET0,
-        _ => DATA_C_C_RED_ALERT_INET0,
+        EmbeddedFonts::CCRedAlertInet => DATA_C_C_RED_ALERT_INET,
+        EmbeddedFonts::CCRedAlertLan => DATA_C_C_RED_ALERT_LAN,
+        _ => DATA_C_C_RED_ALERT_INET,
     };
 
     // Buffer to hold the font header
