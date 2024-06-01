@@ -17,7 +17,8 @@ use crate::utils::pixel_copy::image_data;
 use crate::utils::text::u16_vec_to_utf8_char;
 
 // Embed fonts data
-const DATA_C_C_RED_ALERT_INET: &[u8] = include_bytes!("cbf_data/c_c_red_alert_inet0.cbf");
+// const DATA_C_C_RED_ALERT_INET: &[u8] = include_bytes!("cbf_data/c_c_red_alert_inet0.cbf");
+const DATA_C_C_RED_ALERT_INET: &[u8] = include_bytes!("cbf_data/cc_red_alert_inet.cbf");
 const DATA_C_C_RED_ALERT_LAN: &[u8] = include_bytes!("cbf_data/cc_red_alert_lan.cbf");
 
 // List of available embedded fonts

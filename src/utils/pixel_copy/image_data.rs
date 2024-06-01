@@ -181,7 +181,7 @@ pub fn copy(
 /// - `dest_point`: A `Point` specifying the starting point in the destination buffer where the image data will be copied to.
 ///
 /// - `src_buf`: The source buffer
-/// - `src_buf_dimensions`: Dimensions of the destination buffer.
+/// - `src_buf_dimensions`: Dimensions of the source buffer.
 /// - `src_region`: A `RectArea` specifying the rectangular area in the source buffer to copy.
 /// - `scale_factor` How much to scale the image up, must be a power of two, otherwise the function panics.
 pub fn scale_up(
