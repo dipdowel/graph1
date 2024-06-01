@@ -41,8 +41,11 @@ pub struct PixelFont {
     pub default_char: char,
     /// Font spacing properties (typography)
     pub spacing: Spacing,
-    /// A map of a character to a glyph width
-    glyph_widths_px: HashMap<char, u8>,
+
+    // FIXME: consider removing `glyph_widths_px` for good if it's not used
+    // A map of a character to a glyph width
+    // glyph_widths_px: HashMap<char, u8>,
+
     /// Map of `chat` to where in `font_image_buf` its glyph can be found
     glyphs: HashMap<char, RectArea>,
     // FIXME: add some implementation for a dummy char that is shown when an unknown character is requested for rendering
@@ -110,7 +113,6 @@ impl PixelFont {
             char_order,
             default_char,
             spacing,
-            glyph_widths_px,
             glyphs,
             meta,
         };

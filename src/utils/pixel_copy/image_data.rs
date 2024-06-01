@@ -94,7 +94,7 @@ pub fn copy(
     // Figure out if we need to execute `color_transformer` per pixel
     let check_color_transformer = props.color_transformer.is_some();
     let mut color_transformer: PixelColorTransformerFn =
-        |color: u32, x: u32, y: u32, w: u32, h: u32| -> u32 { color };
+        |color: u32, _x: u32, _y: u32, _w: u32, _h: u32| -> u32 { color };
     if check_color_transformer {
         color_transformer = props.color_transformer.unwrap();
     }

@@ -152,7 +152,7 @@ pub fn instantiate_embedded_font(
     let mut font_name_buf = Vec::new();
     font_name_buf.resize(font_name_size, 0);
     font_data.read_exact(&mut font_name_buf).unwrap();
-    let font_name = String::from_utf8(font_name_buf).unwrap_or_else(|er| "A font with no name".to_string());
+    let font_name = String::from_utf8(font_name_buf).unwrap_or_else(|_er| "A font with no name".to_string());
      // println!(">>>> font_name: {}", font_name);
 
     // Read the signature of the author of the font
