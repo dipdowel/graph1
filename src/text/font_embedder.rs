@@ -6,7 +6,7 @@
 */
 
 use std::collections::HashMap;
-use std::io::Read;
+use std::io::{Cursor, Read};
 
 use crate::primitives::primitives::{Dimensions2d, POINT_ZERO, RectArea};
 use crate::text::{font, font_constants};
@@ -26,6 +26,7 @@ pub enum EmbeddedFonts {
     CCRedAlertLan,
 }
 
+
 fn validate_cbf_basics(cbf_magic_number:u16, cbf_ver:u16) {
     if cbf_magic_number != font_constants::CBF_MAGIC_NUMBER {
         panic!("CBF is possibly malformed (wrong magic number: {:08X})", cbf_magic_number);
@@ -37,14 +38,18 @@ fn validate_cbf_basics(cbf_magic_number:u16, cbf_ver:u16) {
 
 }
 
-/// Instantiates an embedded pixel font
+/// Instantiates one of the embedded pixel font
 ///
 /// # Parameters
 ///
 /// - `font_name`: The name of the embedded font to instantiate.
-/// - `font_scale_factor`: scale up the font size, valid values are powers of two (1,2,4,8, etc,)
+/// - `font_scale_factor`: scale up the font size, valid values are powers of two (1,2,4,8, etc.)
 /// - `spacing`: Kerning and Leading
 /// - `default_char`: An optional character to use as the default character if a specified character is not found.
+///
+/// # Returns
+///
+/// A PixelFont instance ready to be used for rendering strings
 pub fn instantiate_embedded_font(
     font_name: EmbeddedFonts,
     font_scale_factor: u8,
@@ -52,13 +57,36 @@ pub fn instantiate_embedded_font(
     default_char: Option<char>,
 ) -> PixelFont {
 
-    let scale_factor: u8 = nearest_power_of_two_towards_zero(font_scale_factor as u32) as u8;
-
-    let mut font_data: &[u8] = match font_name {
+    let embedded_font_data: &[u8] = match font_name {
         EmbeddedFonts::CCRedAlertInet => DATA_C_C_RED_ALERT_INET,
         EmbeddedFonts::CCRedAlertLan => DATA_C_C_RED_ALERT_LAN,
         // _ => DATA_C_C_RED_ALERT_INET,
     };
+
+    return instantiate_external_font(embedded_font_data, font_scale_factor, spacing, default_char);
+}
+
+/// Instantiates a pixel font provided as bytes in CBF format
+///
+/// # Parameters
+///
+/// - `font_data`: A font data in CBF format
+/// - `font_scale_factor`: scale up the font size, valid values are powers of two (1,2,4,8, etc.)
+/// - `spacing`: Kerning and Leading
+/// - `default_char`: An optional character to use as the default character if a specified character is not found.
+///
+/// # Returns
+///
+/// A PixelFont instance ready to be used for rendering strings
+pub fn instantiate_external_font(
+    font_data: &[u8],
+    font_scale_factor: u8,
+    spacing: Option<Spacing>,
+    default_char: Option<char>,
+) -> PixelFont {
+    let mut font_data = Cursor::new(font_data);
+
+    let scale_factor: u8 = nearest_power_of_two_towards_zero(font_scale_factor as u32) as u8;
 
     // Buffer to hold the font header
     let mut buffer = vec![0u8; 14*2];
@@ -153,7 +181,7 @@ pub fn instantiate_embedded_font(
     font_name_buf.resize(font_name_size, 0);
     font_data.read_exact(&mut font_name_buf).unwrap();
     let font_name = String::from_utf8(font_name_buf).unwrap_or_else(|_er| "A font with no name".to_string());
-     // println!(">>>> font_name: {}", font_name);
+    // println!(">>>> font_name: {}", font_name);
 
     // Read the signature of the author of the font
     let mut author_signature_buf = Vec::new();
