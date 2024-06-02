@@ -12,13 +12,12 @@ pub struct ContextWindow {
 impl ContextWindow {
     /// Returns the window's width and height as a `Dimensions2d` instance
     pub fn get_dimensions(&self) -> Dimensions2d {
-        Dimensions2d{
-            w:self.w,
-            h:self.h
+        Dimensions2d {
+            w: self.w,
+            h: self.h,
         }
     }
 }
-
 
 pub struct GraphContext<'c> {
     pub win: &'c ContextWindow,
@@ -29,7 +28,6 @@ pub struct GraphContext<'c> {
     pub default_color: u32,
     // image_buffer: ImageBuffer<'c>,
 }
-
 
 // impl<'c> GraphContext<'c> {
 //

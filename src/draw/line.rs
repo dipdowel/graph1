@@ -4,7 +4,6 @@ use crate::primitives::primitives::{Pixel, Point};
 /// Attempts to draw a horizontal line (from left to right) with a specified color and length
 /// in a specified screen buffer.
 pub fn horizontal(ctx: &mut GraphContext, start: &Pixel, length: u32) {
-
     // if length+start.x > WIN_WIDTH {
     //     println!(">>> HORIZONTAL! {}, {:?}", length, start);
     // }
@@ -16,7 +15,7 @@ pub fn horizontal(ctx: &mut GraphContext, start: &Pixel, length: u32) {
     // Don't let the line overflow to the next line in the screen buffer
     let mut line_len = length;
     if start.x + length >= ctx.win.w {
-        line_len = ctx.win.w - start.x-1;
+        line_len = ctx.win.w - start.x - 1;
     }
 
     let mut buf_index = (start.y * ctx.win.w + start.x) as usize;
@@ -31,8 +30,6 @@ pub fn horizontal(ctx: &mut GraphContext, start: &Pixel, length: u32) {
 /// Attempts to draw a vertical line (from top to bottom) with a specified color and length
 /// in a specified screen buffer.
 pub fn vertical(ctx: &mut GraphContext, start: &Pixel, length: u32) {
-
-
     // Don't draw off-screen or draw a zero-length line
     if start.x >= ctx.win.w || start.y >= ctx.win.h || length == 0 {
         return;
@@ -41,7 +38,7 @@ pub fn vertical(ctx: &mut GraphContext, start: &Pixel, length: u32) {
     // Don't let the line overflow the screen height
     let mut line_len = length;
     if start.y + length >= ctx.win.h {
-        line_len = ctx.win.h - start.y-1;
+        line_len = ctx.win.h - start.y - 1;
     }
 
     // if length+start.y > WIN_HEIGHT {
@@ -58,19 +55,18 @@ pub fn vertical(ctx: &mut GraphContext, start: &Pixel, length: u32) {
 }
 
 pub fn between_two_points(ctx: &mut GraphContext, start: &Pixel, end: &Point) {
-
     let mut start: Pixel = Pixel {
-        x: u32::min(start.x, ctx.win.w-1),
-        y: u32::min(start.y, ctx.win.h-1),
+        x: u32::min(start.x, ctx.win.w - 1),
+        y: u32::min(start.y, ctx.win.h - 1),
         color: start.color,
     };
 
     let end: Pixel = Pixel {
-        x: u32::min(end.x, ctx.win.w-1),
-        y: u32::min(end.y, ctx.win.h-1),
+        x: u32::min(end.x, ctx.win.w - 1),
+        y: u32::min(end.y, ctx.win.h - 1),
         color: start.color,
     };
-/**/
+    /**/
     // Detect vertical lines and draw them using a more optimised approach
     if start.x == end.x && start.y != end.y {
         let start_pixel: &Pixel = if start.y < end.y { &start } else { &end };
@@ -102,8 +98,6 @@ pub fn between_two_points(ctx: &mut GraphContext, start: &Pixel, end: &Point) {
         the x-axis to ensure the line remains continuous and closely approximates a straight path
          between the start and end points.
     */
-
-
 
     // Calculate the difference in x and y between the start and end points.
     // `dx` and `dy` are used to determine the direction and steepness of the line.

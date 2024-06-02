@@ -1,6 +1,4 @@
-use crate::primitives::primitives::{
-    Dimensions2d, PixelColorTransformerFn, Point, RectArea,
-};
+use crate::primitives::primitives::{Dimensions2d, PixelColorTransformerFn, Point, RectArea};
 use crate::utils::math::is_power_of_two;
 
 /// Additional options for modifying the copied image data (pixels).

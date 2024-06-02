@@ -19,9 +19,6 @@ pub fn nearest_power_of_two_towards_zero(n: u32) -> u32 {
     p >> 1
 }
 
-
-
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -92,5 +89,4 @@ mod tests {
         assert_eq!(nearest_power_of_two_towards_zero(1023), 512);
         assert_eq!(nearest_power_of_two_towards_zero(1024), 1024);
     }
-
 }

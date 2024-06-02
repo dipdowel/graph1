@@ -3,7 +3,6 @@ use crate::graph1_core::context::GraphContext;
 use crate::primitives::primitives::{Pixel, Point};
 
 fn bezier_point(t: &f32, p0: &Point, p1: &Point, p2: &Point, p3: &Point) -> Point {
-
     let x = (1.0 - t).powi(3) * p0.x as f32
         + 3.0 * (1.0 - t).powi(2) * t * p1.x as f32
         + 3.0 * (1.0 - t) * t.powi(2) * p2.x as f32
@@ -14,7 +13,10 @@ fn bezier_point(t: &f32, p0: &Point, p1: &Point, p2: &Point, p3: &Point) -> Poin
         + 3.0 * (1.0 - t) * t.powi(2) * p2.y as f32
         + t.powi(3) * p3.y as f32;
 
-    Point { x: x.round() as u32, y: y.round() as u32 }
+    Point {
+        x: x.round() as u32,
+        y: y.round() as u32,
+    }
 }
 
 /// This function should  handle an arbitrary long vector of points to draw complex and continuous Bezier curves.
@@ -38,7 +40,6 @@ fn bezier_point(t: &f32, p0: &Point, p1: &Point, p2: &Point, p3: &Point) -> Poin
 /// expensive for very high resolutions or very complex paths. Adjust resolution_delta to balance
 /// between performance and smoothness.
 pub fn draw_bezier_curve(ctx: &mut GraphContext, points: &[Point], resolution_delta: &f32) {
-
     let length = points.len();
 
     for i in (0..length - 3).step_by(3) {
@@ -55,12 +56,28 @@ pub fn draw_bezier_curve(ctx: &mut GraphContext, points: &[Point], resolution_de
 
         while t <= 1.0 {
             let next_point = bezier_point(&t, &p0, &p1, &p2, &p3);
-            between_two_points(ctx, &Pixel{x:current_point.x, y:current_point.y, color}, &next_point);
+            between_two_points(
+                ctx,
+                &Pixel {
+                    x: current_point.x,
+                    y: current_point.y,
+                    color,
+                },
+                &next_point,
+            );
             current_point = next_point;
             t += resolution_delta; // This delta determines the resolution of the curve
         }
 
         // Draw the final segment to the last control point
-        between_two_points(ctx, &Pixel{x:current_point.x, y:current_point.y, color}, &p3);
+        between_two_points(
+            ctx,
+            &Pixel {
+                x: current_point.x,
+                y: current_point.y,
+                color,
+            },
+            &p3,
+        );
     }
 }

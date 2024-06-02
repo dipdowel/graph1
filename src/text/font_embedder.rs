@@ -8,9 +8,9 @@
 use std::collections::HashMap;
 use std::io::{Cursor, Read};
 
-use crate::primitives::primitives::{Dimensions2d, POINT_ZERO, RectArea};
-use crate::text::{font, font_constants};
+use crate::primitives::primitives::{Dimensions2d, RectArea, POINT_ZERO};
 use crate::text::font::{PixelFont, PixelFontMeta, Spacing};
+use crate::text::{font, font_constants};
 use crate::utils::bit_operations;
 use crate::utils::math::nearest_power_of_two_towards_zero;
 use crate::utils::pixel_copy::image_data;
@@ -26,16 +26,17 @@ pub enum EmbeddedFonts {
     CCRedAlertLan,
 }
 
-
-fn validate_cbf_basics(cbf_magic_number:u16, cbf_ver:u16) {
+fn validate_cbf_basics(cbf_magic_number: u16, cbf_ver: u16) {
     if cbf_magic_number != font_constants::CBF_MAGIC_NUMBER {
-        panic!("CBF is possibly malformed (wrong magic number: {:08X})", cbf_magic_number);
+        panic!(
+            "CBF is possibly malformed (wrong magic number: {:08X})",
+            cbf_magic_number
+        );
     }
 
     if cbf_ver != font_constants::CBF_VERSION {
         panic!("Expected a CBF of version {}", font_constants::CBF_VERSION);
     }
-
 }
 
 /// Instantiates one of the embedded pixel font
@@ -56,7 +57,6 @@ pub fn instantiate_embedded_font(
     spacing: Option<Spacing>,
     default_char: Option<char>,
 ) -> PixelFont {
-
     let embedded_font_data: &[u8] = match font_name {
         EmbeddedFonts::CCRedAlertInet => DATA_C_C_RED_ALERT_INET,
         EmbeddedFonts::CCRedAlertLan => DATA_C_C_RED_ALERT_LAN,
@@ -89,7 +89,7 @@ pub fn instantiate_external_font(
     let scale_factor: u8 = nearest_power_of_two_towards_zero(font_scale_factor as u32) as u8;
 
     // Buffer to hold the font header
-    let mut buffer = vec![0u8; 14*2];
+    let mut buffer = vec![0u8; 14 * 2];
     font_data.read_exact(&mut buffer).unwrap();
 
     // Read the header bytes into a Vec<u16>
@@ -127,7 +127,6 @@ pub fn instantiate_external_font(
     //      * char_widths -- how many pixels wide a char is. In the order of `char_order`
     //      * font_pixel_data -- 1-bit image data of the font (0 for black, 1 for white)
 
-
     // READ THE HEADER
     // ---------------
 
@@ -157,12 +156,11 @@ pub fn instantiate_external_font(
     let date_year = font_header[12];
     let month_day = font_header[13];
 
-
     // Default kerning of the font is stored in the lower byte of `spacing_props`
-    let font_native_kerning_px = (spacing_props & 0x00FF) as u8;
+    let font_native_kerning_px = font_scale_factor * (spacing_props & 0x00FF) as u8;
 
     // Default leading of the font is stored in the higher byte of `spacing_props`
-    let font_native_leading_px = (spacing_props >> 8) as u8;
+    let font_native_leading_px = font_scale_factor * (spacing_props >> 8) as u8;
 
     // Reassemble the default char
     let native_default_char = u16_vec_to_utf8_char(vec![default_char_part_1, default_char_part_2]);
@@ -180,21 +178,24 @@ pub fn instantiate_external_font(
     let mut font_name_buf = Vec::new();
     font_name_buf.resize(font_name_size, 0);
     font_data.read_exact(&mut font_name_buf).unwrap();
-    let font_name = String::from_utf8(font_name_buf).unwrap_or_else(|_er| "A font with no name".to_string());
+    let font_name =
+        String::from_utf8(font_name_buf).unwrap_or_else(|_er| "A font with no name".to_string());
     // println!(">>>> font_name: {}", font_name);
 
     // Read the signature of the author of the font
     let mut author_signature_buf = Vec::new();
     author_signature_buf.resize(author_signature_size, 0);
     font_data.read_exact(&mut author_signature_buf).unwrap();
-    let author_signature = String::from_utf8(author_signature_buf).unwrap_or_else(|_er| "No author name set".to_string());
+    let author_signature = String::from_utf8(author_signature_buf)
+        .unwrap_or_else(|_er| "No author name set".to_string());
     // println!(">>>> author_signature: {}", author_signature);
 
     // Read character order in the font
     let mut char_order_buf = Vec::new();
     char_order_buf.resize(char_order_size, 0);
     font_data.read_exact(&mut char_order_buf).unwrap();
-    let char_order = String::from_utf8(char_order_buf).unwrap_or_else(|_er| font::DEFAULT_CHAR_ORDER.to_string());
+    let char_order = String::from_utf8(char_order_buf)
+        .unwrap_or_else(|_er| font::DEFAULT_CHAR_ORDER.to_string());
     // println!(">>>> char_order: {}", char_order);
 
     // Read widths of characters in the font
@@ -205,8 +206,8 @@ pub fn instantiate_external_font(
 
     let mut char_map: HashMap<char, u8> = HashMap::new();
 
-    let mut char_index:usize  = 0;
-    for ch in char_order.chars(){
+    let mut char_index: usize = 0;
+    for ch in char_order.chars() {
         char_map.insert(ch, char_widths_buf[char_index]);
         char_index += 1;
     }
@@ -230,12 +231,9 @@ pub fn instantiate_external_font(
             h: font_image_height,
         };
 
-
-        for value in char_map.values_mut(){
+        for value in char_map.values_mut() {
             *value = *value * scale_factor;
         }
-
-
 
         font_image_buf_dim.w = font_image_buf_dim.w * (scale_factor as u32);
         font_image_buf_dim.h = font_image_buf_dim.h * (scale_factor as u32);
@@ -264,12 +262,11 @@ pub fn instantiate_external_font(
         leading_px: font_native_leading_px,
     });
 
-
     let default_char = default_char.unwrap_or_else(|| native_default_char);
 
     let img_dimensions = Dimensions2d {
-        w:  font_image_buf_dim.w,
-        h:  font_image_buf_dim.h,
+        w: font_image_buf_dim.w,
+        h: font_image_buf_dim.h,
     };
 
     PixelFont::new(
@@ -279,15 +276,14 @@ pub fn instantiate_external_font(
         default_char,
         spacing,
         char_map,
-        1* scale_factor,
-        PixelFontMeta{
+        1 * scale_factor,
+        PixelFontMeta {
             font_ver,
             font_name,
             author_signature,
             date_year,
             date_month,
-            date_day
-
-        }
+            date_day,
+        },
     )
 }

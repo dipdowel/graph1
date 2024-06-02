@@ -1,8 +1,9 @@
 /// Takes in a vector,  divides it into 4 equal parts and returns those parts
 /// Panics if vector length cannot be divided into 4 equal parts
-pub fn slice_buffer_in_4(buffer: &mut Vec<u32>) -> (&mut [u32], &mut [u32], &mut [u32], &mut [u32]) {
-
-    if buffer.len() % 4 !=0 {
+pub fn slice_buffer_in_4(
+    buffer: &mut Vec<u32>,
+) -> (&mut [u32], &mut [u32], &mut [u32], &mut [u32]) {
+    if buffer.len() % 4 != 0 {
         panic!("`buffer` length must be a multiple of 4!");
     }
 

@@ -1,13 +1,11 @@
+mod circle;
 pub mod line;
-mod  circle;
-
 
 pub use circle::circle;
+pub use rectangle::rectangle_filled;
 
-
-
-
-mod  polygons;
+mod polygons;
 pub use polygons::star;
 
-pub mod  curves;
+pub mod curves;
+mod rectangle;

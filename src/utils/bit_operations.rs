@@ -3,8 +3,8 @@
 /// Every 0x0u32 value gets converted to `0`
 /// and any other value is treated as white and is converted to `1`
 pub fn rgb_to_one_bit_image(data: &Vec<u32>) -> Vec<u8> {
-     let bit_array_size = (data.len() + 7) / 8; // <--- this does the same as `.div_ceil()` !
-    // let bit_array_size = data.len().div_ceil(8);
+    let bit_array_size = (data.len() + 7) / 8; // <--- this does the same as `.div_ceil()` !
+                                               // let bit_array_size = data.len().div_ceil(8);
 
     // bit array to accumulate the results
     let mut bit_array = Vec::with_capacity(bit_array_size);
@@ -36,7 +36,6 @@ pub fn rgb_to_one_bit_image(data: &Vec<u32>) -> Vec<u8> {
     bit_array
 }
 
-
 /// Converts a bit array (Vec<u8>) representation of black and white colours
 /// to a Vec<u32> 0RGBA representation, where:
 /// - bit `0` translates to `0x00_00_00_00`
@@ -58,7 +57,6 @@ pub fn one_bit_image_to_rgb(bit_array: &Vec<u8>) -> Vec<u32> {
     }
     data
 }
-
 
 #[cfg(test)]
 mod tests {
@@ -98,7 +96,7 @@ mod tests {
     fn test_convert_to_bit_array_mixed() {
         let data = vec![0, 1, 2, 0, 3, 0, 0, 4, 0];
         let bit_array = rgb_to_one_bit_image(&data);
-        assert_eq!(bit_array, vec![0b_0110_1001,0b_0000_0000]); // Expecting 0110 1000 in first byte and 1000 0000 in the second byte
+        assert_eq!(bit_array, vec![0b_0110_1001, 0b_0000_0000]); // Expecting 0110 1000 in first byte and 1000 0000 in the second byte
     }
 
     // TESTS FOR `...()`
@@ -107,21 +105,39 @@ mod tests {
     fn test_convert_from_bit_array_basic() {
         let bit_array = vec![0b0101_0000];
         let data = one_bit_image_to_rgb(&bit_array);
-        assert_eq!(data, vec![0x00000000, 0x00ffffff, 0x00000000, 0x00ffffff, 0x00000000, 0x00000000, 0x00000000, 0x00000000]);
+        assert_eq!(
+            data,
+            vec![
+                0x00000000, 0x00ffffff, 0x00000000, 0x00ffffff, 0x00000000, 0x00000000, 0x00000000,
+                0x00000000
+            ]
+        );
     }
 
     #[test]
     fn test_convert_from_bit_array_full_byte() {
         let bit_array = vec![0b1111_1111];
         let data = one_bit_image_to_rgb(&bit_array);
-        assert_eq!(data, vec![0x00ffffff, 0x00ffffff, 0x00ffffff, 0x00ffffff, 0x00ffffff, 0x00ffffff, 0x00ffffff, 0x00ffffff]);
+        assert_eq!(
+            data,
+            vec![
+                0x00ffffff, 0x00ffffff, 0x00ffffff, 0x00ffffff, 0x00ffffff, 0x00ffffff, 0x00ffffff,
+                0x00ffffff
+            ]
+        );
     }
 
     #[test]
     fn test_convert_from_bit_array_partial_byte() {
         let bit_array = vec![0b1010_1000];
         let data = one_bit_image_to_rgb(&bit_array);
-        assert_eq!(data, vec![0x00ffffff, 0x00000000, 0x00ffffff, 0x00000000, 0x00ffffff, 0x00000000, 0x00000000, 0x00000000]);
+        assert_eq!(
+            data,
+            vec![
+                0x00ffffff, 0x00000000, 0x00ffffff, 0x00000000, 0x00ffffff, 0x00000000, 0x00000000,
+                0x00000000
+            ]
+        );
     }
 
     #[test]
@@ -135,14 +151,13 @@ mod tests {
     fn test_convert_from_bit_array_mixed() {
         let bit_array = vec![0b0110_1000, 0b1000_0000];
         let data = one_bit_image_to_rgb(&bit_array);
-        assert_eq!(data, vec![
-            0x00000000, 0x00ffffff, 0x00ffffff, 0x00000000,
-            0x00ffffff, 0x00000000, 0x00000000, 0x00000000,
-            0x00ffffff, 0x00000000, 0x00000000, 0x00000000,
-            0x00000000, 0x00000000, 0x00000000, 0x00000000
-        ]);
-
-
-
+        assert_eq!(
+            data,
+            vec![
+                0x00000000, 0x00ffffff, 0x00ffffff, 0x00000000, 0x00ffffff, 0x00000000, 0x00000000,
+                0x00000000, 0x00ffffff, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000,
+                0x00000000, 0x00000000
+            ]
+        );
     }
 }

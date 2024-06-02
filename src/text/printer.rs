@@ -85,7 +85,3 @@ pub fn print(
         position.y += font.img_dimensions.h + font.spacing.leading_px as u32;
     }
 }
-
-
-
-

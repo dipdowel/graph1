@@ -1,6 +1,5 @@
 /// Unsafely fills in a buffer with a given color
-pub fn buffer(buf_view: &mut [u32], color:u32){
-
+pub fn buffer(buf_view: &mut [u32], color: u32) {
     unsafe {
         // Obtain a raw pointer
         let buffer_ptr = buf_view.as_mut_ptr();
@@ -19,5 +18,4 @@ pub fn buffer(buf_view: &mut [u32], color:u32){
             current_ptr = current_ptr.add(1);
         }
     }
-
 }

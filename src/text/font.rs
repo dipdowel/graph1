@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 use std::fmt;
-use std::fmt::{Display};
+use std::fmt::Display;
 
 use crate::primitives::primitives::{Dimensions2d, Point, RectArea};
 
@@ -45,7 +45,6 @@ pub struct PixelFont {
     // FIXME: consider removing `glyph_widths_px` for good if it's not used
     // A map of a character to a glyph width
     // glyph_widths_px: HashMap<char, u8>,
-
     /// Map of `chat` to where in `font_image_buf` its glyph can be found
     glyphs: HashMap<char, RectArea>,
     // FIXME: add some implementation for a dummy char that is shown when an unknown character is requested for rendering
@@ -125,13 +124,10 @@ impl PixelFont {
         // Character not found, return glyph for the default character
         return self.glyphs.get(&self.default_char).unwrap();
     }
-
 }
-
 
 impl Display for PixelFont {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-
         let PixelFontMeta {
             font_ver,
             date_year,
@@ -141,8 +137,10 @@ impl Display for PixelFont {
             author_signature,
         } = &self.meta;
 
-        let output = format!("[PixelFont] {} ver. {} | Author: {} | Created: {}-{}-{} ",
-                             font_name, font_ver, author_signature, date_day, date_month, date_year);
+        let output = format!(
+            "[PixelFont] {} ver. {} | Author: {} | Created: {}-{}-{} ",
+            font_name, font_ver, author_signature, date_day, date_month, date_year
+        );
 
         f.write_str(&output)
     }

@@ -10,7 +10,6 @@ pub struct Dimensions2d {
 // TODO:
 // TODO:
 
-
 // [ START ] ///////////////////////////////////////////////////////////////////////////////////////
 // ========= Point 2D, + conversions from u32 to f32 coordinates and back ==========================
 
@@ -26,7 +25,6 @@ pub struct PointF32 {
     pub y: f32,
 }
 
-
 // Implementing conversion from Point to PointF32
 impl From<Point> for PointF32 {
     fn from(p: Point) -> Self {
@@ -36,7 +34,6 @@ impl From<Point> for PointF32 {
         }
     }
 }
-
 
 // Implementing conversion from PointF32 to Point
 impl From<PointF32> for Point {
@@ -52,12 +49,9 @@ impl From<PointF32> for Point {
 
 #[derive(Debug)]
 pub struct RectArea {
-    pub top_left:Point,
-    pub dimensions:Dimensions2d
+    pub top_left: Point,
+    pub dimensions: Dimensions2d,
 }
-
-
-
 
 #[derive(Debug)]
 pub struct Point3D {
@@ -81,10 +75,9 @@ pub struct Pixel {
 }
 
 /// Array of pixels. Each pixel has the `0RGB` model.
-pub type ImageData0RGB<'a> = &'a mut[u32];
+pub type ImageData0RGB<'a> = &'a mut [u32];
 
 pub const POINT_ZERO: Point = Point { x: 0, y: 0 };
-
 
 /// A function that transforms a pixel's color based on its value and coordinates.
 ///
@@ -104,8 +97,6 @@ pub const POINT_ZERO: Point = Point { x: 0, y: 0 };
 ///
 /// A 0RGB value representing the transformed pixel
 pub type PixelColorTransformerFn = fn(color: u32, x: u32, y: u32, w: u32, h: u32) -> u32;
-
-
 
 //
 // #[derive(Debug)]

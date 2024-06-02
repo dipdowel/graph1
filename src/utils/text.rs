@@ -1,4 +1,3 @@
-
 /// Converts a UTF-8 character to a Vec<u16> with padding if necessary.
 pub fn utf8_char_to_u16_vec(ch: char) -> Vec<u16> {
     // Convert the character to a UTF-8 byte array

@@ -3,7 +3,6 @@ use crate::primitives::primitives::{Pixel, RectArea};
 use crate::utils::color_math::argb_math::argb_math;
 use crate::utils::color_math::operations::ColorOperation;
 
-
 /// Transparency-aware copy with an applied color math operation
 /// - Copies non-transparent pixels from the source memory buf to the destination memory buf.
 /// - A provided math operation is applied to each pixel
@@ -22,7 +21,7 @@ pub fn trans_copy_math_multi_dest(
     dst_start: &[Pixel],
     transparency_color: &u32,
     operation: &ColorOperation,
-    win:&ContextWindow
+    win: &ContextWindow,
 ) {
     let x_start = src_area.top_left.x;
     let x_end = x_start + src_area.dimensions.w;

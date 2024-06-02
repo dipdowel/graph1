@@ -1,7 +1,6 @@
 use std::collections::HashMap;
 
-pub fn get_c_c_red_alert_inet0<'a>(scale_factor:u8) -> HashMap<char, u8> {
-
+pub fn get_c_c_red_alert_inet0<'a>(scale_factor: u8) -> HashMap<char, u8> {
     // The resulting map: each character in the charset mapped to the character width (in pixels)
     let mut char_map: HashMap<char, u8> = HashMap::new();
 
