@@ -1,4 +1,4 @@
-use crate::graph1_core::context::ContextWindow;
+use crate::graph1_core::context::WindowContext;
 use crate::primitives::primitives::{Pixel, RectArea};
 use crate::utils::color_math::argb_math::argb_math;
 use crate::utils::color_math::operations::ColorOperation;
@@ -21,7 +21,7 @@ pub fn trans_copy_math(
     dst_start: &Pixel,
     transparency_color: &u32,
     operation: &ColorOperation,
-    win: &ContextWindow,
+    win: &WindowContext,
 ) {
     let x_start = src_area.top_left.x;
     let x_end = x_start + src_area.dimensions.w;

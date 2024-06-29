@@ -1,4 +1,4 @@
-use crate::graph1_core::context::ContextWindow;
+use crate::graph1_core::context::WindowContext;
 use crate::primitives::primitives::{Point, RectArea};
 
 /// Transparency-aware copy -- copies non-transparent pixels from the source memory buf to the destination memory buf.
@@ -14,7 +14,7 @@ pub fn trans_copy(
     src_area: &RectArea,
     dst_start: &Point,
     transparency_color: &u32,
-    win: &ContextWindow,
+    win: &WindowContext,
 ) {
     let x_start = src_area.top_left.x;
     let x_end = x_start + src_area.dimensions.w;
