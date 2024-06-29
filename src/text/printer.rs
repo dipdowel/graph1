@@ -13,6 +13,8 @@ pub struct ColorProperties {
     pub color_transformer: Option<PixelColorTransformerFn>,
 }
 
+
+
 ///
 /// Prints a line of text to the screen at a specified on-screen position using a specified font.
 /// # Parameters
@@ -22,17 +24,24 @@ pub struct ColorProperties {
 /// - `font`: A font to be used for rendering the text.
 /// - `color_props`: Defines the color(s) of the printed text
 /// - `text_str`: A line of text to be rendered.
+///
+/// # Returns
+/// Dimensions of the printed text, in pixels
+///
 pub fn print_line(
     ctx: &mut GraphContext,
     dst_position: &Point,
     font: &PixelFont,
     color_props: &ColorProperties,
     text_str: &str,
-) {
-    let dst_dimensions: Dimensions2d = Dimensions2d {
-        w: ctx.win.w,
-        h: ctx.win.h,
+) -> Dimensions2d {
+
+    let mut result: Dimensions2d = Dimensions2d {
+        w: 0,
+        h: 0,
     };
+
+
 
     let mut dst_point: Point = Point {
         x: dst_position.x,
@@ -50,7 +59,7 @@ pub fn print_line(
 
         image_data::copy(
             ctx.buf_view,
-            &dst_dimensions,
+            &ctx.win.dimensions,
             &dst_point,
             &font.font_image_buf,
             &font.img_dimensions,
@@ -60,7 +69,11 @@ pub fn print_line(
         );
 
         dst_point.x += the_glyph.dimensions.w + font.spacing.kerning_px as u32;
+        result.w += the_glyph.dimensions.w + font.spacing.kerning_px as u32;
     }
+
+    result.h = font.img_dimensions.h;
+    return result;
 }
 
 /// Prints an array of strings to the screen at a specified on-screen position using a specified font.
