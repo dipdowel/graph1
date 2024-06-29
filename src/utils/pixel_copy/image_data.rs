@@ -1,3 +1,4 @@
+use std::ptr;
 use crate::primitives::primitives::{Dimensions2d, PixelColorTransformerFn, Point, RectArea};
 use crate::utils::math::is_power_of_two;
 
@@ -22,6 +23,44 @@ pub struct ImageDataCopyProps {
     pub color_transformer: Option<PixelColorTransformerFn>,
 }
 
+
+/// Fast copying of image data without any transformations or checks (unsafe rust)
+///
+/// # Parameters
+/// - `dst_buf`: The destination buffer for image data.
+/// - `dst_buf_dimensions`: Dimensions of the destination buffer.
+/// - `dst_point`: A `Point` specifying the starting point in the destination buffer where the image data will be copied to.
+/// - `src_buf`: The source buffer.
+/// - `src_buf_dimensions`: Dimensions of the source buffer.
+/// - `src_region`: A `RectArea` specifying the rectangular area in the source buffer to copy.
+pub fn copy_fast(
+    dst_buf: &mut [u32],
+    dst_buf_dimensions: &Dimensions2d,
+    dst_point: &Point,
+    src_buf: &[u32],
+    src_buf_dimensions: &Dimensions2d,
+    src_region: &RectArea,
+) {
+    // Calculate the effective width and height of the rectangle to be copied,
+    // ensuring they do not exceed the source buffer's dimensions
+    let rect_width = src_region.dimensions.w.min(src_buf_dimensions.w - src_region.top_left.x);
+    let rect_height = src_region.dimensions.h.min(src_buf_dimensions.h - src_region.top_left.y);
+
+    for y in 0..rect_height {
+        let src_start = ((src_region.top_left.y + y) * src_buf_dimensions.w + src_region.top_left.x) as usize;
+        let dest_start = ((dst_point.y + y) * dst_buf_dimensions.w + dst_point.x) as usize;
+        let copy_len = rect_width as usize;
+
+        unsafe {
+            // Perform the copy for the current row
+            ptr::copy_nonoverlapping(
+                src_buf.as_ptr().add(src_start),
+                dst_buf.as_mut_ptr().add(dest_start),
+                copy_len,
+            );
+        }
+    }
+}
 /// Copies image data from a source buffer to a destination buffer, within specified areas and dimensions.
 ///
 /// # Parameters
@@ -63,156 +102,14 @@ pub fn copy(
         return;
     }
 
-    let rect_width = src_region.dimensions.w;
-    let rect_height = src_region.dimensions.h;
-
-    //--------------------------------------------------------------------------------------------------
-    //   FIXME: the way of extracting properties used below is somewhat dumb. Do it in a more idiomatic way!
-
-    let props = properties.unwrap_or_else(|| &ImageDataCopyProps {
-        color_transformer: None,
-        fill_color: None,
-        transparency_color: None,
-    });
-
-    // Figure out if transparency needs to be applied and for what color
-    let check_transparency = props.transparency_color.is_some();
-    let mut transparency_color: u32 = 0;
-    if check_transparency {
-        transparency_color = props.transparency_color.unwrap();
-    }
-
-    // Figure out if we need to set needs to be applied and for what color
-    let check_fill_color = props.fill_color.is_some();
-    let mut fill_color: u32 = 0;
-    if check_fill_color {
-        fill_color = props.fill_color.unwrap();
-    }
-
-    // Figure out if we need to execute `color_transformer` per pixel
-    let check_color_transformer = props.color_transformer.is_some();
-    let mut color_transformer: PixelColorTransformerFn =
-        |color: u32, _x: u32, _y: u32, _w: u32, _h: u32| -> u32 { color };
-    if check_color_transformer {
-        color_transformer = props.color_transformer.unwrap();
-    }
-    //--------------------------------------------------------------------------------------------------
-
-    for y in 0..rect_height {
-        for x in 0..rect_width {
-            // Calculate source index
-            let src_x = src_region.top_left.x + x;
-            let src_y = src_region.top_left.y + y;
-
-            // Ensure the source coordinates are within the image bounds
-            if src_x >= src_buf_dimensions.w || src_y >= src_buf_dimensions.h {
-                continue;
-            }
-
-            let src_index = (src_y * src_buf_dimensions.w + src_x) as usize;
-
-            // Calculate destination index
-            let dest_x = dst_point.x + x;
-            let dest_y = dst_point.y + y;
-
-            // Ensure the destination coordinates are within the screen bounds
-            if dest_x >= dst_buf_dimensions.w || dest_y >= dst_buf_dimensions.h {
-                continue;
-            }
-
-            let dest_index = (dest_y * dst_buf_dimensions.w + dest_x) as usize;
-
-            // No transparency. Only the color transformer makes sense. Fill color does not!
-            if !check_transparency {
-                // Color transformer: transform the color and copy the pixel
-                if check_color_transformer {
-                    dst_buf[dest_index] =
-                        color_transformer(src_buf[src_index], x, y, rect_width, rect_height);
-                    continue;
-                }
-                // No color transformer: just copy the pixel
-                dst_buf[dest_index] = src_buf[src_index];
-                continue;
-            }
-
-            // Transparency color is set and the current pixel is transparent,
-            // skip the copying altogether!
-            if check_transparency && src_buf[src_index] == transparency_color {
-                continue;
-            }
-
-            // The pixel neither needs to be transformed nor filled, so just copy it
-            if !check_fill_color && !check_color_transformer {
-                dst_buf[dest_index] = src_buf[src_index];
-                continue;
-            }
-
-            // Fill color has a higher priority than the transformer.
-            // Simply replace the original pixel with the provided fill color and that's it
-            if check_fill_color {
-                dst_buf[dest_index] = fill_color;
-                continue;
-            }
-
-            // Transformer has the lowest priority.
-            // If no fill color is provided but the transformer is provided, then apply the transformer
-            if check_color_transformer {
-                dst_buf[dest_index] =
-                    color_transformer(src_buf[src_index], x, y, rect_width, rect_height);
-                continue;
-            }
-
-            panic!(
-                "Image data copy function got confused with the input! \
-            Please read the function inline documentation!"
-            );
-        }
-    }
-}
-
-
-
-use std::ptr;
-
-pub fn copy_unsafe(
-    dst_buf: &mut [u32],
-    dst_buf_dimensions: &Dimensions2d,
-    dst_point: &Point,
-    src_buf: &[u32],
-    src_buf_dimensions: &Dimensions2d,
-    src_region: &RectArea,
-    properties: Option<&ImageDataCopyProps>,
-) {
-    // Ensure the dimensions and starting points are within bounds
-    if dst_point.x >= dst_buf_dimensions.w
-        || dst_point.y >= dst_buf_dimensions.h
-        || src_region.top_left.x >= src_buf_dimensions.w
-        || src_region.top_left.y >= src_buf_dimensions.h
-    {
-        return;
-    }
-
     // Calculate the effective width and height of the rectangle to be copied,
     // ensuring they do not exceed the source buffer's dimensions
     let rect_width = src_region.dimensions.w.min(src_buf_dimensions.w - src_region.top_left.x);
     let rect_height = src_region.dimensions.h.min(src_buf_dimensions.h - src_region.top_left.y);
 
     if properties.is_none() {
-        // Fast path: Directly copy the memory without any transformations
-        for y in 0..rect_height {
-            let src_start = ((src_region.top_left.y + y) * src_buf_dimensions.w + src_region.top_left.x) as usize;
-            let dest_start = ((dst_point.y + y) * dst_buf_dimensions.w + dst_point.x) as usize;
-            let copy_len = rect_width as usize;
-
-            unsafe {
-                // Perform the copy for the current row
-                ptr::copy_nonoverlapping(
-                    src_buf.as_ptr().add(src_start),
-                    dst_buf.as_mut_ptr().add(dest_start),
-                    copy_len,
-                );
-            }
-        }
+        // Call the fast path function if no properties are provided
+        copy_fast(dst_buf, dst_buf_dimensions, dst_point, src_buf, src_buf_dimensions, src_region);
         return;
     }
 
@@ -278,6 +175,7 @@ pub fn copy_unsafe(
         }
     }
 }
+
 
 
 
