@@ -16,3 +16,21 @@ pub fn slice_buffer_in_4(
 
     (buf_view_1, buf_view_2, buf_view_3, buf_view_4)
 }
+
+
+/// Takes in a vector, divides it into 2 equal parts and returns those parts
+/// Panics if vector length cannot be divided into 2 equal parts
+pub fn slice_buffer_in_2(
+    buffer: &mut Vec<u32>,
+) -> (&mut [u32], &mut [u32]) {
+    if buffer.len() % 2 != 0 {
+        panic!("`buffer` length must be a multiple of 2!");
+    }
+
+    let chunk_size: usize = buffer.len() / 2;
+
+    // Split the buffer into two parts
+    let (buf_view_1, buf_view_2) = buffer.split_at_mut(chunk_size);
+
+    (buf_view_1, buf_view_2)
+}
