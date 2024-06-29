@@ -170,6 +170,118 @@ pub fn copy(
     }
 }
 
+
+
+use std::ptr;
+
+pub fn copy_unsafe(
+    dst_buf: &mut [u32],
+    dst_buf_dimensions: &Dimensions2d,
+    dst_point: &Point,
+    src_buf: &[u32],
+    src_buf_dimensions: &Dimensions2d,
+    src_region: &RectArea,
+    properties: Option<&ImageDataCopyProps>,
+) {
+    // Ensure the dimensions and starting points are within bounds
+    if dst_point.x >= dst_buf_dimensions.w
+        || dst_point.y >= dst_buf_dimensions.h
+        || src_region.top_left.x >= src_buf_dimensions.w
+        || src_region.top_left.y >= src_buf_dimensions.h
+    {
+        return;
+    }
+
+    // Calculate the effective width and height of the rectangle to be copied,
+    // ensuring they do not exceed the source buffer's dimensions
+    let rect_width = src_region.dimensions.w.min(src_buf_dimensions.w - src_region.top_left.x);
+    let rect_height = src_region.dimensions.h.min(src_buf_dimensions.h - src_region.top_left.y);
+
+    if properties.is_none() {
+        // Fast path: Directly copy the memory without any transformations
+        for y in 0..rect_height {
+            let src_start = ((src_region.top_left.y + y) * src_buf_dimensions.w + src_region.top_left.x) as usize;
+            let dest_start = ((dst_point.y + y) * dst_buf_dimensions.w + dst_point.x) as usize;
+            let copy_len = rect_width as usize;
+
+            unsafe {
+                // Perform the copy for the current row
+                ptr::copy_nonoverlapping(
+                    src_buf.as_ptr().add(src_start),
+                    dst_buf.as_mut_ptr().add(dest_start),
+                    copy_len,
+                );
+            }
+        }
+        return;
+    }
+
+    // Extract properties or provide default values if none are provided
+    let props = properties.unwrap_or(&ImageDataCopyProps {
+        color_transformer: None,
+        fill_color: None,
+        transparency_color: None,
+    });
+
+    // Determine the transparency color (default to 0 if not provided)
+    let transparency_color = props.transparency_color.unwrap_or(0);
+
+    // Determine the fill color (default to 0 if not provided)
+    let fill_color = props.fill_color.unwrap_or(0);
+
+    // Determine the color transformer function (default to an identity function if not provided)
+    let color_transformer = props.color_transformer.unwrap_or(|color, _, _, _, _| color);
+
+    // Use unsafe block to allow unchecked memory access for performance
+    unsafe {
+        // Loop through each pixel in the specified rectangle area
+        for y in 0..rect_height {
+            for x in 0..rect_width {
+                // Calculate the source coordinates for the current pixel
+                let src_x = src_region.top_left.x + x;
+                let src_y = src_region.top_left.y + y;
+
+                // Calculate the source index in the buffer
+                let src_index = (src_y * src_buf_dimensions.w + src_x) as usize;
+
+                // Calculate the destination coordinates for the current pixel
+                let dest_x = dst_point.x + x;
+                let dest_y = dst_point.y + y;
+
+                // Ensure the destination coordinates are within the destination buffer bounds
+                if dest_x >= dst_buf_dimensions.w || dest_y >= dst_buf_dimensions.h {
+                    continue;
+                }
+
+                // Calculate the destination index in the buffer
+                let dest_index = (dest_y * dst_buf_dimensions.w + dest_x) as usize;
+
+                // Read the source pixel color
+                let src_pixel = *src_buf.get_unchecked(src_index);
+
+                // If a transparency color is specified and the current pixel matches it, skip copying
+                if props.transparency_color.is_some() && src_pixel == transparency_color {
+                    continue;
+                }
+
+                // Determine the final pixel color to be copied to the destination buffer
+                // Priority: fill color > color transformer > original source color
+                let dest_pixel = if props.fill_color.is_some() {
+                    fill_color
+                } else {
+                    color_transformer(src_pixel, x, y, rect_width, rect_height)
+                };
+
+                // Write the final pixel color to the destination buffer
+                *dst_buf.get_unchecked_mut(dest_index) = dest_pixel;
+            }
+        }
+    }
+}
+
+
+
+
 /// Scales up a given image data and saves the result to a destination buffer
 ///
 /// # Parameters
