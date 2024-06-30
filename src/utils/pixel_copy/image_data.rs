@@ -61,6 +61,43 @@ pub fn copy_fast(
         }
     }
 }
+
+/// Fast copying of image data within the same buffer without any transformations or checks (unsafe rust)
+///
+/// # Parameters
+/// - `buffer`: The buffer for image data.
+/// - `buffer_dimensions`: Dimensions of the buffer.
+/// - `dst_point`: A `Point` specifying the starting point in the buffer where the image data will be copied to.
+/// - `src_region`: A `RectArea` specifying the rectangular area in the buffer to copy.
+pub fn copy_fast_within_buffer(
+    buffer: &mut [u32],
+    buffer_dimensions: &Dimensions2d,
+    dst_point: &Point,
+    src_region: &RectArea,
+) {
+    // Calculate the effective width and height of the rectangle to be copied,
+    // ensuring they do not exceed the buffer's dimensions
+    let rect_width = src_region.dimensions.w.min(buffer_dimensions.w - src_region.top_left.x);
+    let rect_height = src_region.dimensions.h.min(buffer_dimensions.h - src_region.top_left.y);
+
+    for y in 0..rect_height {
+        let src_start = ((src_region.top_left.y + y) * buffer_dimensions.w + src_region.top_left.x) as usize;
+        let dest_start = ((dst_point.y + y) * buffer_dimensions.w + dst_point.x) as usize;
+        let copy_len = rect_width as usize;
+
+        unsafe {
+            // Perform the copy for the current row
+            ptr::copy(
+                buffer.as_ptr().add(src_start),
+                buffer.as_mut_ptr().add(dest_start),
+                copy_len,
+            );
+        }
+    }
+}
+
+
+
 /// Copies image data from a source buffer to a destination buffer, within specified areas and dimensions.
 ///
 /// # Parameters
