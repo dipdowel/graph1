@@ -24,7 +24,7 @@ pub struct PolygonProperties {
 pub fn render(ctx: &mut GraphContext, props: &PolygonProperties) {
 
     // Do nothing if it's not even a triangle
-    if (props.num_sides<3){
+    if props.num_sides<3 {
         return;
     }
 
