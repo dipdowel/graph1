@@ -23,7 +23,7 @@ pub struct StarProperties {
 /// Function to draw a polygon based on provided properties
 pub fn render(ctx: &mut GraphContext, props: &StarProperties) {
     let angle_step = 2.0 * PI / props.num_vertices as f64; // Angle between each vertex
-    let rotation_radians = props.rotation_angle as f64 * PI / 180.0; // Convert rotation angle to radians
+    let rotation_radians = props.rotation_angle * PI / 180.0; // Convert rotation angle to radians
 
     // Calculating all vertex positions
     let mut vertices = Vec::new();
