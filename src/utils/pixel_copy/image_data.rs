@@ -2,6 +2,14 @@ use std::ptr;
 use crate::primitives::primitives::{Dimensions2d, PixelColorTransformerFn, Point, RectArea};
 use crate::utils::math::is_power_of_two;
 
+
+// TODO:
+// TODO:
+// TODO: There is too much code in this file.
+// TODO: Please refactor! Probably extract into multiple new files.
+// TODO:
+// TODO:
+
 /// Additional options for modifying the copied image data (pixels).
 pub struct ImageDataCopyProps {
     /// An optional color used to specify transparency.
@@ -215,6 +223,106 @@ pub fn copy(
 
 
 
+/// Copies image data within the same buffer, within specified areas and dimensions.
+///
+/// # Parameters
+///
+/// - `buffer`: The buffer for image data, which acts both as the source and destination.
+/// - `buffer_dimensions`: Dimensions of the buffer.
+/// - `src_region`: A `RectArea` specifying the rectangular area in the buffer to copy from.
+/// - `dst_point`: A `Point` specifying the starting point in the buffer where the image data will be copied to.
+/// - `properties`: Options for modifying the copied pixels. See `ImageDataCopyProps` for details.
+///
+/// # Rules of how `properties` are applied
+///  1. Pixels matching the value of `transparency_color` are not copied to the destination.
+///  2. If no `transparency_color` is provided, then only the `color_transformer` function will be applied
+///     to each copied filter (if provided). `fill_color` is ignored.
+///  3. If `transparency_color` is provided and both `fill_color` and `color_transformer` are provided,
+///     then `fill_color` is applied to the copied pixels and `color_transformer` is ignored.
+///
+pub fn copy_within_buffer(
+    buffer: &mut [u32],
+    buffer_dimensions: &Dimensions2d,
+    dst_point: &Point,
+    src_region: &RectArea,
+    properties: Option<&ImageDataCopyProps>,
+) {
+    // Ensure the dimensions and starting points are within bounds
+    if dst_point.x >= buffer_dimensions.w
+        || dst_point.y >= buffer_dimensions.h
+        || src_region.top_left.x >= buffer_dimensions.w
+        || src_region.top_left.y >= buffer_dimensions.h
+    {
+        return;
+    }
+
+    // Calculate the effective width and height of the rectangle to be copied,
+    // ensuring they do not exceed the buffer's dimensions
+    let rect_width = src_region.dimensions.w.min(buffer_dimensions.w - src_region.top_left.x);
+    let rect_height = src_region.dimensions.h.min(buffer_dimensions.h - src_region.top_left.y);
+
+    // Extract properties or provide default values if none are provided
+    let props = properties.unwrap_or(&ImageDataCopyProps {
+        color_transformer: None,
+        fill_color: None,
+        transparency_color: None,
+    });
+
+    // Determine the transparency color (default to 0 if not provided)
+    let transparency_color = props.transparency_color.unwrap_or(0);
+
+    // Determine the fill color (default to 0 if not provided)
+    let fill_color = props.fill_color.unwrap_or(0);
+
+    // Determine the color transformer function (default to an identity function if not provided)
+    let color_transformer = props.color_transformer.unwrap_or(|color, _, _, _, _| color);
+
+    // Use unsafe block to allow unchecked memory access for performance
+    unsafe {
+        // Loop through each pixel in the specified rectangle area
+        for y in 0..rect_height {
+            for x in 0..rect_width {
+                // Calculate the source coordinates for the current pixel
+                let src_x = src_region.top_left.x + x;
+                let src_y = src_region.top_left.y + y;
+
+                // Calculate the source index in the buffer
+                let src_index = (src_y * buffer_dimensions.w + src_x) as usize;
+
+                // Calculate the destination coordinates for the current pixel
+                let dest_x = dst_point.x + x;
+                let dest_y = dst_point.y + y;
+
+                // Ensure the destination coordinates are within the buffer bounds
+                if dest_x >= buffer_dimensions.w || dest_y >= buffer_dimensions.h {
+                    continue;
+                }
+
+                // Calculate the destination index in the buffer
+                let dest_index = (dest_y * buffer_dimensions.w + dest_x) as usize;
+
+                // Read the source pixel color
+                let src_pixel = *buffer.get_unchecked(src_index);
+
+                // If a transparency color is specified and the current pixel matches it, skip copying
+                if props.transparency_color.is_some() && src_pixel == transparency_color {
+                    continue;
+                }
+
+                // Determine the final pixel color to be copied to the destination buffer
+                // Priority: fill color > color transformer > original source color
+                let dest_pixel = if props.fill_color.is_some() {
+                    fill_color
+                } else {
+                    color_transformer(src_pixel, x, y, rect_width, rect_height)
+                };
+
+                // Write the final pixel color to the destination buffer
+                *buffer.get_unchecked_mut(dest_index) = dest_pixel;
+            }
+        }
+    }
+}
 
 
 /// Scales up a given image data and saves the result to a destination buffer
