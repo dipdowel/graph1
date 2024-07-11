@@ -26,7 +26,7 @@ pub struct ColorProperties {
 /// - `text_str`: A line of text to be rendered.
 ///
 /// # Returns
-/// Dimensions of the printed text, in pixels
+/// Dimensions of the printed line of text, in pixels
 ///
 pub fn print_line(
     ctx: &mut GraphContext,
@@ -84,17 +84,37 @@ pub fn print_line(
 /// - `font`: A font to be used for rendering the text.
 /// - `color_props`: Defines the color(s) of the printed text
 /// - `text`: The lines of text to be rendered. Each element in the array is printer on a new line.
+///
+/// # Returns
+/// Dimensions of the printed line of text, in pixels
+///
 pub fn print(
     ctx: &mut GraphContext,
     dst_position: &Point,
     font: &PixelFont,
     color_props: &ColorProperties,
     text: &[&str],
-) {
+) -> Dimensions2d {
     let mut position = *dst_position;
 
+    let mut result: Dimensions2d = Dimensions2d {
+        w: 0,
+        h: 0,
+    };
+
+    let total_line_height = font.img_dimensions.h + font.spacing.leading_px as u32;
+
     for text_line in text {
-        print_line(ctx, &position, font, color_props, text_line);
-        position.y += font.img_dimensions.h + font.spacing.leading_px as u32;
+        let line_size = print_line(ctx, &position, font, color_props, text_line);
+
+        // the whole text is as wide as the widest line
+        if result.w < line_size.w {
+            result.w = line_size.w;
+        }
+
+        position.y += total_line_height;
+        result.h += total_line_height;
     }
+
+    return result;
 }
