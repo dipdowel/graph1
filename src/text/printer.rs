@@ -71,6 +71,9 @@ pub fn print_line(
         result.w += the_glyph.dimensions.w + font.spacing.kerning_px as u32;
     }
 
+    // The last kerning is extra and should not be counted
+    result.w -= font.spacing.kerning_px as u32;
+
     result.h = font.img_dimensions.h;
     return result;
 }
@@ -140,82 +143,29 @@ pub fn print(
     // height of the line of text + leading
     let full_line_height = font.img_dimensions.h + font.spacing.leading_px as u32;
 
-    // ****************************
-    // ALIGN LEFT
-    // ****************************
-    if alignment == Align::Left {
-        for text_line in text {
-            let line_size = print_line(ctx, &position, font, color_props, text_line);
-
-            // the whole text is as wide as the widest line
-            if result.w < line_size.w {
-                result.w = line_size.w;
-            }
-
-            position.y += full_line_height;
-            result.h += full_line_height;
-        }
-        return result;
-    }
+    let mut line_index: usize = 0;
 
     let mut line_widths = get_line_widths(font, text);
     let longest_line_width = line_widths.pop().unwrap_or(0);
 
-    // ****************************
-    // ALIGN RIGHT
-    // ****************************
-    if alignment == Align::Right {
-        println!("!!!! RIGHT!");
-        let mut line_index: usize = 0;
-
-
-        for text_line in text {
-            position.x = original_position.x + (longest_line_width - line_widths[line_index]) as u32;
-
-            let line_size = print_line(ctx, &position, font, color_props, text_line);
-
-            // the whole text is as wide as the widest line
-            if result.w < line_size.w {
-                result.w = line_size.w;
+    for text_line in text {
+        position.x = match alignment {
+            Align::Right => {
+                original_position.x + (longest_line_width - line_widths[line_index]) as u32
             }
-
-            position.y += full_line_height;
-            result.h += full_line_height;
-            line_index += 1;
-        }
-        return result;
-    }
-
-
-
-    println!(">>>> line_widths: {:?}", line_widths);
-    println!(">>>> longest_line_width: {:?}", longest_line_width);
-
-    // ****************************
-    // ALIGN CENTER
-    // ****************************
-    if alignment == Align::Center {
-        println!("!!!! RIGHT!");
-        let mut line_index: usize = 0;
-
-
-        for text_line in text {
-            position.x = original_position.x + ((longest_line_width - line_widths[line_index])/2) as u32;
-
-            let line_size = print_line(ctx, &position, font, color_props, text_line);
-
-            // the whole text is as wide as the widest line
-            if result.w < line_size.w {
-                result.w = line_size.w;
+            Align::Center => {
+                original_position.x + ((longest_line_width - line_widths[line_index]) / 2) as u32
             }
+            Align::Left => original_position.x,
+        };
 
-            position.y += full_line_height;
-            result.h += full_line_height;
-            line_index += 1;
-        }
-        return result;
+        print_line(ctx, &position, font, color_props, text_line);
+
+        position.y += full_line_height;
+        result.h += full_line_height;
+        line_index += 1;
     }
-
+    result.w = longest_line_width as u32;
 
     return result;
 }
