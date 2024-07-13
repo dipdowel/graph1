@@ -8,7 +8,7 @@ pub struct StarProperties {
     pub center: Pixel,
 
     /// How many angles the star has
-    pub num_vertices: u32,
+    pub num_rays: u32,
 
     /// Distance from the `center` after which every N+1th  vertex of the star lies
     pub inner_radius: u32,
@@ -22,12 +22,23 @@ pub struct StarProperties {
 
 /// Function to draw a polygon based on provided properties
 pub fn render(ctx: &mut GraphContext, props: &StarProperties) {
-    let angle_step = 2.0 * PI / props.num_vertices as f64; // Angle between each vertex
-    let rotation_radians = props.rotation_angle * PI / 180.0; // Convert rotation angle to radians
+    // Too few rays, won't really render anything nice
+    if props.num_rays < 2 {
+        return;
+    }
+
+    let num_vertices = props.num_rays * 2;
+    let num_sides = props.num_rays as f64;
+
+    // This correction allows to render a polygon properly standing flat on its lower side
+    let angular_correction = (num_sides - 2.0) * 180.0 / num_sides / 2.0;
+
+    let angle_step = 2.0 * PI / num_vertices as f64; // Angle between each vertex
+    let rotation_radians = (props.rotation_angle - angular_correction) * PI / 180.0; // Convert rotation angle to radians
 
     // Calculating all vertex positions
     let mut vertices = Vec::new();
-    for i in 0..props.num_vertices {
+    for i in 0..num_vertices {
         let radius = if i % 2 == 0 {
             props.inner_radius
         } else {
@@ -44,6 +55,8 @@ pub fn render(ctx: &mut GraphContext, props: &StarProperties) {
             y: y as u32,
         });
     }
+
+    // FIXME: extract the following as it's the same for polygons!
 
     // Draw lines between consecutive vertices
     if let Some(first_vertex) = vertices.first() {
