@@ -28,8 +28,14 @@ pub fn render(ctx: &mut GraphContext, props: &PolygonProperties) {
         return;
     }
 
-    let angle_step = 2.0 * PI / props.num_sides as f64; // Angle between each vertex
-    let rotation_radians = props.rotation_angle * PI / 180.0; // Convert rotation angle to radians
+    let num_sides = props.num_sides as f64;
+
+    // This correction allows to render a polygon properly standing flat on its lower side
+    let angular_correction = (num_sides - 2.0) * 180.0 / num_sides / 2.0;
+
+    let angle_step = 2.0 * PI / num_sides; // Angle between each vertex
+    let rotation_radians = (props.rotation_angle + angular_correction) * PI / 180.0; // Convert rotation angle to radians
+
 
     // Calculating all vertex positions
     let mut vertices = Vec::new();
