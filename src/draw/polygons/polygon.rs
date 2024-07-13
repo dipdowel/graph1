@@ -1,8 +1,7 @@
-
-
-use crate::draw::line::between_two_points;
-use crate::graph1_core::context::GraphContext;
 use std::f64::consts::PI;
+
+use crate::draw::polygons::closed_perimeter;
+use crate::graph1_core::context::GraphContext;
 use crate::primitives::primitives::{Pixel, Point};
 
 pub struct PolygonProperties {
@@ -22,9 +21,8 @@ pub struct PolygonProperties {
 /// Function to draw a polygon based on provided properties
 /// The lowest value of `PolygonProperties -> num_sides` is 3.
 pub fn render(ctx: &mut GraphContext, props: &PolygonProperties) {
-
     // Do nothing if it's not even a triangle
-    if props.num_sides<3 {
+    if props.num_sides < 3 {
         return;
     }
 
@@ -35,7 +33,6 @@ pub fn render(ctx: &mut GraphContext, props: &PolygonProperties) {
 
     let angle_step = 2.0 * PI / num_sides; // Angle between each vertex
     let rotation_radians = (props.rotation_angle + angular_correction) * PI / 180.0; // Convert rotation angle to radians
-
 
     // Calculating all vertex positions
     let mut vertices = Vec::new();
@@ -52,29 +49,5 @@ pub fn render(ctx: &mut GraphContext, props: &PolygonProperties) {
     }
 
     // Draw lines between consecutive vertices
-    if let Some(first_vertex) = vertices.first() {
-        let mut previous_vertex = first_vertex;
-        for vertex in vertices.iter().skip(1) {
-            between_two_points(
-                ctx,
-                &Pixel {
-                    x: previous_vertex.x,
-                    y: previous_vertex.y,
-                    color: props.center.color,
-                },
-                vertex,
-            );
-            previous_vertex = vertex;
-        }
-        // Connect the last vertex to the first to complete the polygon
-        between_two_points(
-            ctx,
-            &Pixel {
-                x: previous_vertex.x,
-                y: previous_vertex.y,
-                color: props.center.color,
-            },
-            first_vertex,
-        );
-    }
+    closed_perimeter::render(ctx, &vertices, props.center.color);
 }

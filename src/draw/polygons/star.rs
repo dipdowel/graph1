@@ -1,7 +1,8 @@
-use crate::draw::line::between_two_points;
+use std::f64::consts::PI;
+
+use crate::draw::polygons::closed_perimeter;
 use crate::graph1_core::context::GraphContext;
 use crate::primitives::primitives::{Pixel, Point};
-use std::f64::consts::PI;
 
 pub struct StarProperties {
     /// Location of the central point of the star
@@ -56,32 +57,6 @@ pub fn render(ctx: &mut GraphContext, props: &StarProperties) {
         });
     }
 
-    // FIXME: extract the following as it's the same for polygons!
-
     // Draw lines between consecutive vertices
-    if let Some(first_vertex) = vertices.first() {
-        let mut previous_vertex = first_vertex;
-        for vertex in vertices.iter().skip(1) {
-            between_two_points(
-                ctx,
-                &Pixel {
-                    x: previous_vertex.x,
-                    y: previous_vertex.y,
-                    color: props.center.color,
-                },
-                vertex,
-            );
-            previous_vertex = vertex;
-        }
-        // Connect the last vertex to the first to complete the polygon
-        between_two_points(
-            ctx,
-            &Pixel {
-                x: previous_vertex.x,
-                y: previous_vertex.y,
-                color: props.center.color,
-            },
-            first_vertex,
-        );
-    }
+    closed_perimeter::render(ctx, &vertices, props.center.color);
 }
