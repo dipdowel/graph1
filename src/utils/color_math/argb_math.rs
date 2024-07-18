@@ -5,6 +5,10 @@ use super::operations::ColorOperation;
 /// - `c2` 2nd color operand
 /// - `op` operation to apply to `c1` and `c2`
 pub fn argb_math(c1: &u32, c2: &u32, op: &ColorOperation) -> u32 {
+
+    // FIXME: Since we use 0RGB and not ARGB, calculating alpha is a waste.
+    // FIXME: Rename the function to `zrgb_math()`, maybe?
+    /*
     let a = match op {
         ColorOperation::Add => {
             let result = ((c1 >> 24) & 0xff).wrapping_add((c2 >> 24) & 0xff);
@@ -14,7 +18,10 @@ pub fn argb_math(c1: &u32, c2: &u32, op: &ColorOperation) -> u32 {
             let result = ((c1 >> 24) & 0xff) as i32 - ((c2 >> 24) & 0xff) as i32;
             (result.max(0) & 0xff) as u32
         }
-    };
+    };*/
+    let a = 0;
+
+
     let r = match op {
         ColorOperation::Add => {
             let result = ((c1 >> 16) & 0xff).wrapping_add((c2 >> 16) & 0xff);
