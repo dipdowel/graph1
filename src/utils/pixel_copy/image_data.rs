@@ -116,7 +116,6 @@ pub fn copy_fast_within_buffer(
 pub fn copy_fast_within_buffer_multi_dst(
     buffer: &mut [u32],
     buffer_dimensions: &Dimensions2d,
-    // dst_points: &Vec<Point>,
     dst_points: &[Point],
     src_region: &RectArea,
 ) {
