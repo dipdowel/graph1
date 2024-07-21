@@ -70,6 +70,50 @@ pub fn copy_fast(
     }
 }
 
+
+/// Fast copying of image data without any transformations or checks (unsafe rust)
+///
+/// # Parameters
+/// - `dst_buf`: The destination buffer for image data.
+/// - `dst_buf_dimensions`: Dimensions of the destination buffer.
+/// - `dst_points`: An array of `Point` specifying the starting points in the destination buffer for each copy of the image data.
+/// - `src_buf`: The source buffer.
+/// - `src_buf_dimensions`: Dimensions of the source buffer.
+/// - `src_region`: A `RectArea` specifying the rectangular area in the source buffer to copy.
+pub fn copy_fast_multi_dst(
+    dst_buf: &mut [u32],
+    dst_buf_dimensions: &Dimensions2d,
+    dst_points: &[Point],
+    src_buf: &[u32],
+    src_buf_dimensions: &Dimensions2d,
+    src_region: &RectArea,
+) {
+
+    // Calculate the effective width and height of the rectangle to be copied,
+    // ensuring they do not exceed the buffer's dimensions
+    let rect_width = src_region.dimensions.w.min(src_buf_dimensions.w - src_region.top_left.x);
+    let rect_height = src_region.dimensions.h.min(src_buf_dimensions.h - src_region.top_left.y);
+
+    for y in 0..rect_height {
+        let src_start = ((src_region.top_left.y + y) * src_buf_dimensions.w + src_region.top_left.x) as usize;
+        let copy_len = rect_width as usize;
+
+        for dst_point in dst_points {
+            let dest_start = ((dst_point.y + y) * dst_buf_dimensions.w + dst_point.x) as usize;
+
+            unsafe {
+                // Perform the copy for the current row to each destination point
+                ptr::copy(
+                    src_buf.as_ptr().add(src_start),
+                    dst_buf.as_mut_ptr().add(dest_start),
+                    copy_len,
+                );
+            }
+        }
+    }
+
+}
+
 /// Fast copying of image data within the same buffer without any transformations or checks (unsafe rust)
 ///
 /// # Parameters
