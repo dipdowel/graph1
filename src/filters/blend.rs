@@ -60,10 +60,10 @@ pub fn blend(
 
                 // Blend the pixels using the specified blending mode
                 let blended_pixel = match mode {
-                    BlendMode::Multiply => blend_multiply(src_pixel, dst_pixel),
-                    BlendMode::Add => blend_add(src_pixel, dst_pixel),
-                    BlendMode::Difference => blend_difference(src_pixel, dst_pixel),
-                    BlendMode::Screen => blend_screen(src_pixel, dst_pixel),
+                    BlendMode::Multiply => blend_pixel_multiply(src_pixel, dst_pixel),
+                    BlendMode::Add => blend_pixel_add(src_pixel, dst_pixel),
+                    BlendMode::Difference => blend_pixel_difference(src_pixel, dst_pixel),
+                    BlendMode::Screen => blend_pixel_screen(src_pixel, dst_pixel),
                 };
 
                 // Write the blended pixel back to the destination buffer
@@ -126,10 +126,10 @@ pub fn blend_with_color(
 
             // Blend the pixels using the specified blending mode
             let blended_pixel = match mode {
-                BlendMode::Multiply => blend_multiply(color, dst_pixel),
-                BlendMode::Add => blend_add(color, dst_pixel),
-                BlendMode::Difference => blend_difference(color, dst_pixel),
-                BlendMode::Screen => blend_screen(color, dst_pixel),
+                BlendMode::Multiply => blend_pixel_multiply(color, dst_pixel),
+                BlendMode::Add => blend_pixel_add(color, dst_pixel),
+                BlendMode::Difference => blend_pixel_difference(color, dst_pixel),
+                BlendMode::Screen => blend_pixel_screen(color, dst_pixel),
             };
 
             // Write the blended pixel back to the destination buffer
@@ -139,7 +139,7 @@ pub fn blend_with_color(
 }
 
 /// Multiplies two pixels.
-fn blend_multiply(pixel1: u32, pixel2: u32) -> u32 {
+pub fn blend_pixel_multiply(pixel1: u32, pixel2: u32) -> u32 {
     // Extract and multiply each color component, then combine them back into a single u32 pixel value
     let r =
         (((pixel1 >> 16) & 0xFF) as f32 * ((pixel2 >> 16) & 0xFF) as f32 / 255.0).min(255.0) as u32;
@@ -150,7 +150,7 @@ fn blend_multiply(pixel1: u32, pixel2: u32) -> u32 {
 }
 
 /// Adds two pixels.
-fn blend_add(pixel1: u32, pixel2: u32) -> u32 {
+pub fn blend_pixel_add(pixel1: u32, pixel2: u32) -> u32 {
     // Add the components, ensuring we don't exceed 255
     let r = (((pixel1 >> 16) & 0xFF) + ((pixel2 >> 16) & 0xFF)).min(255);
     let g = (((pixel1 >> 8) & 0xFF) + ((pixel2 >> 8) & 0xFF)).min(255);
@@ -161,7 +161,7 @@ fn blend_add(pixel1: u32, pixel2: u32) -> u32 {
 }
 
 /// Screens two pixels.
-fn blend_screen(pixel1: u32, pixel2: u32) -> u32 {
+pub fn blend_pixel_screen(pixel1: u32, pixel2: u32) -> u32 {
     // Extract and screen each color component, then combine them back into a single u32 pixel value
     let r = (255 - ((255 - ((pixel1 >> 16) & 0xFF)) * (255 - ((pixel2 >> 16) & 0xFF)) / 255))
         .min(255) as u32;
@@ -172,7 +172,7 @@ fn blend_screen(pixel1: u32, pixel2: u32) -> u32 {
 }
 
 /// Blends two pixels using the Difference mode.
-fn blend_difference(pixel1: u32, pixel2: u32) -> u32 {
+fn blend_pixel_difference(pixel1: u32, pixel2: u32) -> u32 {
     // Extract each color component from the two pixels
     let (r1, g1, b1) = ((pixel1 >> 16) & 0xFF, (pixel1 >> 8) & 0xFF, pixel1 & 0xFF);
     let (r2, g2, b2) = ((pixel2 >> 16) & 0xFF, (pixel2 >> 8) & 0xFF, pixel2 & 0xFF);
