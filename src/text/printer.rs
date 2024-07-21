@@ -5,12 +5,14 @@ use crate::utils::pixel_copy::image_data;
 
 const DEFAULT_TRANSPARENCY_COLOR: u32 = 0x00_ff_ff_ff;
 
-pub struct ColorProperties {
+pub struct ColorProperties<'a> {
     /// Text color. If `color` provided, `color_transformer` is ignored
     pub color: Option<u32>,
     /// A custom function for transforming color of each pixel of a printed character
     /// @See `PixelColorTransformerFn`
     pub color_transformer: Option<PixelColorTransformerFn>,
+    /// Any data that needs to be passed to `color_transformer()`
+    pub data: Option<&'a Vec<u32>>,
 }
 
 #[derive(PartialEq)]
@@ -54,6 +56,7 @@ pub fn print_line(
             transparency_color: Some(DEFAULT_TRANSPARENCY_COLOR),
             fill_color: color_props.color,
             color_transformer: color_props.color_transformer,
+            data: color_props.data,
         };
 
         image_data::copy(
@@ -64,7 +67,6 @@ pub fn print_line(
             &font.img_dimensions,
             &the_glyph,
             Some(&props),
-            // None
         );
 
         dst_point.x += the_glyph.dimensions.w + font.spacing.kerning_px as u32;

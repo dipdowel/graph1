@@ -92,11 +92,12 @@ pub const POINT_ZERO: Point = Point { x: 0, y: 0 };
 /// - `y`: The y-coordinate of the pixel in the image.
 /// - `w`: The width of the image data in pixels.
 /// - `h`: The height of the image data in pixels.
+/// - `data`: Any extra u32 values that need to be passed to the color transformer function.
 ///
 /// # Returns
 ///
 /// A 0RGB value representing the transformed pixel
-pub type PixelColorTransformerFn = fn(color: u32, x: u32, y: u32, w: u32, h: u32) -> u32;
+pub type PixelColorTransformerFn = fn(color: u32, x: u32, y: u32, w: u32, h: u32, data: Option<&Vec<u32>>) -> u32;
 
 //
 // #[derive(Debug)]

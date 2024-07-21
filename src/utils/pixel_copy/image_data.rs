@@ -11,7 +11,7 @@ use crate::utils::math::is_power_of_two;
 // TODO:
 
 /// Additional options for modifying the copied image data (pixels).
-pub struct ImageDataCopyProps {
+pub struct ImageDataCopyProps<'a> {
     /// An optional color used to specify transparency.
     ///
     /// If provided, any pixel matching this color will be considered transparent
@@ -29,6 +29,9 @@ pub struct ImageDataCopyProps {
     /// If provided, this function will be applied to each pixel's color value
     /// to perform custom color transformations based on the original color, x and y of the pixel
     pub color_transformer: Option<PixelColorTransformerFn>,
+
+    /// Any data that needs to be passed to `color_transformer()`
+    pub data: Option<&'a Vec<u32>>,
 }
 
 
@@ -245,6 +248,7 @@ pub fn copy(
         color_transformer: None,
         fill_color: None,
         transparency_color: None,
+        data: None,
     });
 
     // Determine the transparency color (default to 0 if not provided)
@@ -254,7 +258,7 @@ pub fn copy(
     let fill_color = props.fill_color.unwrap_or(0);
 
     // Determine the color transformer function (default to an identity function if not provided)
-    let color_transformer = props.color_transformer.unwrap_or(|color, _, _, _, _| color);
+    let color_transformer = props.color_transformer.unwrap_or(|color, _, _, _, _, _| color);
 
     // Use unsafe block to allow unchecked memory access for performance
     unsafe {
@@ -293,7 +297,7 @@ pub fn copy(
                 let dest_pixel = if props.fill_color.is_some() {
                     fill_color
                 } else {
-                    color_transformer(src_pixel, x, y, rect_width, rect_height)
+                    color_transformer(src_pixel, x, y, rect_width, rect_height, props.data)
                 };
 
                 // Write the final pixel color to the destination buffer
@@ -348,6 +352,7 @@ pub fn copy_within_buffer(
         color_transformer: None,
         fill_color: None,
         transparency_color: None,
+        data: None,
     });
 
     // Determine the transparency color (default to 0 if not provided)
@@ -357,7 +362,7 @@ pub fn copy_within_buffer(
     let fill_color = props.fill_color.unwrap_or(0);
 
     // Determine the color transformer function (default to an identity function if not provided)
-    let color_transformer = props.color_transformer.unwrap_or(|color, _, _, _, _| color);
+    let color_transformer = props.color_transformer.unwrap_or(|color, _, _, _, _, _| color);
 
     // Use unsafe block to allow unchecked memory access for performance
     unsafe {
@@ -396,7 +401,7 @@ pub fn copy_within_buffer(
                 let dest_pixel = if props.fill_color.is_some() {
                     fill_color
                 } else {
-                    color_transformer(src_pixel, x, y, rect_width, rect_height)
+                    color_transformer(src_pixel, x, y, rect_width, rect_height, props.data)
                 };
 
                 // Write the final pixel color to the destination buffer
