@@ -1,6 +1,7 @@
 
 pub mod blur;
 pub mod blend;
+pub mod image;
 
 
 pub use blur::box_anti_alias::box_anti_alias;

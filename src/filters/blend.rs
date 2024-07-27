@@ -172,7 +172,7 @@ pub fn blend_pixel_screen(pixel1: u32, pixel2: u32) -> u32 {
 }
 
 /// Blends two pixels using the Difference mode.
-fn blend_pixel_difference(pixel1: u32, pixel2: u32) -> u32 {
+pub fn blend_pixel_difference(pixel1: u32, pixel2: u32) -> u32 {
     // Extract each color component from the two pixels
     let (r1, g1, b1) = ((pixel1 >> 16) & 0xFF, (pixel1 >> 8) & 0xFF, pixel1 & 0xFF);
     let (r2, g2, b2) = ((pixel2 >> 16) & 0xFF, (pixel2 >> 8) & 0xFF, pixel2 & 0xFF);

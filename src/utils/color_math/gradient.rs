@@ -101,7 +101,7 @@ mod tests {
         for i in 0..10 {
             let color = single_step(c1, c2, 10, i);
             assert_eq!(color, gradient[i]);
-            // println!("color: {:#010X}, gradiern color  {:#010X}",color, gradient[i]);
+            // println!("color: {:#010X}, gradient color  {:#010X}",color, gradient[i]);
         }
 
     }
