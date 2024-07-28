@@ -13,7 +13,7 @@ pub fn horizontal(ctx: &mut GraphContext, start: &Pixel, length: u32) {
 
     // Don't let the line overflow to the next line in the screen buffer
     let mut line_len = length;
-    if start.x + length >= ctx.win.w {
+    if start.x + length > ctx.win.w {
         line_len = ctx.win.w - start.x - 1;
     }
 
@@ -35,7 +35,7 @@ pub fn vertical(ctx: &mut GraphContext, start: &Pixel, length: u32) {
 
     // Don't let the line overflow the screen height
     let mut line_len = length;
-    if start.y + length >= ctx.win.h {
+    if start.y + length > ctx.win.h {
         line_len = ctx.win.h - start.y - 1;
     }
 
