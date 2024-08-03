@@ -21,41 +21,64 @@ fn bezier_point(t: &f32, p0: &Point, p1: &Point, p2: &Point, p3: &Point) -> Poin
     }
 }
 
-/// This function should  handle an arbitrary long vector of points to draw complex and continuous Bezier curves.
+/// This function draws Bezier curves based on the provided control points.
 /// ## Important Notes
-/// ### Point Organization
-/// - The first and last points are always end points of the curve.
-/// - Every set of 4 points defines 1 cubic Bezier curve:
-///     - a start point
-///     - two control points
-///     - an end point
-///
-/// This function requires the provided point array to be organized correctly.
-/// There should be one starting point and multiple groups of three additional points:
-/// 1. control point
-/// 2. control point
-/// 3. end/start of next curve
+/// ### Organization of the vector of points
+/// - The first and last points are always end points of the resulting curve.
+/// - Every 4 points define 1 cubic Bezier curve:
+///     - [0] The starting point
+///     - [1] Control point #1
+///     - [2] Control point #2
+///     - [3] The ending point of this segment of the curve / the starting point of the next segment
+
 /// ### Vector Length
 /// The vector length should be `3n+1`, where `n` is the number of curves.
 /// ### Performance
 /// This function recalculates points dynamically and draws many lines, which can be computationally
 /// expensive for very high resolutions or very complex paths. Adjust resolution_delta to balance
 /// between performance and smoothness.
-pub fn draw_bezier_curve(ctx: &mut GraphContext, points: &[Point], resolution_delta: &f32) {
+///
+/// ## Parameters
+/// - `ctx`: Graph context to draw to
+/// - `points`: The points that define the Bezier curve (see above for organization)
+/// - `colors`: Colors for each segment of the curve. If there are more segments than colors, the last color is used for the remaining segments
+/// - `resolution_delta`: The delta value for the resolution of the curve. The smaller the value, the smoother the curve. A value of `0.05` is a good starting point.
+///
+pub fn draw_bezier_curve(
+    ctx: &mut GraphContext,
+    points: &[Point],
+    colors: &[u32],
+    resolution_delta: &f32,
+) {
     let length = points.len();
-    if length < 4 {
-        println!("draw_bezier_curve(): Not enough points to draw a curve!");
+
+    if length % 3 != 1 {
+        println!(
+            "draw_bezier_curve(): Expecting 3n+1 points. Provided: {}",
+            length
+        );
         return;
     }
 
+    if colors.len() < 1 {
+        println!(
+            "draw_bezier_curve(): Expecting at least 1 color. Provided: {}",
+            colors.len()
+        );
+        return;
+    }
+
+    let max_color_index = colors.len() - 1;
+    let mut color:u32;
+
     for i in (0..length - 3).step_by(3) {
+        // println!(">>> i: {}", i); println!(">>> i/3: {}", i/3);
+        color = colors[usize::min(i / 3, max_color_index)];
+
         let p0 = &points[i];
         let p1 = &points[i + 1];
         let p2 = &points[i + 2];
         let p3 = &points[i + 3];
-
-        // FIXME: Come up with a way to pass the color value(s) to this function!
-        let color = ctx.default_color;
 
         let mut t = 0.0;
         let mut current_point = *p0;
@@ -88,6 +111,11 @@ pub fn draw_bezier_curve(ctx: &mut GraphContext, points: &[Point], resolution_de
     }
 }
 
+//
+//==================================================================================================
+//=== [Code below is for visual debugging of the curves] ===========================================
+//==================================================================================================
+
 const DIMENSIONS: Dimensions2d = Dimensions2d { w: 4, h: 4 };
 
 /// Options for rendering Bezier curve control points
@@ -97,7 +125,6 @@ pub struct BezierControlShowOptions {
     /// Color of the control points, if `None`, the rendered points will be of inverted color of the background (hence always visible)
     pub color: Option<u32>,
 }
-
 
 /// Renders a big visual point of a given color
 fn render_point_color(ctx: &mut GraphContext, p: &Point, color: u32) {
@@ -136,13 +163,23 @@ fn render_point_inverted(ctx: &mut GraphContext, p: &Point) {
 /// ## Parameters
 /// - `ctx`: Graph context to draw to
 /// - `points`: The points that define the Bezier curve
-/// - `options`: Options for rendering the control points
+/// - `options`: Options for rendering the control points. If no options are provided,
+///    `ctx.default_color` is used as color of the control points
 
 pub fn draw_bezier_curve_controls(
     ctx: &mut GraphContext,
     points: &[Point],
     options: Option<&BezierControlShowOptions>,
 ) {
+
+    if points.len() % 3 != 1 {
+        println!(
+            "draw_bezier_curve_controls(): Expecting 3n+1 points. Provided: {}",
+            points.len()
+        );
+        return;
+    }
+
     let default_options = BezierControlShowOptions {
         show_start_end_points: true,
         color: Some(ctx.default_color),
