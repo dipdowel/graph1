@@ -14,20 +14,48 @@ pub struct Dimensions2d {
 // ========= Point 2D, + conversions from u32 to f32 coordinates and back ==========================
 
 #[derive(Clone, Copy, Debug)]
+pub struct PointI32 {
+    pub x: i32,
+    pub y: i32,
+}
+// TODO: Add a unit test!
+impl From<Point> for PointI32 {
+    fn from(p: Point) -> Self {
+        PointI32 {
+            x: p.x as i32,
+            y: p.y as i32,
+        }
+    }
+}
+// TODO: Add a unit test!
+impl PointI32 {
+    /// Returns `true` if either `x` or `y` or both are negative, i.e. cannot be rendered on the screen.
+    pub fn is_offscreen(p: PointI32) -> bool {
+        p.x < 0 || p.y < 0
+    }
+}
+
+#[derive(Clone, Copy, Debug)]
 pub struct Point {
     pub x: u32,
     pub y: u32,
 }
 
-impl From<Pixel> for  Point{
+// TODO: Add a unit test!
+impl From<Pixel> for Point {
     fn from(p: Pixel) -> Self {
+        Point { x: p.x, y: p.y }
+    }
+}
+// TODO: Add a unit test!
+impl From<PointI32> for Point {
+    fn from(p: PointI32) -> Self {
         Point {
-            x: p.x,
-            y: p.y,
+            x: i32::min(p.x, 0) as u32,
+            y: i32::min(p.y, 0) as u32,
         }
     }
 }
-
 
 #[cfg(test)]
 mod tests {
@@ -45,9 +73,22 @@ mod tests {
         assert_eq!(point.x, 10);
         assert_eq!(point.y, 20);
     }
+
+    #[test]
+    fn point_from_point_i32() {
+        let point_i32: PointI32 = PointI32 { x: -10, y: -20 };
+
+        let point: Point = Point::from(point_i32);
+        assert_eq!(point.x, 0);
+        assert_eq!(point.y, 0);
+
+        let point_i32: PointI32 = PointI32 { x: 10, y: 20 };
+
+        let point: Point = Point::from(point_i32);
+        assert_eq!(point.x, 10);
+        assert_eq!(point.y, 20);
+    }
 }
-
-
 
 #[derive(Clone, Copy, Debug)]
 pub struct PointF32 {
@@ -104,8 +145,6 @@ pub struct Pixel {
     pub color: u32,
 }
 
-
-
 /// Array of pixels. Each pixel has the `0RGB` model.
 pub type ImageData0RGB<'a> = &'a mut [u32];
 
@@ -129,7 +168,8 @@ pub const POINT_ZERO: Point = Point { x: 0, y: 0 };
 /// # Returns
 ///
 /// A 0RGB value representing the transformed pixel
-pub type PixelColorTransformerFn = fn(color: u32, x: u32, y: u32, w: u32, h: u32, data: Option<&Vec<u32>>) -> u32;
+pub type PixelColorTransformerFn =
+    fn(color: u32, x: u32, y: u32, w: u32, h: u32, data: Option<&Vec<u32>>) -> u32;
 
 //
 // #[derive(Debug)]
