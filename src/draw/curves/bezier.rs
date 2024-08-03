@@ -1,6 +1,8 @@
 use crate::draw::line::between_two_points;
+use crate::draw::rectangle_filled;
+use crate::filters;
 use crate::graph1_core::context::GraphContext;
-use crate::primitives::primitives::{Pixel, Point};
+use crate::primitives::primitives::{Dimensions2d, Pixel, Point, RectArea};
 
 fn bezier_point(t: &f32, p0: &Point, p1: &Point, p2: &Point, p3: &Point) -> Point {
     let x = (1.0 - t).powi(3) * p0.x as f32
@@ -41,6 +43,10 @@ fn bezier_point(t: &f32, p0: &Point, p1: &Point, p2: &Point, p3: &Point) -> Poin
 /// between performance and smoothness.
 pub fn draw_bezier_curve(ctx: &mut GraphContext, points: &[Point], resolution_delta: &f32) {
     let length = points.len();
+    if length < 4 {
+        println!("draw_bezier_curve(): Not enough points to draw a curve!");
+        return;
+    }
 
     for i in (0..length - 3).step_by(3) {
         let p0 = &points[i];
@@ -79,5 +85,98 @@ pub fn draw_bezier_curve(ctx: &mut GraphContext, points: &[Point], resolution_de
             },
             &p3,
         );
+    }
+}
+
+const DIMENSIONS: Dimensions2d = Dimensions2d { w: 4, h: 4 };
+
+/// Options for rendering Bezier curve control points
+pub struct BezierControlShowOptions {
+    /// Show the start and end points of each curve segment
+    pub show_start_end_points: bool,
+    /// Color of the control points, if `None`, the rendered points will be of inverted color of the background (hence always visible)
+    pub color: Option<u32>,
+}
+
+
+/// Renders a big visual point of a given color
+fn render_point_color(ctx: &mut GraphContext, p: &Point, color: u32) {
+    rectangle_filled(
+        ctx,
+        &RectArea {
+            top_left: Point {
+                x: p.x - 2,
+                y: p.y - 2,
+            },
+            dimensions: DIMENSIONS,
+        },
+        color,
+    );
+}
+
+/// Renders a big visual point by inverting the background
+fn render_point_inverted(ctx: &mut GraphContext, p: &Point) {
+    filters::image::transform_colors(
+        &mut ctx.buf_view,
+        &ctx.win.dimensions,
+        &RectArea {
+            top_left: Point {
+                x: p.x - 2,
+                y: p.y - 2,
+            },
+            dimensions: DIMENSIONS,
+        },
+        &filters::image::ImageFilter::Invert,
+    );
+}
+
+/// Renders control points for a Bezier curve, helps with visual debugging of the curve
+/// ## Important Notes
+/// - `points` must be exactly the same as provided to `draw_bezier_curve()`
+/// ## Parameters
+/// - `ctx`: Graph context to draw to
+/// - `points`: The points that define the Bezier curve
+/// - `options`: Options for rendering the control points
+
+pub fn draw_bezier_curve_controls(
+    ctx: &mut GraphContext,
+    points: &[Point],
+    options: Option<&BezierControlShowOptions>,
+) {
+    let default_options = BezierControlShowOptions {
+        show_start_end_points: true,
+        color: Some(ctx.default_color),
+    };
+
+    // let options: &BezierControlShowOptions = match options {
+    //     Some(opts) => opts,
+    //     None => &default_options,
+    // };
+    let options: &BezierControlShowOptions = options.unwrap_or_else(|| &default_options);
+
+    let &BezierControlShowOptions {
+        show_start_end_points,
+        color,
+    } = options;
+
+    let is_color = color.is_some();
+    let color = color.unwrap_or(ctx.default_color);
+
+    // index of the point in the loop
+    let mut point_index: isize = -1;
+
+    for p in points {
+        point_index += 1;
+
+        // skip the start/end points
+        if !show_start_end_points && point_index % 3 == 0 {
+            continue;
+        }
+
+        if is_color {
+            render_point_color(ctx, p, color);
+        } else {
+            render_point_inverted(ctx, p);
+        }
     }
 }
