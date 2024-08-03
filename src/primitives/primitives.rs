@@ -27,13 +27,7 @@ impl From<Point> for PointI32 {
         }
     }
 }
-// TODO: Add a unit test!
-impl PointI32 {
-    /// Returns `true` if either `x` or `y` or both are negative, i.e. cannot be rendered on the screen.
-    pub fn is_offscreen(p: PointI32) -> bool {
-        p.x < 0 || p.y < 0
-    }
-}
+
 
 #[derive(Clone, Copy, Debug)]
 pub struct Point {
