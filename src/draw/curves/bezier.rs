@@ -1,10 +1,10 @@
 use crate::draw::line::between_two_points;
 use crate::draw::rectangle_filled;
-use crate::filters;
 use crate::graph1_core::context::GraphContext;
-use crate::primitives::primitives::{Dimensions2d, Pixel, Point, RectArea};
+use crate::primitives::primitives::{Dimensions2d, Pixel, Point, PointI32, RectArea};
+use crate::{draw, filters};
 
-fn bezier_point(t: &f32, p0: &Point, p1: &Point, p2: &Point, p3: &Point) -> Point {
+fn bezier_point(t: &f32, p0: &Point, p1: &PointI32, p2: &PointI32, p3: &Point) -> Point {
     let x = (1.0 - t).powi(3) * p0.x as f32
         + 3.0 * (1.0 - t).powi(2) * t * p1.x as f32
         + 3.0 * (1.0 - t) * t.powi(2) * p2.x as f32
@@ -19,6 +19,13 @@ fn bezier_point(t: &f32, p0: &Point, p1: &Point, p2: &Point, p3: &Point) -> Poin
         x: x.round() as u32,
         y: y.round() as u32,
     }
+
+    // let result = Point {
+    //     x: x.round() as u32,
+    //     y: y.round() as u32,
+    // };
+    // println!(">>> bezier_point: {:?}", result);
+    // result
 }
 
 /// This function draws Bezier curves based on the provided control points.
@@ -46,19 +53,34 @@ fn bezier_point(t: &f32, p0: &Point, p1: &Point, p2: &Point, p3: &Point) -> Poin
 ///
 pub fn draw_bezier_curve(
     ctx: &mut GraphContext,
-    points: &[Point],
+    start_end_points: &[Point],
+    control_points: &[PointI32],
     colors: &[u32],
     resolution_delta: &f32,
 ) {
-    let length = points.len();
+    //**********************************************************************************************
+    //*** [ start-end points and control points validation ] ***************************************
+    //**********************************************************************************************
+    /*
+    // FIXME: the validation is in a draft state. Must be improved!
+    // FIXME: the validation is in a draft state. Must be improved!
+    // FIXME: the validation is in a draft state. Must be improved!
+    // FIXME: the validation is in a draft state. Must be improved!
+    // FIXME: the validation is in a draft state. Must be improved!
+    let start_end_pnts_len = start_end_points.len();
+    let ctrl_pnts_len = control_points.len();
+    let all_points_length = start_end_pnts_len + ctrl_pnts_len;
+    let length_diff = ctrl_pnts_len - start_end_pnts_len;
 
-    if length % 3 != 1 {
+    if all_points_length % 3 != 1 || length_diff != 1 {
         println!(
             "draw_bezier_curve(): Expecting 3n+1 points. Provided: {}",
-            length
+            all_points_length
         );
         return;
     }
+    */
+    //**********************************************************************************************
 
     if colors.len() < 1 {
         println!(
@@ -68,17 +90,19 @@ pub fn draw_bezier_curve(
         return;
     }
 
+    let mut color: u32;
+    let mut start_end_index: usize = 0;
     let max_color_index = colors.len() - 1;
-    let mut color:u32;
 
-    for i in (0..length - 3).step_by(3) {
-        // println!(">>> i: {}", i); println!(">>> i/3: {}", i/3);
-        color = colors[usize::min(i / 3, max_color_index)];
+    for i in (0..control_points.len() - 1).step_by(2) {
+        // TODO: check if the `min` safeguard actually works here
+        color = colors[usize::min(start_end_index, max_color_index)];
 
-        let p0 = &points[i];
-        let p1 = &points[i + 1];
-        let p2 = &points[i + 2];
-        let p3 = &points[i + 3];
+        let p0: &Point = &start_end_points[start_end_index];
+        let p1: &PointI32 = &control_points[i];
+        let p2: &PointI32 = &control_points[i + 1];
+        let p3: &Point = &start_end_points[start_end_index + 1];
+        start_end_index += 1;
 
         let mut t = 0.0;
         let mut current_point = *p0;
@@ -109,6 +133,16 @@ pub fn draw_bezier_curve(
             &p3,
         );
     }
+
+    if ctx.bezier.render_controls {
+        draw_controls(
+            ctx,
+            Some(control_points),
+            ctx.bezier.control_color,
+            Some(start_end_points),
+            ctx.bezier.start_end_points_color,
+        );
+    }
 }
 
 //
@@ -118,16 +152,13 @@ pub fn draw_bezier_curve(
 
 const DIMENSIONS: Dimensions2d = Dimensions2d { w: 4, h: 4 };
 
-/// Options for rendering Bezier curve control points
-pub struct BezierControlShowOptions {
-    /// Show the start and end points of each curve segment
-    pub show_start_end_points: bool,
-    /// Color of the control points, if `None`, the rendered points will be of inverted color of the background (hence always visible)
-    pub color: Option<u32>,
-}
-
 /// Renders a big visual point of a given color
 fn render_point_color(ctx: &mut GraphContext, p: &Point, color: u32) {
+    // Don't try to draw off-screen
+    if p.x < 2 || p.y < 2 || p.x >= ctx.win.dimensions.w - 2 || p.y >= ctx.win.dimensions.h - 2 {
+        return;
+    };
+
     rectangle_filled(
         ctx,
         &RectArea {
@@ -143,6 +174,11 @@ fn render_point_color(ctx: &mut GraphContext, p: &Point, color: u32) {
 
 /// Renders a big visual point by inverting the background
 fn render_point_inverted(ctx: &mut GraphContext, p: &Point) {
+    // Don't try to draw off-screen
+    if p.x < 2 || p.y < 2 || p.x >= ctx.win.dimensions.w - 2 || p.y >= ctx.win.dimensions.h - 2 {
+        return;
+    };
+
     filters::image::transform_colors(
         &mut ctx.buf_view,
         &ctx.win.dimensions,
@@ -156,64 +192,118 @@ fn render_point_inverted(ctx: &mut GraphContext, p: &Point) {
         &filters::image::ImageFilter::Invert,
     );
 }
-
-/// Renders control points for a Bezier curve, helps with visual debugging of the curve
-/// ## Important Notes
-/// - `points` must be exactly the same as provided to `draw_bezier_curve()`
-/// ## Parameters
-/// - `ctx`: Graph context to draw to
-/// - `points`: The points that define the Bezier curve
-/// - `options`: Options for rendering the control points. If no options are provided,
-///    `ctx.default_color` is used as color of the control points
-
-pub fn draw_bezier_curve_controls(
-    ctx: &mut GraphContext,
-    points: &[Point],
-    options: Option<&BezierControlShowOptions>,
-) {
-
-    if points.len() % 3 != 1 {
-        println!(
-            "draw_bezier_curve_controls(): Expecting 3n+1 points. Provided: {}",
-            points.len()
-        );
-        return;
-    }
-
-    let default_options = BezierControlShowOptions {
-        show_start_end_points: true,
-        color: Some(ctx.default_color),
-    };
-
-    // let options: &BezierControlShowOptions = match options {
-    //     Some(opts) => opts,
-    //     None => &default_options,
-    // };
-    let options: &BezierControlShowOptions = options.unwrap_or_else(|| &default_options);
-
-    let &BezierControlShowOptions {
-        show_start_end_points,
-        color,
-    } = options;
-
-    let is_color = color.is_some();
-    let color = color.unwrap_or(ctx.default_color);
-
-    // index of the point in the loop
-    let mut point_index: isize = -1;
-
-    for p in points {
-        point_index += 1;
-
-        // skip the start/end points
-        if !show_start_end_points && point_index % 3 == 0 {
-            continue;
-        }
-
-        if is_color {
+/// Renders a slice points as big points on the screen
+fn render_points(ctx: &mut GraphContext, points: &[Point], is_color: bool, color: u32) {
+    if is_color {
+        for p in points {
             render_point_color(ctx, p, color);
-        } else {
+        }
+    } else {
+        for p in points {
             render_point_inverted(ctx, p);
         }
     }
 }
+
+/// Renderts controls points and start-end points of a Bezier curve, helps with visual debugging of the curve.
+/// ## Parameters
+/// - `ctx`: Graph context to draw to
+/// - `control_points`: The control points of the Bezier curve
+/// - `control_color`: The color of the control points. If `None`, the background color at the point is inverted
+/// - `start_end_points`: The start-end points of the Bezier curve
+/// - `start_end_points_color`: The color of the start-end points. If `None`, the background color at the point is inverted
+
+fn draw_controls(
+    ctx: &mut GraphContext,
+    control_points: Option<&[PointI32]>,
+    control_color: Option<u32>,
+    start_end_points: Option<&[Point]>,
+    start_end_points_color: Option<u32>,
+) {
+    // for i in (0..control_points.len() - 1).step_by(2) {
+    // for points in control_points
+
+    // Render start-end points
+    if start_end_points.is_some() {
+        let is_color = start_end_points_color.is_some();
+        render_points(
+            ctx,
+            start_end_points.unwrap(),
+            is_color,
+            start_end_points_color.unwrap_or(ctx.default_color),
+        );
+    }
+
+    // Convert and render control points
+    if control_points.is_some() {
+        let control_points = control_points.unwrap();
+        let is_color = control_color.is_some();
+        let control_color: u32 = control_color.unwrap_or(ctx.default_color);
+
+        if ctx.bezier.render_levers {
+        for i in (0..control_points.len() - 1).step_by(2) {
+            draw::line::between_two_points(
+                ctx,
+                &Pixel {
+                    x: control_points[i].x as u32,
+                    y: control_points[i].y as u32,
+                    color: control_color,
+                },
+                &Point {
+                    x: control_points[i + 1].x as u32,
+                    y: control_points[i + 1].y as u32,
+                },
+            );
+        }
+        }
+
+        let mut points: Vec<Point> = Vec::new();
+
+        for control_point in control_points {
+            if control_point.x > -1 && control_point.y > -1 {
+                &points.push(Point {
+                    x: control_point.x as u32,
+                    y: control_point.y as u32,
+                });
+            }
+        }
+
+        render_points(ctx, &points, is_color, control_color);
+    }
+}
+
+/*
+/// Renders control points and start-end points of a Bezier curve with default colors
+/// ## Parameters
+/// - `ctx`: Graph context to draw to
+/// - `control_points`: The control points of the Bezier curve
+/// - `start_end_points`: The start-end points of the Bezier curve
+/// @See `draw_bezier_curve_controls()`
+fn draw_controls_red_blue(
+    ctx: &mut GraphContext,
+    control_points: Option<&[PointI32]>,
+    start_end_points: Option<&[Point]>,
+) {
+    draw_controls(
+        ctx,
+        control_points,
+        Some(0x00_00_33_ff),
+        start_end_points,
+        Some(0x00_ff_33_00),
+    );
+}
+
+/// Renders control points and start-end points of a Bezier curve inverting the background color at points
+/// ## Parameters
+/// - `ctx`: Graph context to draw to
+/// - `control_points`: The control points of the Bezier curve
+/// - `start_end_points`: The start-end points of the Bezier curve
+/// @See `draw_bezier_curve_controls()`
+fn draw_controls_invert(
+    ctx: &mut GraphContext,
+    control_points: Option<&[PointI32]>,
+    start_end_points: Option<&[Point]>,
+) {
+    draw_controls(ctx, control_points, None, start_end_points, None);
+}
+*/
