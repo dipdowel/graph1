@@ -19,6 +19,36 @@ pub struct Point {
     pub y: u32,
 }
 
+impl From<Pixel> for  Point{
+    fn from(p: Pixel) -> Self {
+        Point {
+            x: p.x,
+            y: p.y,
+        }
+    }
+}
+
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn point_from_pixel() {
+        let pixel: Pixel = Pixel {
+            x: 10,
+            y: 20,
+            color: 0x00_ff_33_33,
+        };
+
+        let point: Point = Point::from(pixel);
+        assert_eq!(point.x, 10);
+        assert_eq!(point.y, 20);
+    }
+}
+
+
+
 #[derive(Clone, Copy, Debug)]
 pub struct PointF32 {
     pub x: f32,
@@ -73,6 +103,8 @@ pub struct Pixel {
     pub y: u32,
     pub color: u32,
 }
+
+
 
 /// Array of pixels. Each pixel has the `0RGB` model.
 pub type ImageData0RGB<'a> = &'a mut [u32];
