@@ -51,6 +51,14 @@ fn bezier_point(t: &f32, p0: &Point, p1: &PointI32, p2: &PointI32, p3: &Point) -
 /// - `colors`: Colors for each segment of the curve. If there are more segments than colors, the last color is used for the remaining segments
 /// - `resolution_delta`: The delta value for the resolution of the curve. The smaller the value, the smoother the curve. A value of `0.05` is a good starting point.
 ///
+
+// FIXME: Update the documentation to reflect the new organization of the points!!!!!
+// FIXME: Update the documentation to reflect the new organization of the points!!!!!
+// FIXME: Update the documentation to reflect the new organization of the points!!!!!
+// FIXME: Update the documentation to reflect the new organization of the points!!!!!
+// FIXME: Update the documentation to reflect the new organization of the points!!!!!
+// FIXME: Update the documentation to reflect the new organization of the points!!!!!
+// FIXME: Update the documentation to reflect the new organization of the points!!!!!
 pub fn draw_bezier_curve(
     ctx: &mut GraphContext,
     start_end_points: &[Point],
@@ -61,25 +69,22 @@ pub fn draw_bezier_curve(
     //**********************************************************************************************
     //*** [ start-end points and control points validation ] ***************************************
     //**********************************************************************************************
-    /*
-    // FIXME: the validation is in a draft state. Must be improved!
-    // FIXME: the validation is in a draft state. Must be improved!
-    // FIXME: the validation is in a draft state. Must be improved!
-    // FIXME: the validation is in a draft state. Must be improved!
-    // FIXME: the validation is in a draft state. Must be improved!
-    let start_end_pnts_len = start_end_points.len();
-    let ctrl_pnts_len = control_points.len();
-    let all_points_length = start_end_pnts_len + ctrl_pnts_len;
-    let length_diff = ctrl_pnts_len - start_end_pnts_len;
 
-    if all_points_length % 3 != 1 || length_diff != 1 {
+    let start_end_len = start_end_points.len();
+    let control_len = control_points.len();
+
+    let rule_1 = start_end_len + control_len >= 4;
+    let rule_2 =  control_len == (start_end_len-1)*2;
+
+    if !rule_1 || !rule_2 {
         println!(
-            "draw_bezier_curve(): Expecting 3n+1 points. Provided: {}",
-            all_points_length
+            "draw_bezier_curve():\n\t1. Expecting minimum 2 start-end points and 2 control points.\n\t\
+            2. `control_len` must be equal to `(start_end_len-1) * 2`\n\t\
+            Provided: start_end_len: {}, control_len: {}",start_end_len, control_len
         );
         return;
     }
-    */
+
     //**********************************************************************************************
 
     if colors.len() < 1 {
