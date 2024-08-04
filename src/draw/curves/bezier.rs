@@ -27,38 +27,39 @@ fn bezier_point(t: &f32, p0: &Point, p1: &PointI32, p2: &PointI32, p3: &Point) -
     // println!(">>> bezier_point: {:?}", result);
     // result
 }
-
 /// This function draws Bezier curves based on the provided control points.
+/// ## Parameters
+/// - `ctx`: Graph context to draw to
+/// - `start_end_points`: The starting and ending points of the curve segments
+/// - `control_points`: Each pair of these points controls the curviness of the segment
+/// - `colors`: Colors for each segment of the curve. If there are more segments than colors, the last color is used for the remaining segments
+/// - `resolution_delta`: The delta value for the resolution of the curve. The smaller the value, the smoother the curve. A value of `0.05` is a good starting point.
 /// ## Important Notes
-/// ### Organization of the vector of points
-/// - The first and last points are always end points of the resulting curve.
-/// - Every 4 points define 1 cubic Bezier curve:
-///     - [0] The starting point
-///     - [1] Control point #1
-///     - [2] Control point #2
-///     - [3] The ending point of this segment of the curve / the starting point of the next segment
-
-/// ### Vector Length
-/// The vector length should be `3n+1`, where `n` is the number of curves.
+/// ### 1. Every segment of the curve is defined by 4 points:
+///     1. The starting point
+///     2. Control point #1
+///     3. Control point #2
+///     4. The ending point of this segment of the curve (which can also be the starting point of the next segment)
+/// ### 2. The starting/ending points and control points are passed to the function as 2 separate slices:
+/// `start_end_points` and `control_points`.
+/// #### The first segment has the following layout:
+///     1. The starting point: `start_end_points[0]`
+///     2. Control point #1: `control_points[0]`
+///     3. Control point #2: `control_points[1]`
+///     4. The ending point: `start_end_points[1]`
+///
+/// #### The second segment has the following layout:
+///     1. The starting point `start_end_points[1]`
+///     2. Control point #1 `control_points[2]`
+///     3. Control point #2 `control_points[3]`
+///     4. The ending point: `start_end_points[2]`
+///     Etc.
+///
 /// ### Performance
 /// This function recalculates points dynamically and draws many lines, which can be computationally
 /// expensive for very high resolutions or very complex paths. Adjust resolution_delta to balance
 /// between performance and smoothness.
 ///
-/// ## Parameters
-/// - `ctx`: Graph context to draw to
-/// - `points`: The points that define the Bezier curve (see above for organization)
-/// - `colors`: Colors for each segment of the curve. If there are more segments than colors, the last color is used for the remaining segments
-/// - `resolution_delta`: The delta value for the resolution of the curve. The smaller the value, the smoother the curve. A value of `0.05` is a good starting point.
-///
-
-// FIXME: Update the documentation to reflect the new organization of the points!!!!!
-// FIXME: Update the documentation to reflect the new organization of the points!!!!!
-// FIXME: Update the documentation to reflect the new organization of the points!!!!!
-// FIXME: Update the documentation to reflect the new organization of the points!!!!!
-// FIXME: Update the documentation to reflect the new organization of the points!!!!!
-// FIXME: Update the documentation to reflect the new organization of the points!!!!!
-// FIXME: Update the documentation to reflect the new organization of the points!!!!!
 pub fn draw_bezier_curve(
     ctx: &mut GraphContext,
     start_end_points: &[Point],
