@@ -75,7 +75,7 @@ pub fn draw_bezier_curve(
     let control_len = control_points.len();
 
     let rule_1 = start_end_len + control_len >= 4;
-    let rule_2 =  control_len == (start_end_len-1)*2;
+    let rule_2 = control_len == (start_end_len - 1) * 2;
 
     if !rule_1 || !rule_2 {
         println!(
@@ -246,32 +246,38 @@ fn draw_controls(
         let is_color = control_color.is_some();
         let control_color: u32 = control_color.unwrap_or(ctx.default_color);
 
+        let control_points_normalized: Vec<Point> = control_points
+            .iter()
+            .map(|point_i32| Point {
+                x: i32::max(point_i32.x, 0) as u32,
+                y: i32::max(point_i32.y, 0) as u32,
+            })
+            .collect();
+
         if ctx.bezier.render_levers {
-        for i in (0..control_points.len() - 1).step_by(2) {
-            draw::line::between_two_points(
-                ctx,
-                &Pixel {
-                    x: control_points[i].x as u32,
-                    y: control_points[i].y as u32,
-                    color: control_color,
-                },
-                &Point {
-                    x: control_points[i + 1].x as u32,
-                    y: control_points[i + 1].y as u32,
-                },
-            );
-        }
+            for i in (0..control_points_normalized.len() - 1).step_by(2) {
+                draw::line::between_two_points(
+                    ctx,
+                    &Pixel {
+                        x: control_points_normalized[i].x as u32,
+                        y: control_points_normalized[i].y as u32,
+                        color: control_color,
+                    },
+                    &Point {
+                        x: control_points_normalized[i + 1].x as u32,
+                        y: control_points_normalized[i + 1].y as u32,
+                    },
+                );
+            }
         }
 
         let mut points: Vec<Point> = Vec::new();
 
-        for control_point in control_points {
-            if control_point.x > -1 && control_point.y > -1 {
-                &points.push(Point {
-                    x: control_point.x as u32,
-                    y: control_point.y as u32,
-                });
-            }
+        for control_point in control_points_normalized {
+            &points.push(Point {
+                x: control_point.x as u32,
+                y: control_point.y as u32,
+            });
         }
 
         render_points(ctx, &points, is_color, control_color);
