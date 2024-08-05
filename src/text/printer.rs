@@ -42,7 +42,11 @@ pub fn print_line(
     color_props: &ColorProperties,
     text_str: &str,
 ) -> Dimensions2d {
+
     let mut result: Dimensions2d = Dimensions2d { w: 0, h: 0 };
+    if text_str.len() == 0 {
+        return result;
+    }
 
     let mut dst_point: Point = Point {
         x: dst_position.x,
@@ -91,12 +95,18 @@ fn get_line_widths(font: &PixelFont, text: &[&str]) -> Vec<usize> {
     let mut line_count: usize = 0;
     let mut max_found_width: usize = 0; // width (in pixels) of the widest (longest) line in the text
 
+    let mut text_line_chars_count: usize = 0;
+
     for text_line in text {
         for ch in text_line.chars() {
             line_widths[line_count] += font.get_glyph(&ch).dimensions.w as usize;
         }
-
-        line_widths[line_count] += kerning as usize * (text_line.chars().count() - 1);
+        text_line_chars_count = text_line.chars().count();
+        line_widths[line_count] += if text_line_chars_count > 0 {
+            kerning as usize * (text_line_chars_count -1)
+        } else {
+            0
+        };
 
         // Figure out the longest line
         if line_widths[line_count] > max_found_width {
@@ -161,8 +171,9 @@ pub fn print(
             Align::Left => original_position.x,
         };
 
-        print_line(ctx, &position, font, color_props, text_line);
-
+        if  text_line.chars().count() >0 {
+            print_line(ctx, &position, font, color_props, text_line);
+        }
         position.y += full_line_height;
         result.h += full_line_height;
         line_index += 1;
