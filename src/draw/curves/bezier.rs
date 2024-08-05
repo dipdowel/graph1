@@ -274,7 +274,7 @@ fn draw_controls(
         let mut points: Vec<Point> = Vec::new();
 
         for control_point in control_points_normalized {
-            &points.push(Point {
+            points.push(Point {
                 x: control_point.x as u32,
                 y: control_point.y as u32,
             });
