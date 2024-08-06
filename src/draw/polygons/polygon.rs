@@ -16,14 +16,22 @@ pub struct PolygonProperties {
 
     /// Rotation angle in degrees
     pub rotation_angle: f64,
+
+    /// If `true`, the polygon will not be rendered to the buffer, only the vertices will be returned
+    pub skip_rendering: bool,
 }
 
-/// Function to draw a polygon based on provided properties
-/// The lowest value of `PolygonProperties -> num_sides` is 3.
-pub fn render(ctx: &mut GraphContext, props: &PolygonProperties) {
+/// Renders a polygon with the specified properties into a given `GraphContext`.
+/// The min allowed value of `PolygonProperties -> num_sides` is 3.
+/// # Parameters
+/// * `ctx` - A mutable reference to the `GraphContext`
+/// * `props` - Properties of the polygon to render
+/// # Returns
+/// A vector of `Point`s representing the vertices of the polygon.
+pub fn render(ctx: &mut GraphContext, props: &PolygonProperties) -> Vec<Point> {
     // Do nothing if it's not even a triangle
     if props.num_sides < 3 {
-        return;
+        return Vec::new();
     }
 
     let num_sides = props.num_sides as f64;
@@ -34,20 +42,28 @@ pub fn render(ctx: &mut GraphContext, props: &PolygonProperties) {
     let angle_step = 2.0 * PI / num_sides; // Angle between each vertex
     let rotation_radians = (props.rotation_angle + angular_correction) * PI / 180.0; // Convert rotation angle to radians
 
-    // Calculating all vertex positions
-    let mut vertices = Vec::new();
-    for i in 0..props.num_sides {
+    // ************************************************************************
+    // Calculate all the vertex positions
+    // ************************************************************************
+    let num_sides_usize = num_sides as usize;
+
+    let mut vertices = Vec::with_capacity(num_sides_usize);
+    vertices.resize(num_sides_usize, Point { x: 0, y: 0 });
+
+    // let mut vertices = Vec::new();
+
+    for i in 0..num_sides_usize {
         let angle = i as f64 * angle_step + rotation_radians; // Current angle adjusted for rotation
 
         // Calculate vertex position
-        let x = props.center.x as f64 + props.radius as f64 * angle.cos();
-        let y = props.center.y as f64 + props.radius as f64 * angle.sin();
-        vertices.push(Point {
-            x: x as u32,
-            y: y as u32,
-        });
+        vertices[i].x = (props.center.x as f64 + props.radius as f64 * angle.cos()) as u32;
+        vertices[i].y = (props.center.y as f64 + props.radius as f64 * angle.sin()) as u32;
     }
 
-    // Draw lines between consecutive vertices
-    closed_perimeter::render(ctx, &vertices, props.center.color);
+    if !props.skip_rendering {
+        // Draw lines between consecutive vertices
+        closed_perimeter::render(ctx, &vertices, props.center.color);
+    }
+
+    return vertices;
 }
