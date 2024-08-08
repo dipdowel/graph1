@@ -3,7 +3,7 @@ use std::f64::consts::PI;
 use crate::draw::polygons::closed_perimeter;
 use crate::graph1_core::context::GraphContext;
 use crate::primitives::primitives::{Pixel, Point};
-
+#[derive(Debug, Clone, Copy)]
 pub struct PolygonProperties {
     /// Location of the central point of the polygon
     pub center: Pixel,

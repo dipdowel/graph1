@@ -4,6 +4,7 @@ use crate::draw::polygons::closed_perimeter;
 use crate::graph1_core::context::GraphContext;
 use crate::primitives::primitives::{Pixel, Point};
 
+#[derive(Debug, Clone, Copy)]
 pub struct StarProperties {
     /// Location of the central point of the star
     pub center: Pixel,
