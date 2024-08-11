@@ -25,7 +25,7 @@ pub fn buffer(buf_view: &mut [u32], color: u32) {
 
 
 /// Flood fills a shape with a color and starting at a position specified by `start`
-pub fn shape(
+pub fn flood(
     buf: &mut [u32],
     buf_dimensions: &Dimensions2d,
     start_pixel: &Pixel,
