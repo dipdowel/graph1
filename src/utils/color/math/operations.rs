@@ -1,4 +1,4 @@
-/// Operations on ARGB color values
+/// Operations on RGBA color values
 pub enum ColorOperation {
     Add,
     Subtract,

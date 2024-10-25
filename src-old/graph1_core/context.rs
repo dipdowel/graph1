@@ -1,5 +1,6 @@
-use crate::primitives::helper_types::BufferRGBA;
-use crate::primitives::plane::Dimensions2d;
+// use graph1::primitives::primitives::{Dimensions2d, ImageData0RGB};
+
+use crate::primitives::primitives::{Dimensions2d, BufferRGBA};
 
 #[derive(Debug)]
 /// A collection of pre-computed window properties
@@ -22,13 +23,14 @@ pub struct WindowContext {
 impl WindowContext {
     /// Instantiates a window context
     pub fn new(w: u32, h: u32) -> Self {
+
         Self {
             w,
             h,
             w_usize: w as usize,
             h_usize: h as usize,
             dimensions: Dimensions2d { w, h },
-            size: (4 * w * h) as usize,
+            size: (4 * w * h)  as usize,
         }
     }
 }
