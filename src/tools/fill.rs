@@ -54,6 +54,11 @@ pub fn flood(
     while let Some((x, y)) = queue.pop_front() {
         let index = (y * width + x) as usize;
 
+        // skip attempts to fill outside the screen
+        if x > width || y > height {
+            continue;
+        }
+
         // Check if the current pixel has the initial color
         if buf[index] == initial_color {
             // Change the color of the current pixel to the fill color

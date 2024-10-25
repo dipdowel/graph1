@@ -2,12 +2,14 @@
 
 use crate::primitives::primitives::{Dimensions2d, ImageData0RGB};
 
+#[derive(Debug)]
 pub struct WindowContext {
     pub w: u32,
     pub h: u32,
     pub w_usize: usize,
     pub h_usize: usize,
-
+    /// Size of the buffer needed to represent the window
+    pub size: usize,
     /// Window width and height as a `Dimensions2d`
     pub dimensions: Dimensions2d,
 }
@@ -15,17 +17,20 @@ pub struct WindowContext {
 impl WindowContext {
     /// Instantiates a window context
     pub fn new(w: u32, h: u32) -> Self {
-        return Self {
+
+        Self {
             w,
             h,
             w_usize: w as usize,
             h_usize: h as usize,
             dimensions: Dimensions2d { w, h },
-        };
+            size: (4 * w * h)  as usize,
+        }
     }
 }
 
 /// Settings for rendering controls for Bezier curves
+#[derive(Debug)]
 pub struct BezierContext {
     /// If true, the control points and start-end points will be rendered
     pub render_controls: bool,
@@ -49,7 +54,7 @@ impl BezierContext {
     }
 }
 
-
+#[derive(Debug)]
 pub struct GraphContext<'c> {
     pub win: &'c WindowContext,
     pub buf_view: ImageData0RGB<'c>, // TODO: consider replacing with `ImageBuffer`

@@ -20,9 +20,10 @@ pub fn slice_buffer_in_4(
 
 /// Takes in a vector, divides it into 2 equal parts and returns those parts
 /// Panics if vector length cannot be divided into 2 equal parts
-pub fn slice_buffer_in_2(
-    buffer: &mut Vec<u32>,
-) -> (&mut [u32], &mut [u32]) {
+
+pub fn slice_buffer_in_2<'a>(buffer: &'a mut Vec<u32>) -> (&'a mut [u32], &'a mut [u32]) {
+
+// pub fn slice_buffer_in_2(buffer: &mut Vec<u32>,) -> (&mut [u32], &mut [u32]) {
     if buffer.len() % 2 != 0 {
         panic!("`buffer` length must be a multiple of 2!");
     }

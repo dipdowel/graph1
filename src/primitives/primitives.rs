@@ -28,6 +28,21 @@ impl From<Point> for PointI32 {
     }
 }
 
+#[derive(Clone, Copy, Debug)]
+pub struct PointF64 {
+    pub x: f64,
+    pub y: f64,
+}
+
+impl From<Point> for PointF64 {
+    fn from(p: Point) -> Self {
+         PointF64 {
+            x: p.x as f64,
+            y: p.y as f64,
+        }
+    }
+}
+
 
 #[derive(Clone, Copy, Debug)]
 pub struct Point {
