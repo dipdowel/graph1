@@ -1,24 +1,24 @@
 pub mod graph1_core {
     pub mod context;
-
 }
 pub mod primitives {
-        pub mod point;
-        pub mod numeric;
-        pub mod plane;
-        pub mod helper_types;
+    pub mod helper_types;
+    pub mod numeric;
+    mod pixel;
+    pub use pixel::Pixel;
+    pub mod plane;
+    pub mod point;
 }
 
 pub mod utils {
     pub mod color {
-                pub mod adapters;
-        pub mod math{
-            pub mod rgba_operation;
+        pub mod adapters;
+        pub mod math {
             pub mod operations;
+            pub mod rgba_operation;
         }
     }
 }
-
 
 // pub mod draw;
 // pub mod primitives;

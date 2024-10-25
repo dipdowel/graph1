@@ -2,7 +2,12 @@ use crate::primitives::numeric::Numeric;
 
 /// A generic 2D-point, defaults to `u32` for `x` and `y`.
 ///
-/// `T` represents the numeric type for `x` and `y`, limited to `u32`, `i32`, `f32`, or `f64`.
+/// `T` represents the numeric type for `x` and `y`, limited to `u32`, `i32`, `f32`, or `f64`.<br />
+/// Use the `convert` method to convert between different numeric types of Point,<br />
+/// e.g. `let point_f64: Point<f64> = point_i32.convert();`<br />
+/// Be aware that precision loss may occur during conversion!<br />
+/// **NB:** When a type with negative coordinates is converted to an unsigned type,<br />
+/// the negative values are truncated to 0.
 #[derive(Debug, Clone, Copy)]
 pub struct Point<T: Numeric = u32> {
     pub x: T,
@@ -25,9 +30,16 @@ impl<T: Numeric> Point<T> {
 /// An often-used constant for a point at the origin (0, 0).
 pub const POINT_ZERO: Point = Point { x: 0, y: 0 };
 
-/// A generic 2D-point, defaults to `u32` for `x` and `y`.
+
+
+/// A generic 3D-point, defaults to `u32` for `x`, `y` and `z`.
 ///
-/// `T` represents the numeric type for `x` and `y`, limited to `u32`, `i32`, `f32`, or `f64`.
+/// `T` represents the numeric type for `x`, `y` and `z`, limited to `u32`, `i32`, `f32`, or `f64`.<br />
+/// Use the `convert` method to convert between different numeric types of Point3D,<br />
+/// e.g. `let point3d_f64: Point3d<f64> = point3d_i32.convert();`<br />
+/// Be aware that precision loss may occur during conversion!<br />
+/// **NB:** When a type with negative coordinates is converted to an unsigned type,<br />
+/// the negative values are truncated to 0.
 #[derive(Debug, Clone, Copy)]
 pub struct Point3D<T: Numeric = u32> {
     pub x: T,
@@ -49,24 +61,8 @@ impl<T: Numeric> Point3D<T> {
     }
 }
 
-
 /// An often-used constant for a 3D-point at the origin (0, 0, 0).
 pub const POINT_3D_ZERO: Point3D = Point3D { x: 0, y: 0, z: 0 };
-
-
-#[derive(Debug, Clone, Copy)]
-pub struct Pixel {
-    pub x: u32,
-    pub y: u32,
-    pub color: u32,
-}
-
-impl From<Pixel> for Point {
-    fn from(p: Pixel) -> Self {
-        Point { x: p.x, y: p.y }
-    }
-}
-
 
 #[cfg(test)]
 mod tests {
@@ -74,7 +70,10 @@ mod tests {
 
     #[test]
     fn test_u32_to_other_types() {
-        let point_u32 = Point { x: 10_u32, y: 20_u32 };
+        let point_u32 = Point {
+            x: 10_u32,
+            y: 20_u32,
+        };
 
         // Convert to i32
         let point_i32: Point<i32> = point_u32.convert();
@@ -94,7 +93,10 @@ mod tests {
 
     #[test]
     fn test_i32_to_other_types() {
-        let point_i32 = Point { x: 10_i32, y: -20_i32 };
+        let point_i32 = Point {
+            x: 10_i32,
+            y: -20_i32,
+        };
 
         // Convert to u32 (negative values become 0 due to casting)
         let point_u32: Point<u32> = point_i32.convert();
@@ -114,16 +116,19 @@ mod tests {
 
     #[test]
     fn test_f32_to_other_types() {
-        let point_f32 = Point { x: 10.5_f32, y: -20.7_f32 };
+        let point_f32 = Point {
+            x: 10.5_f32,
+            y: -20.7_f32,
+        };
 
         // Convert to u32 (fractional and negative values truncated)
         let point_u32: Point<u32> = point_f32.convert();
         assert_eq!(point_u32.x, 10); // 10.5 truncated to 10
-        assert_eq!(point_u32.y, 0);  // -20.7 truncated to 0
+        assert_eq!(point_u32.y, 0); // -20.7 truncated to 0
 
         // Convert to i32
         let point_i32: Point<i32> = point_f32.convert();
-        assert_eq!(point_i32.x, 10);  // 10.5 truncated to 10
+        assert_eq!(point_i32.x, 10); // 10.5 truncated to 10
         assert_eq!(point_i32.y, -20); // -20.7 truncated to -20
 
         // // Convert to f64 (these fail due to floating-point precision)
@@ -136,21 +141,23 @@ mod tests {
         let tolerance = 1e-6; // 0.000001 -- a tolerance value suitable for `f32` to `f64` comparison
         assert!((point_f64.x - 10.5).abs() < tolerance);
         assert!((point_f64.y + 20.7).abs() < tolerance);
-
     }
 
     #[test]
     fn test_f64_to_other_types() {
-        let point_f64 = Point { x: 10.9_f64, y: -20.1_f64 };
+        let point_f64 = Point {
+            x: 10.9_f64,
+            y: -20.1_f64,
+        };
 
         // Convert to u32 (fractional and negative values truncated)
         let point_u32: Point<u32> = point_f64.convert();
         assert_eq!(point_u32.x, 10); // 10.9 truncated to 10
-        assert_eq!(point_u32.y, 0);  // -20.1 truncated to 0
+        assert_eq!(point_u32.y, 0); // -20.1 truncated to 0
 
         // Convert to i32
         let point_i32: Point<i32> = point_f64.convert();
-        assert_eq!(point_i32.x, 10);  // 10.9 truncated to 10
+        assert_eq!(point_i32.x, 10); // 10.9 truncated to 10
         assert_eq!(point_i32.y, -20); // -20.1 truncated to -20
 
         // Convert to f32
@@ -159,4 +166,3 @@ mod tests {
         assert!((point_f32.y + 20.1).abs() < f32::EPSILON);
     }
 }
-

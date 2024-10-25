@@ -1,6 +1,7 @@
 use crate::primitives::numeric::Numeric;
 use crate::primitives::point::Point;
 
+
 #[derive(Debug, Clone, Copy)]
 pub struct Dimensions2d<T: Numeric = u32> {
     pub w: T,
