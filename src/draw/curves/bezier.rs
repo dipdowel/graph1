@@ -140,15 +140,18 @@ pub fn draw_bezier_curve(
         );
     }
 
-    if ctx.bezier.render_controls {
-        draw_controls(
-            ctx,
-            Some(control_points),
-            ctx.bezier.control_color,
-            Some(start_end_points),
-            ctx.bezier.start_end_points_color,
-        );
+    if let Some(bezier) = &ctx.bezier {
+        if bezier.render_controls {
+            draw_controls(
+                ctx,
+                Some(control_points),
+                bezier.control_color,
+                Some(start_end_points),
+                bezier.start_end_points_color,
+            );
+        }
     }
+
 }
 
 //
@@ -186,7 +189,7 @@ fn render_point_inverted(ctx: &mut GraphContext, p: &Point) {
     };
 
     filters::image::transform_colors(
-        &mut ctx.buf_view,
+        &mut ctx.frame_buf,
         &ctx.win.dimensions,
         &RectArea {
             top_left: Point {
@@ -254,7 +257,8 @@ fn draw_controls(
             })
             .collect();
 
-        if ctx.bezier.render_levers {
+
+        if ctx.bezier.is_some(){
             for i in (0..control_points_normalized.len() - 1).step_by(2) {
                 draw::line::between_two_points(
                     ctx,
@@ -270,6 +274,7 @@ fn draw_controls(
                 );
             }
         }
+
 
         let mut points: Vec<Point> = Vec::new();
 

@@ -21,7 +21,7 @@ pub fn horizontal(ctx: &mut GraphContext, start: &Pixel, length: u32) {
     let buf_end_index = buf_index + line_len as usize;
 
     while buf_index < buf_end_index {
-        ctx.buf_view[buf_index] = start.color;
+        ctx.frame_buf[buf_index] = start.color;
         buf_index += 1;
     }
 }
@@ -47,7 +47,7 @@ pub fn vertical(ctx: &mut GraphContext, start: &Pixel, length: u32) {
     let buf_end_index = buf_index + (line_len * ctx.win.w) as usize;
 
     while buf_index < buf_end_index {
-        ctx.buf_view[buf_index] = start.color;
+        ctx.frame_buf[buf_index] = start.color;
         buf_index += ctx.win.w_usize;
     }
 }
@@ -118,7 +118,7 @@ pub fn between_two_points(ctx: &mut GraphContext, start: &Pixel, end: &Point) {
     loop {
         // Set the current pixel. The color can be set to a specific value or passed through the Pixel struct.
         let buf_index = (start.y * ctx.win.w + start.x) as usize;
-        ctx.buf_view[buf_index] = start.color;
+        ctx.frame_buf[buf_index] = start.color;
 
         // If the current position is the end point, exit the loop.
         if start.x == end.x && start.y == end.y {

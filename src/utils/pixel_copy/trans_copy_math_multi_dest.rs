@@ -1,7 +1,7 @@
 use crate::graph1_core::context::WindowContext;
 use crate::primitives::primitives::{Pixel, RectArea};
-use crate::utils::color_math::argb_math::argb_math;
-use crate::utils::color_math::operations::ColorOperation;
+use crate::utils::color::math::argb_math::argb_math;
+use crate::utils::color::math::ColorOperation;
 
 /// Transparency-aware copy with an applied color math operation
 /// - Copies non-transparent pixels from the source memory buf to the destination memory buf.

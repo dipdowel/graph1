@@ -154,8 +154,8 @@ pub struct Pixel {
     pub color: u32,
 }
 
-/// Array of pixels. Each pixel has the `0RGB` model.
-pub type ImageData0RGB<'a> = &'a mut [u32];
+/// Array of pixels. Each pixel has the `RGBA` model.
+pub type BufferRGBA<'a> = &'a mut [u32];
 
 pub const POINT_ZERO: Point = Point { x: 0, y: 0 };
 

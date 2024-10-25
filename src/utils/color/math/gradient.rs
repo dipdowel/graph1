@@ -5,6 +5,13 @@
 /// * `c2` - The ending color (0RGB)
 /// * `steps` - The number of steps in the gradient.
 ///
+/// FIXME: Rework to use RGBA instead of 0RGB!
+/// FIXME: Rework to use RGBA instead of 0RGB!
+/// FIXME: Rework to use RGBA instead of 0RGB!
+/// FIXME: Rework to use RGBA instead of 0RGB!
+/// FIXME: Rework to use RGBA instead of 0RGB!
+///
+///
 /// # Returns
 /// A vector of colors in 0x00_RR_GG_BB format representing the gradient.
 pub fn simple(c1: u32, c2: u32, steps: usize) -> Vec<u32> {

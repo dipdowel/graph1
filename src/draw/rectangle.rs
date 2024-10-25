@@ -26,7 +26,7 @@ pub fn rectangle_filled(ctx: &mut GraphContext, rect: &RectArea, color: u32) {
 
     loop {
         pixel_index = (y * ctx.win.w + x) as usize;
-        ctx.buf_view[pixel_index] = color;
+        ctx.frame_buf[pixel_index] = color;
         x += 1;
 
         if x == end_x || x == ctx.win.w {

@@ -1,3 +1,8 @@
+/// FIXME: Rework to use RGBA instead of 0RGB!
+/// FIXME: Rework to use RGBA instead of 0RGB!
+/// FIXME: Rework to use RGBA instead of 0RGB!
+/// FIXME: Rework to use RGBA instead of 0RGB!
+/// FIXME: Rework to use RGBA instead of 0RGB!
 /// Converts a Vec<u32> with 0RGBA colors to a  bit array representing black and white colors
 /// as `0` for black and `1` for white.
 /// Every 0x0u32 value gets converted to `0`
@@ -36,6 +41,11 @@ pub fn rgb_to_one_bit_image(data: &Vec<u32>) -> Vec<u8> {
     bit_array
 }
 
+/// FIXME: Rework to use RGBA instead of 0RGB!
+/// FIXME: Rework to use RGBA instead of 0RGB!
+/// FIXME: Rework to use RGBA instead of 0RGB!
+/// FIXME: Rework to use RGBA instead of 0RGB!
+/// FIXME: Rework to use RGBA instead of 0RGB!
 /// Converts a bit array (Vec<u8>) representation of black and white colours
 /// to a Vec<u32> 0RGBA representation, where:
 /// - bit `0` translates to `0x00_00_00_00`

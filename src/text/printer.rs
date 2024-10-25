@@ -64,7 +64,7 @@ pub fn print_line(
         };
 
         image_data::copy(
-            ctx.buf_view,
+            ctx.frame_buf,
             &ctx.win.dimensions,
             &dst_point,
             &font.font_image_buf,

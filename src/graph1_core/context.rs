@@ -1,14 +1,20 @@
 // use graph1::primitives::primitives::{Dimensions2d, ImageData0RGB};
 
-use crate::primitives::primitives::{Dimensions2d, ImageData0RGB};
+use crate::primitives::primitives::{Dimensions2d, BufferRGBA};
 
 #[derive(Debug)]
+/// A collection of pre-computed window properties
+/// that can be used to
 pub struct WindowContext {
+    /// Window width
     pub w: u32,
+    /// Window height
     pub h: u32,
+    /// Same as `w` but as `usize`
     pub w_usize: usize,
+    /// Same as `h` but as `usize`
     pub h_usize: usize,
-    /// Size of the buffer needed to represent the window
+    /// Size of the framebuffer to render the window, in bytes
     pub size: usize,
     /// Window width and height as a `Dimensions2d`
     pub dimensions: Dimensions2d,
@@ -56,45 +62,16 @@ impl BezierContext {
 
 #[derive(Debug)]
 pub struct GraphContext<'c> {
+    /// Reference to the window context
     pub win: &'c WindowContext,
-    pub buf_view: ImageData0RGB<'c>, // TODO: consider replacing with `ImageBuffer`
-
-    /// Use this to pass a color around when no other means are available, e.g.
-    /// can be used to render visual shapes if no `Pixel` is passed
+    /// Reference to the main renderable buffer
+    pub frame_buf: BufferRGBA<'c>,
+    /// Reference to the off-screen buffer (can be used to prepare graphics in advance)
+    pub draft_buf: Option<BufferRGBA<'c>>,
+    /// A default color for rendering
     pub default_color: u32,
     /// Settings for rendering controls for Bezier curves
-    pub bezier: BezierContext,
-    // image_buffer: ImageBuffer<'c>,
+    pub bezier: Option<BezierContext>,
+    /// Current frame in animation. If no animation is needed, can be set to `0`
+    pub frame_count: usize,
 }
-
-// impl<'c> GraphContext<'c> {
-//
-//     pub fn new(
-//         win: &'c ContextWindow,
-//         mut buf_view: &'c VecImageData0RGB<'c>,
-//         default_color: u32,
-//     ) -> Self {
-//         let image_buffer = ImageBuffer {
-//             buf:   buf_view,
-//             // buf: &mut buf_view,
-//             dimensions: Dimensions2d {
-//                 w: win.w,
-//                 h: win.h,
-//             },
-//         };
-//
-//         Self{
-//             win,
-//             default_color,
-//             image_buffer
-//         }
-//
-//     }
-//     pub fn get_image_buffer(&'c mut self) -> &mut ImageBuffer {
-//         &mut self.image_buffer
-//     }
-//
-//     // pub fn get_buf_view(&'c mut self) -> &mut VecImageData0RGB {
-//     //     &mut self.image_buffer.buf
-//     // }
-// }
