@@ -30,6 +30,11 @@ impl<T: Numeric> Point<T> {
             y: U::from_f64(self.y.to_f64()),
         }
     }
+
+    /// Creates a new `Point` with the given `x` and `y` coordinates.
+    pub fn new(x: T, y: T) -> Self {
+        Self { x, y }
+    }
 }
 
 /// An often-used constant for a point at the origin (0, 0).
@@ -68,6 +73,11 @@ impl<T: Numeric> Point3D<T> {
             y: U::from_f64(self.y.to_f64()),
             z: U::from_f64(self.z.to_f64()),
         }
+    }
+
+    /// Creates a new `Point3D` with the given `x`, `y` and `z` coordinates.
+    pub fn new(x: T, y: T, z: T) -> Self {
+        Self { x, y, z }
     }
 }
 
