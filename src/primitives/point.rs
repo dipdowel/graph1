@@ -6,8 +6,7 @@ use crate::primitives::numeric::Numeric;
 /// Use the `convert` method to convert between different numeric types of Point,<br />
 /// e.g. `let point_f64: Point<f64> = point_i32.convert();`<br />
 /// Be aware that precision loss may occur during conversion!<br />
-/// **NB:** When a type with negative coordinates is converted to an unsigned type,<br />
-/// the negative values are truncated to 0.
+/// **NB:** For a note on performance see documentation for `convert()` method.
 #[derive(Debug, Clone, Copy)]
 pub struct Point<T: Numeric = u32> {
     pub x: T,
@@ -15,10 +14,16 @@ pub struct Point<T: Numeric = u32> {
 }
 
 impl<T: Numeric> Point<T> {
-    /// Converts the point to a different numeric type `U`.
+    /// Converts the coordinates of a 2D-point to a different numeric type `U`.
     ///
-    /// This method allows conversion between `Point<T>` types.
-    /// Precision loss may occur during conversion.
+    /// This method allows conversion between `Point<T>` types.<br />
+    /// - **NB 1:** Precision loss may occur during conversion. <br />
+    /// - **NB 2:** When a type with negative coordinates is converted to an unsigned type,<br />
+    /// the negative values are truncated to 0. <br />
+    /// - **NB 3:** When converting a point between different `Numeric` types using `convert()`,<br />
+    /// keep in mind that it is a two-step conversion for every coordinate: `T -> f64 -> U`. <br />
+    /// This may result in slower performance, so use it only in non-performance-critical code. <br />
+    /// If performance is critical, consider implementing a faster direct conversion by yourself.
     pub fn convert<U: Numeric>(self) -> Point<U> {
         Point {
             x: U::from_f64(self.x.to_f64()),
@@ -38,8 +43,7 @@ pub const POINT_ZERO: Point = Point { x: 0, y: 0 };
 /// Use the `convert` method to convert between different numeric types of Point3D,<br />
 /// e.g. `let point3d_f64: Point3d<f64> = point3d_i32.convert();`<br />
 /// Be aware that precision loss may occur during conversion!<br />
-/// **NB:** When a type with negative coordinates is converted to an unsigned type,<br />
-/// the negative values are truncated to 0.
+/// **NB:** For a note on performance see documentation for `convert()` method.
 #[derive(Debug, Clone, Copy)]
 pub struct Point3D<T: Numeric = u32> {
     pub x: T,
@@ -48,10 +52,16 @@ pub struct Point3D<T: Numeric = u32> {
 }
 
 impl<T: Numeric> Point3D<T> {
-    /// Converts the 3D-point to a different numeric type `U`.
+    /// Converts the coordinates of a 3D-point to a different numeric type `U`.
     ///
-    /// This method allows conversion between `Point3D<T>` types.
-    /// Precision loss may occur during conversion.
+    /// This method allows conversion between `Point<T>` types.<br />
+    /// - **NB 1:** Precision loss may occur during conversion. <br />
+    /// - **NB 2:** When a type with negative coordinates is converted to an unsigned type,<br />
+    /// the negative values are truncated to 0. <br />
+    /// - **NB 3:** When converting a point between different `Numeric` types using `convert()`,<br />
+    /// keep in mind that it is a two-step conversion for every coordinate: `T -> f64 -> U`. <br />
+    /// This may result in slower performance, so use it only in non-performance-critical code. <br />
+    /// If performance is critical, consider implementing a faster direct conversion by yourself.
     pub fn convert<U: Numeric>(self) -> Point3D<U> {
         Point3D {
             x: U::from_f64(self.x.to_f64()),
