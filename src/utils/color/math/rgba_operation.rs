@@ -1,4 +1,9 @@
-use crate::utils::color::math::operations::ColorOperation;
+
+/// Operations on RGBA color values
+pub enum ColorOperation {
+    Add,
+    Subtract,
+}
 
 /// Allows adding or subtracting RGBA color values, channel by channel.
 /// - `c1` 1st color operand (in case of subtraction, `c2` is subtracted from `c1`)
