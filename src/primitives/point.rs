@@ -1,6 +1,6 @@
 use crate::primitives::numeric::Numeric;
 
-/// A generic 2D-point, defaults to `u32` for `x` and `y`.
+/// A generic 2D-point: `(x: u32, y:u32)`. Other `Numeric` types can be used instead of `u32`.
 ///
 /// `T` represents the numeric type for `x` and `y`, limited to `u32`, `i32`, `f32`, or `f64`.<br />
 /// Use the `convert` method to convert between different numeric types of Point,<br />
@@ -42,7 +42,7 @@ pub const POINT_ZERO: Point = Point { x: 0, y: 0 };
 
 
 
-/// A generic 3D-point, defaults to `u32` for `x`, `y` and `z`.
+/// A generic 3D-point: `(x: u32, y:u32, z:u32)`. Other `Numeric` types can be used instead of `u32`.
 ///
 /// `T` represents the numeric type for `x`, `y` and `z`, limited to `u32`, `i32`, `f32`, or `f64`.<br />
 /// Use the `convert` method to convert between different numeric types of Point3D,<br />

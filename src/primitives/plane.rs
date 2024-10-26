@@ -3,11 +3,11 @@ use crate::primitives::point::Point;
 
 
 #[derive(Debug, Clone, Copy)]
+/// A combination of width and height on a 2D plane.
 pub struct Dimensions2d<T: Numeric = u32> {
     pub w: T,
     pub h: T,
 }
-
 
 impl<T: Numeric> Dimensions2d<T> {
     /// Converts the Dimensions2D to a different numeric type `U`.
@@ -34,6 +34,8 @@ impl<T: Numeric> Dimensions2d<T> {
 
 
 #[derive(Debug, Clone, Copy)]
+/// A rectangle area with a top-left point, dimensions, and color.
+/// It is used to represent a rectangle on the screen, so the coordinates can only be positive integers.
 pub struct RectArea<T: Numeric = u32> {
     pub top_left: Point<T>,
     pub dimensions: Dimensions2d<T>,
@@ -41,6 +43,8 @@ pub struct RectArea<T: Numeric = u32> {
 }
 
 impl<T: Numeric>  RectArea<T> {
+
+    /// Creates a new `RectArea` with the given top-left point, dimensions, and color.
     pub fn new(x:T, y:T, w:T, h:T, color: Option<u32>) -> Self {
         Self {
             top_left: Point { x, y },
@@ -49,6 +53,7 @@ impl<T: Numeric>  RectArea<T> {
         }
     }
 
+    /// Creates a new square `RectArea`, with the given top-left point, side length, and color.
     pub fn square(x:T, y:T, side:T, color: Option<u32>) -> Self {
         Self {
             top_left: Point { x, y },

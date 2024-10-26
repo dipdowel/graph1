@@ -2,8 +2,6 @@
 /// Array of pixels. Each pixel has the `RGBA` model.
 pub type BufferRGBA<'a> = &'a mut [u32];
 
-
-
 /// A function that transforms a pixel's color based on its value and coordinates.
 ///
 /// This type alias defines a function type that takes a pixel's color value,

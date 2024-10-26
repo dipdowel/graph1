@@ -4,7 +4,7 @@ use crate::primitives::plane::RectArea;
 
 
 /// Draws a rectangle with dimensions and filled with a color specified in the `RectArea` struct.
-pub fn filled(ctx: &mut GraphContext, rect: &RectArea) {
+pub fn filled<UserData>(ctx: &mut GraphContext<UserData>, rect: &RectArea) {
 
     let color = rect.color.unwrap_or(ctx.default_color);
 
@@ -19,6 +19,8 @@ pub fn filled(ctx: &mut GraphContext, rect: &RectArea) {
     let start_y = rect.top_left.y;
     let width = rect.dimensions.w;
     let height = rect.dimensions.h;
+
+    // FIXME: What are these for?
     // let win_width = ctx.win.w
     // let win_height = ctx.win.h
 
