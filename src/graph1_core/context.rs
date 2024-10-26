@@ -1,3 +1,4 @@
+use crate::graph1_core::default_colors;
 use crate::primitives::helper_types::BufferRGBA;
 use crate::primitives::plane::Dimensions2d;
 
@@ -17,11 +18,13 @@ pub struct WindowContext {
     pub size: usize,
     /// Window width and height as a `Dimensions2d`
     pub dimensions: Dimensions2d,
+    /// Background color of the window, RGBA
+    pub background_color: u32,
 }
 
 impl WindowContext {
     /// Instantiates a window context
-    pub fn new(w: u32, h: u32) -> Self {
+    pub fn new(w: u32, h: u32, background_color_rgba: Option<u32>) -> Self {
         Self {
             w,
             h,
@@ -29,14 +32,14 @@ impl WindowContext {
             h_usize: h as usize,
             dimensions: Dimensions2d { w, h },
             size: (4 * w * h) as usize,
+            background_color: background_color_rgba.unwrap_or(default_colors::BACKGROUND),
         }
     }
-/*
-    pub fn default() -> Self {
-        WindowContext::new(320, 240)
-    }
- */
-
+    /*
+       pub fn default() -> Self {
+           WindowContext::new(320, 240)
+       }
+    */
 }
 
 /// Settings for rendering controls for Bezier curves
@@ -58,20 +61,22 @@ impl BezierContext {
         Self {
             render_controls: false,
             render_levers: true,
-            control_color: Some(0x00_00_33_ff),
-            start_end_points_color: Some(0x00_ff_33_00),
+            control_color: Some(default_colors::BEZIER_CONTROL),
+            start_end_points_color: Some(default_colors::BEZIER_START_END),
         }
     }
 }
 
 #[derive(Debug)]
-pub struct GraphContext<'c> {
+pub struct GraphContext<'c, UserDataType = Vec<i32>> {
     /// Reference to the window context
     pub win: &'c WindowContext,
     /// Reference to the main renderable buffer
     pub frame_buf: BufferRGBA<'c>,
     /// Reference to the off-screen buffer (can be used to prepare graphics in advance)
     pub draft_buf: Option<BufferRGBA<'c>>,
+    /// A vector of user-defined data. Store any information here that needs to be passed around with the context
+    pub user_data: Box<UserDataType>,
     /// A default color for rendering
     pub default_color: u32,
     /// Settings for rendering controls for Bezier curves
@@ -82,18 +87,26 @@ pub struct GraphContext<'c> {
     /// TODO: implement support for it in functions!
     pub use_alpha: bool,
 }
-/*
-impl<'d> GraphContext<'d> {
-    pub fn new(win: &'d WindowContext, frame_buf: BufferRGBA<'d>, use_alpha: bool) -> GraphContext<'d> {
+
+impl<'d, UserDataType: Default> GraphContext<'d, UserDataType> {
+    /// TODO: review the implementation of `new` method! It might need some adjustments.
+    pub fn new(
+        win: &'d WindowContext,
+        frame_buf: BufferRGBA<'d>,
+        use_alpha: bool,
+        default_color: Option<u32>,
+        user_data: Option<UserDataType>,
+    ) -> GraphContext<'d, UserDataType> {
         GraphContext {
             win,
             frame_buf,
             draft_buf: None,
-            default_color: 0x00_00_00_ff,
+            default_color: default_color.unwrap_or(default_colors::FOREGROUND),
+            // Use the provided `user_data` or default to `UserDataType::default()`
+            user_data: Box::new(user_data.unwrap_or_default()),
             bezier: None,
             frame_count: 0,
             use_alpha,
         }
     }
 }
-*/
