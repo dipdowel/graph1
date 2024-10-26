@@ -31,6 +31,12 @@ impl WindowContext {
             size: (4 * w * h) as usize,
         }
     }
+/*
+    pub fn default() -> Self {
+        WindowContext::new(320, 240)
+    }
+ */
+
 }
 
 /// Settings for rendering controls for Bezier curves
@@ -72,4 +78,22 @@ pub struct GraphContext<'c> {
     pub bezier: Option<BezierContext>,
     /// Current frame in animation. If no animation is needed, can be set to `0`
     pub frame_count: usize,
+    /// If false, the alpha channel will be ignored when performing image/color operations and rendering
+    /// TODO: implement support for it in functions!
+    pub use_alpha: bool,
 }
+/*
+impl<'d> GraphContext<'d> {
+    pub fn new(win: &'d WindowContext, frame_buf: BufferRGBA<'d>, use_alpha: bool) -> GraphContext<'d> {
+        GraphContext {
+            win,
+            frame_buf,
+            draft_buf: None,
+            default_color: 0x00_00_00_ff,
+            bezier: None,
+            frame_count: 0,
+            use_alpha,
+        }
+    }
+}
+*/
