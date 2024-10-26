@@ -10,10 +10,14 @@ pub struct WindowContext {
     pub w: u32,
     /// Window height
     pub h: u32,
-    /// Same as `w` but as `usize`
+    /// Window width as `usize`
     pub w_usize: usize,
-    /// Same as `h` but as `usize`
+    /// Window height as `usize`
     pub h_usize: usize,
+    /// Window width as `i32`
+    pub w_i32: i32,
+    /// Window height but as `i32`
+    pub h_i32: i32,
     /// Size of the framebuffer to render the window, in bytes
     pub size: usize,
     /// Window width and height as a `Dimensions2d`
@@ -30,6 +34,8 @@ impl WindowContext {
             h,
             w_usize: w as usize,
             h_usize: h as usize,
+            w_i32: w as i32,
+            h_i32: h as i32,
             dimensions: Dimensions2d { w, h },
             size: (4 * w * h) as usize,
             background_color: background_color_rgba.unwrap_or(default_colors::BACKGROUND),
