@@ -1,7 +1,19 @@
 use crate::graph1_core::context::GraphContext;
-use crate::primitives::primitives::RectArea;
+use crate::primitives::plane::RectArea;
 
-pub fn rectangle_filled(ctx: &mut GraphContext, rect: &RectArea, color: u32) {
+
+
+/// Draws a rectangle with dimensions and filled with a color specified in the `RectArea` struct.
+pub fn filled(ctx: &mut GraphContext, rect: &RectArea) {
+
+    let color = rect.color.unwrap_or(ctx.default_color);
+
+    // TODO: Add support for the alpha channel!!!
+    // TODO: Add support for the alpha channel!!!
+    // TODO: Add support for the alpha channel!!!
+    // TODO: Add support for the alpha channel!!!
+    // TODO: Add support for the alpha channel!!!
+
     // Dereference the options
     let start_x = rect.top_left.x;
     let start_y = rect.top_left.y;

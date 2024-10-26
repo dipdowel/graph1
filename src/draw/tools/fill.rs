@@ -1,7 +1,13 @@
 use std::collections::VecDeque;
-use crate::primitives::primitives::{Dimensions2d, Pixel};
+use crate::primitives::Pixel;
+use crate::primitives::plane::Dimensions2d;
 
+/// A low-level fill tool.
 /// Unsafely fills a buffer with a given color
+/// This should be faster `draw::rectangle::fill()`
+/// TODO: check the claim about the speed above!!!
+/// TODO: check the claim about the speed above!!!
+/// TODO: check the claim about the speed above!!!
 pub fn buffer(buf_view: &mut [u32], color: u32) {
     unsafe {
         // Obtain a raw pointer
