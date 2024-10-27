@@ -4,6 +4,8 @@ pub mod graph1_core {
     pub mod context;
     /// Default colors used in the library if no custom colors specified
     pub mod default_colors;
+    /// Alpha blending configurations
+    pub mod alpha;
 }
 /// Building blocks: essential structs, traits, types, constants, etc.
 pub mod primitives {
@@ -25,13 +27,17 @@ pub mod primitives {
 pub mod utils {
     /// Utils for processing colors
     pub mod color {
+        /// Functions to blend colors taking into account the alpha channel
+        pub mod alpha;
         /// Color adapters for converting between different color models.
         pub mod adapters;
         /// Math operations on colors
         pub mod math {
-            pub mod operations;
+
+            /// Addition and subtraction of RGBA colors
             pub mod rgba_operation;
         }
+        pub mod palettes;
     }
 }
 

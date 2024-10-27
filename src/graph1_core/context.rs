@@ -1,3 +1,4 @@
+use crate::graph1_core::alpha::{AlphaConfig, AlphaMethod};
 use crate::graph1_core::default_colors;
 use crate::primitives::helper_types::BufferRGBA;
 use crate::primitives::plane::Dimensions2d;
@@ -73,6 +74,8 @@ impl BezierContext {
     }
 }
 
+
+
 #[derive(Debug)]
 pub struct GraphContext<'c, UserDataType = Vec<i32>> {
     /// Reference to the window context
@@ -89,9 +92,8 @@ pub struct GraphContext<'c, UserDataType = Vec<i32>> {
     pub bezier: Option<BezierContext>,
     /// Current frame in animation. If no animation is needed, can be set to `0`
     pub frame_count: usize,
-    /// If false, the alpha channel will be ignored when performing image/color operations and rendering
-    /// TODO: implement support for it in functions!
-    pub use_alpha: bool,
+    ///  Configurations for alpha blending (where applicable)
+    pub alpha: AlphaConfig,
 }
 
 impl<'d, UserDataType: Default> GraphContext<'d, UserDataType> {
@@ -112,7 +114,10 @@ impl<'d, UserDataType: Default> GraphContext<'d, UserDataType> {
             user_data: Box::new(user_data.unwrap_or_default()),
             bezier: None,
             frame_count: 0,
-            use_alpha,
+            alpha: AlphaConfig {
+                enabled: use_alpha,
+                method: AlphaMethod::Int,
+            },
         }
     }
 }
