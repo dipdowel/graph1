@@ -38,6 +38,12 @@ pub mod utils {
             pub mod rgba_operation;
         }
         pub mod palettes;
+        /// Color properties calculations, color analysis
+        pub mod properties {
+            pub mod intensity;
+            pub mod luminance;
+
+        }
     }
 }
 
