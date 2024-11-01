@@ -1,8 +1,10 @@
 use crate::graph1_core::context::GraphContext;
-use crate::primitives::primitives::{Pixel, Point};
+use crate::primitives::Pixel;
+use crate::primitives::point::Point;
 
 /// Draws a horizontal line (from left to right) with a specified color and length
-pub fn horizontal(ctx: &mut GraphContext, start: &Pixel, length: u32) {
+pub fn horizontal<UserData>(ctx: &mut GraphContext<UserData>, start: &Pixel, length: u32) {
+
     // if length+start.x > WIN_WIDTH {
     //     println!(">>> HORIZONTAL! {}, {:?}", length, start);
     // }
@@ -27,7 +29,7 @@ pub fn horizontal(ctx: &mut GraphContext, start: &Pixel, length: u32) {
 }
 
 /// Draws a vertical line (from top to bottom) with a specified color and length
-pub fn vertical(ctx: &mut GraphContext, start: &Pixel, length: u32) {
+pub fn vertical<UserData>(ctx: &mut GraphContext<UserData>, start: &Pixel, length: u32) {
     // Don't draw off-screen or draw a zero-length line
     if start.x >= ctx.win.w || start.y >= ctx.win.h || length == 0 {
         return;
@@ -53,7 +55,7 @@ pub fn vertical(ctx: &mut GraphContext, start: &Pixel, length: u32) {
 }
 
 /// Draws a line of a specified color between two arbitrary points
-pub fn between_two_points(ctx: &mut GraphContext, start: &Pixel, end: &Point) {
+pub fn between_two_points<UserData>(ctx: &mut GraphContext<UserData>, start: &Pixel, end: &Point) {
 
     // Don't let the start of the line to fall outside the visible buffer
     let mut start: Pixel = Pixel {

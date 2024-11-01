@@ -1,10 +1,17 @@
-use crate::draw::line;
+use crate::draw;
 use crate::graph1_core::context::GraphContext;
-use crate::primitives::primitives::Pixel;
+use crate::primitives::Pixel;
 
-/// Tries to draw a circle
-/// TODO: add more details to the RustDoc here
-pub fn circle(ctx: &mut GraphContext, center: &Pixel, radius: u32, skip_every: u32) {
+/// Draws a filled circle with a specified center, radius, and color.
+/// The circle is drawn using an optimized scanline-based circle-drawing algorithm.
+///
+/// # Parameters
+/// - `ctx`: A mutable reference to the `GraphContext` which holds the drawing context.
+/// - `center`: A reference to a `Pixel` that specifies the center of the circle and its color.
+/// - `radius`: The radius of the circle in pixels.
+/// - `skip_every`: The number of lines to skip while drawing. This provides a less dense, stylised circle.
+pub fn filled<UserData>(ctx: &mut GraphContext<UserData>, center: &Pixel, radius: u32, skip_every: u32) {
+
     let radius_sq = radius.pow(2) as i32;
 
     let mut skip_every = skip_every;
@@ -47,14 +54,14 @@ pub fn circle(ctx: &mut GraphContext, center: &Pixel, radius: u32, skip_every: u
         pixel.y = center.y + delta_y; // `y` for the upper half-circle
 
         // Draw the upper half of the circle.
-        line::horizontal(ctx, &pixel, length);
+        draw::line::horizontal(ctx, &pixel, length);
 
         if delta_y > 0 {
             // Draw the lower half of the circle, avoiding the central line being drawn twice.
             pixel.y = (center.y as i32 - delta_y as i32) as u32;
             // NB: due to typecasting `pixel.y` can become really large, but it's okay
             // NB: since `line::horizontal()` checks for `y` being greater than window's height
-            line::horizontal(ctx, &pixel, length);
+            draw::line::horizontal(ctx, &pixel, length);
         }
     }
 }

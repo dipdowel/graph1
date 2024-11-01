@@ -51,6 +51,11 @@ pub mod utils {
 pub mod draw{
     /// Draw rectangles
     pub mod rectangle;
+    /// Draw lines
+    pub mod line;
+    /// Draw circles
+    pub mod circle;
+
     /// Drawing tools
     pub mod tools {
         /// Fill a shape or a buffer with a color
