@@ -4,4 +4,10 @@
  ================================================================================================================
 -[ ] Consider adding `#[derive(Default)]` in places where it makes sense!
 -[ ] Explode `Default`: .../stdlib-local-copy/bundled-1.82.0/library/core/src/default.rs
-- 
+
+## Luminance and Intensity
+- [ ] Make both of them return `u32` and operate on `u32` buffers
+- [ ] Make a channel extractor for `u32` buffers, which would convert a `u32` buffer to a `u8` of the same length
+
+## Intensity
+- [ ] Implement `square` parameter for all the functions, adjust the RUstDoc accordingly!

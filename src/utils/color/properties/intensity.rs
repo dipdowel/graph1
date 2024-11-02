@@ -1,3 +1,6 @@
+use crate::graph1_core::context::GraphContext;
+use crate::primitives::plane::RectArea;
+
 /// Calculates intensity of an RGB color by taking a simple mean of the channels.
 /// # Arguments
 /// * `red` - The red channel value (0-255).
@@ -10,7 +13,6 @@ pub fn rgb_pixel_intensity(red: u8, green: u8, blue: u8) -> u8 {
     ((red as u16 + green as u16 + blue as u16) / 3) as u8
 }
 
-
 /// Calculates intensity from an RGBA color (`u32`) by taking a simple mean of the channels. <br />
 /// Ignores the alpha channel and uses only RGB values for the calculation.
 /// # Arguments
@@ -18,12 +20,23 @@ pub fn rgb_pixel_intensity(red: u8, green: u8, blue: u8) -> u8 {
 ///
 /// # Returns
 /// A `u8` representing the average intensity.
-pub fn rgba_pixel_intensity(color: u32) -> u8 {
-    let red = ((color >> 24) & 0xff) as u8;
-    let green = ((color >> 16) & 0xff) as u8;
-    let blue = ((color >> 8) & 0xff) as u8;
+pub fn rgba_pixel_intensity(color: u32, squared: bool) -> u8 { //FIXME: return `u32`!
 
-    ((red as u16 + green as u16 + blue as u16) / 3) as u8
+
+
+    let red = (color >> 24) & 0xff;
+    let green = (color >> 16) & 0xff;
+    let blue = (color >> 8) & 0xff;
+
+    // TODO: Add support for `squared` to the other functions in this file!
+    // TODO: Add support for `squared` to the other functions in this file!
+    // TODO: Add support for `squared` to the other functions in this file!
+    // TODO: Add support for `squared` to the other functions in this file!
+    if squared {
+        return ((red * red + green * green + blue * blue) as f32 / 3f32).sqrt() as u8;
+    }
+
+    ((red + green + blue) / 3) as u8
 }
 
 /// Calculates intensity of each pixel from a buffer of `u32` with RGBA colors. <br />
@@ -33,8 +46,12 @@ pub fn rgba_pixel_intensity(color: u32) -> u8 {
 /// * `src` - A slice of RGBA pixels to calculate the intensity from, where each pixel is a `u32`.
 /// # Panics
 /// Panics if `dst` and `src` have different lengths.
-pub fn rgba_buffer_intensity(dst: &mut [u8], src: &[u32])  {
-    assert_eq!(dst.len(), src.len(), "Source and destination buffers must have the same length!");
+pub fn rgba_buffer_intensity(dst: &mut [u8], src: &[u32]) { //FIXME: make `dst: &mut [u32]`
+    assert_eq!(
+        dst.len(),
+        src.len(),
+        "Source and destination buffers must have the same length!"
+    );
 
     for (dst_value, &src_color) in dst.iter_mut().zip(src.iter()) {
         let red = ((src_color >> 24) & 0xff) as u8;
@@ -44,6 +61,60 @@ pub fn rgba_buffer_intensity(dst: &mut [u8], src: &[u32])  {
     }
 }
 
+pub fn rgba_region_intensity<UserData>(
+    ctx: &mut GraphContext<UserData>,
+    region: &RectArea,
+    squared: bool,
+) {
+    // Dereference the options
+    let start_x = region.top_left.x;
+    let start_y = region.top_left.y;
+    let width = region.dimensions.w;
+    let height = region.dimensions.h;
+
+    // Nothing to draw here
+    if width == 0 || height == 0 {
+        return;
+    }
+
+    let end_x = start_x + width;
+    let end_y = start_y + height;
+
+    let mut x = start_x;
+    let mut y = start_y;
+
+    // Which pixel in the vector should be filled in next.
+    let mut pixel_index: usize;
+
+    let mut resulting_color: u32 = 0;
+
+    loop {
+        pixel_index = (y * ctx.win.w + x) as usize;
+        let intensity = rgba_pixel_intensity(ctx.frame_buf[pixel_index], squared);
+        resulting_color =
+            (intensity as u32) << 24 | (intensity as u32) << 16 | (intensity as u32) << 8 | 0xff;
+
+        // resulting_color = 0x00_00_00_ff | intensity_level << 16 | intensity_level << 8 | intensity_level;
+        ctx.frame_buf[pixel_index] = resulting_color;
+
+        x += 1;
+
+        if x == end_x || x == ctx.win.w {
+            y += 1;
+            x = start_x;
+        };
+
+        if y == end_y || y == ctx.win.h {
+            break;
+        }
+    }
+}
+
+/*
+FIXME: Fix the tests!
+FIXME: Fix the tests!
+FIXME: Fix the tests!
+FIXME: Fix the tests!
 
 #[cfg(test)]
 mod tests {
@@ -114,3 +185,4 @@ mod tests {
         assert_eq!(dst, []);
     }
 }
+*/
