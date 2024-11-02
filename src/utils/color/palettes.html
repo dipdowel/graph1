@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Graph1 :: Color Palettes Preview</title>
+    <title>Graph1 :: Color Palettes</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -20,6 +20,40 @@
             text-align: center;
             margin-bottom: 40px;
         }
+
+        p, ul {
+            width: 90%;
+            max-width: 600px;
+        }
+
+        ul >li {
+            margin-bottom: 4px;
+        }
+
+        pre{
+            margin-right: 20px;
+        }
+        a {
+            color: #ffcc66; /* Soft gold for contrast against dark background */
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        a:hover {
+            color: #ffd480; /* Lighter gold on hover */
+            text-decoration: underline;
+        }
+
+        a:active {
+            color: #ffb84d; /* Slightly darker gold on active click */
+        }
+        .tip-board{
+            border: #515177 solid 1px;
+            background: #313149;
+            padding:10px;
+            border-radius: 8px;
+        }
+
         .palette {
             width: 90%;
             max-width: 600px;
@@ -46,204 +80,275 @@
             height: 40px;
             border-radius: 4px;
             margin-right: 10px;
-            border: 1px solid #333;
+            border: 2px solid #333;
+            cursor: pointer;
         }
         .color-name {
             font-size: 0.9em;
             color: #ccc;
         }
+
     </style>
 </head>
 <body>
 
-<h1>Color Palettes Preview</h1>
+<h1>Graph1 :: Color Palettes & Picker</h1>
+<p style="width: 80%;">
+    Below is a collection of color palettes shipped with Graph1.
+    Each palette contains a set of colors that are designed to work well together.
 
-<!-- Sunset Glow Palette -->
-<div class="palette">
-    <h2>Sunset Glow</h2>
-    <div class="color-sample"><div class="color-box" style="background-color: #fa8e4b;"></div><span class="color-name">Soft Orange (#fa8e4b)</span></div>
-    <div class="color-sample"><div class="color-box" style="background-color: #ffb375;"></div><span class="color-name">Warm Peach (#ffb375)</span></div>
-    <div class="color-sample"><div class="color-box" style="background-color: #ffa1c0;"></div><span class="color-name">Faded Pink (#ffa1c0)</span></div>
-    <div class="color-sample"><div class="color-box" style="background-color: #a388bc;"></div><span class="color-name">Dusty Lavender (#a388bc)</span></div>
-    <div class="color-sample"><div class="color-box" style="background-color: #668fbd;"></div><span class="color-name">Evening Sky Blue (#668fbd)</span></div>
-    <div class="color-sample"><div class="color-box" style="background-color: #3d5a73;"></div><span class="color-name">Gentle Indigo (#3d5a73)</span></div>
-    <div class="color-sample"><div class="color-box" style="background-color: #234e52;"></div><span class="color-name">Deep Teal (#234e52)</span></div>
-    <div class="color-sample"><div class="color-box" style="background-color: #465d6a;"></div><span class="color-name">Mellow Slate (#465d6a)</span></div>
-    <div class="color-sample"><div class="color-box" style="background-color: #4a4e57;"></div><span class="color-name">Dusk Gray (#4a4e57)</span></div>
-    <div class="color-sample"><div class="color-box" style="background-color: #c6b4c8;"></div><span class="color-name">Pale Mauve (#c6b4c8)</span></div>
-    <div class="color-sample"><div class="color-box" style="background-color: #5c336b;"></div><span class="color-name">Twilight Purple (#5c336b)</span></div>
-    <div class="color-sample"><div class="color-box" style="background-color: #1f2a4b;"></div><span class="color-name">Nightfall Blue (#1f2a4b)</span></div>
-</div>
+</p>
+<pre class="tip-board">💡 Click a color sample square to copy its Graph1 definition to your clipboard</pre>
+<ul>
+    <li><a href="#tropical-paradise">Tropical Paradise</a></li>
+    <li><a href="#retro-neon">Retro Neon</a></li>
+    <li><a href="#autumn-harvest">Autumn Harvest</a></li>
+    <li><a href="#sunset-glow">Sunset Glow</a></li>
+    <li><a href="#forest-mist">Forest Mist</a></li>
+    <li><a href="#vintage-pastel">Vintage Pastel</a></li>
+    <li><a href="#desert-dusk">Desert Dusk</a></li>
+    <li><a href="#winter-frost">Winter Frost</a></li>
+    <li><a href="#ocean-breeze">Ocean Breeze</a></li>
+    <li><a href="#urban-concrete">Urban Concrete</a></li>
+    <li><a href="#grayscale">Grayscale</a></li>
+</ul>
+
+
+
 
 <!-- Tropical Paradise Palette -->
 <div class="palette">
-    <h2>Tropical Paradise</h2>
-    <div class="color-sample"><div class="color-box" style="background-color: #f5d798;"></div><span class="color-name">Sand Yellow (#f5d798)</span></div>
-    <div class="color-sample"><div class="color-box" style="background-color: #7a4e1d;"></div><span class="color-name">Coconut Brown (#7a4e1d)</span></div>
-    <div class="color-sample"><div class="color-box" style="background-color: #268845;"></div><span class="color-name">Palm Green (#268845)</span></div>
-    <div class="color-sample"><div class="color-box" style="background-color: #3698bf;"></div><span class="color-name">Lagoon Blue (#3698bf)</span></div>
-    <div class="color-sample"><div class="color-box" style="background-color: #ff8288;"></div><span class="color-name">Coral Pink (#ff8288)</span></div>
-    <div class="color-sample"><div class="color-box" style="background-color: #70d1ba;"></div><span class="color-name">Seafoam Green (#70d1ba)</span></div>
-    <div class="color-sample"><div class="color-box" style="background-color: #ff8e8f;"></div><span class="color-name">Sunset Coral (#ff8e8f)</span></div>
-    <div class="color-sample"><div class="color-box" style="background-color: #236984;"></div><span class="color-name">Ocean Deep (#236984)</span></div>
-    <div class="color-sample"><div class="color-box" style="background-color: #ffba5a;"></div><span class="color-name">Mango Orange (#ffba5a)</span></div>
-    <div class="color-sample"><div class="color-box" style="background-color: #dc4750;"></div><span class="color-name">Hibiscus Red (#dc4750)</span></div>
-    <div class="color-sample"><div class="color-box" style="background-color: #ffc14d;"></div><span class="color-name">Papaya Yellow (#ffc14d)</span></div>
-    <div class="color-sample"><div class="color-box" style="background-color: #fcf6e7;"></div><span class="color-name">Coconut White (#fcf6e7)</span></div>
+    <h2 id="tropical-paradise">Tropical Paradise</h2>
+    <div class="color-sample"><div class="color-box" style="background-color: #f5d798;"></div><pre>TropicalParadise::SAND_YELLOW</pre><span class="color-name">0xf5_d7_98_ff</span></div>
+    <div class="color-sample"><div class="color-box" style="background-color: #7a4e1d;"></div><pre>TropicalParadise::COCONUT_BROWN</pre><span class="color-name">0x7a_4e_1d_ff</span></div>
+    <div class="color-sample"><div class="color-box" style="background-color: #268845;"></div><pre>TropicalParadise::PALM_GREEN</pre><span class="color-name">0x26_88_45_ff</span></div>
+    <div class="color-sample"><div class="color-box" style="background-color: #3698bf;"></div><pre>TropicalParadise::LAGOON_BLUE</pre><span class="color-name">0x36_98_bf_ff</span></div>
+    <div class="color-sample"><div class="color-box" style="background-color: #ff8288;"></div><pre>TropicalParadise::CORAL_PINK</pre><span class="color-name">0xff_82_88_ff</span></div>
+    <div class="color-sample"><div class="color-box" style="background-color: #70d1ba;"></div><pre>TropicalParadise::SEAFOAM_GREEN</pre><span class="color-name">0x70_d1_ba_ff</span></div>
+    <div class="color-sample"><div class="color-box" style="background-color: #ff8e8f;"></div><pre>TropicalParadise::SUNSET_CORAL</pre><span class="color-name">0xff_8e_8f_ff</span></div>
+    <div class="color-sample"><div class="color-box" style="background-color: #236984;"></div><pre>TropicalParadise::OCEAN_DEEP</pre><span class="color-name">0x23_69_84_ff</span></div>
+    <div class="color-sample"><div class="color-box" style="background-color: #ffba5a;"></div><pre>TropicalParadise::MANGO_ORANGE</pre><span class="color-name">0xff_ba_5a_ff</span></div>
+    <div class="color-sample"><div class="color-box" style="background-color: #dc4750;"></div><pre>TropicalParadise::HIBISCUS_RED</pre><span class="color-name">0xdc_47_50_ff</span></div>
+    <div class="color-sample"><div class="color-box" style="background-color: #ffc14d;"></div><pre>TropicalParadise::PAPAYA_YELLOW</pre><span class="color-name">0xff_c1_4d_ff</span></div>
+    <div class="color-sample"><div class="color-box" style="background-color: #fcf6e7;"></div><pre>TropicalParadise::COCONUT_WHITE</pre><span class="color-name">0xfc_f6_e7_ff</span></div>
 </div>
+
+
 
 <!-- Retro Neon Palette -->
 <div class="palette">
-    <h2>Retro Neon</h2>
-    <div class="color-sample"><div class="color-box" style="background-color: #ff0099;"></div><span class="color-name">Neon Pink (#ff0099)</span></div>
-    <div class="color-sample"><div class="color-box" style="background-color: #b200ff;"></div><span class="color-name">Electric Purple (#b200ff)</span></div>
-    <div class="color-sample"><div class="color-box" style="background-color: #00faff;"></div><span class="color-name">Turquoise Teal (#00faff)</span></div>
-    <div class="color-sample"><div class="color-box" style="background-color: #00ffe1;"></div><span class="color-name">Vibrant Cyan (#00ffe1)</span></div>
-    <div class="color-sample"><div class="color-box" style="background-color: #ccff00;"></div><span class="color-name">Laser Lime (#ccff00)</span></div>
-    <div class="color-sample"><div class="color-box" style="background-color: #ff00ff;"></div><span class="color-name">Magenta Glow (#ff00ff)</span></div>
-    <div class="color-sample"><div class="color-box" style="background-color: #009aff;"></div><span class="color-name">Cyber Blue (#009aff)</span></div>
-    <div class="color-sample"><div class="color-box" style="background-color: #ff5793;"></div><span class="color-name">Hot Pink (#ff5793)</span></div>
-    <div class="color-sample"><div class="color-box" style="background-color: #0095ff;"></div><span class="color-name">Electric Blue (#0095ff)</span></div>
-    <div class="color-sample"><div class="color-box" style="background-color: #80ff00;"></div><span class="color-name">Acid Green (#80ff00)</span></div>
-    <div class="color-sample"><div class="color-box" style="background-color: #56007a;"></div><span class="color-name">Dark Purple (#56007a)</span></div>
-    <div class="color-sample"><div class="color-box" style="background-color: #9a9a9a;"></div><span class="color-name">Vaporwave Gray (#9a9a9a)</span></div>
-</div>
-
-<!-- Forest Mist Palette -->
-<div class="palette">
-    <h2>Forest Mist</h2>
-    <div class="color-sample"><div class="color-box" style="background-color: #29624c;"></div><span class="color-name">Pine Green (#29624c)</span></div>
-    <div class="color-sample"><div class="color-box" style="background-color: #184a2e;"></div><span class="color-name">Forest Green (#184a2e)</span></div>
-    <div class="color-sample"><div class="color-box" style="background-color: #7d8f4e;"></div><span class="color-name">Moss Green (#7d8f4e)</span></div>
-    <div class="color-sample"><div class="color-box" style="background-color: #6a4e2d;"></div><span class="color-name">Cedar Brown (#6a4e2d)</span></div>
-    <div class="color-sample"><div class="color-box" style="background-color: #8b795e;"></div><span class="color-name">Earthy Taupe (#8b795e)</span></div>
-    <div class="color-sample"><div class="color-box" style="background-color: #a8b6b5;"></div><span class="color-name">Mist Gray (#a8b6b5)</span></div>
-    <div class="color-sample"><div class="color-box" style="background-color: #92b1bc;"></div><span class="color-name">Fog Blue (#92b1bc)</span></div>
-    <div class="color-sample"><div class="color-box" style="background-color: #ccd3c7;"></div><span class="color-name">Sky Gray (#ccd3c7)</span></div>
-    <div class="color-sample"><div class="color-box" style="background-color: #98af75;"></div><span class="color-name">Soft Fern (#98af75)</span></div>
-    <div class="color-sample"><div class="color-box" style="background-color: #3d332d;"></div><span class="color-name">Deep Bark (#3d332d)</span></div>
-    <div class="color-sample"><div class="color-box" style="background-color: #76815c;"></div><span class="color-name">Mossy Rock (#76815c)</span></div>
-    <div class="color-sample"><div class="color-box" style="background-color: #4e6a41;"></div><span class="color-name">Woodland Green (#4e6a41)</span></div>
-</div>
-
-<!-- Vintage Pastel Palette -->
-<div class="palette">
-    <h2>Vintage Pastel</h2>
-    <div class="color-sample"><div class="color-box" style="background-color: #f3b5d0;"></div><span class="color-name">Powder Pink (#f3b5d0)</span></div>
-    <div class="color-sample"><div class="color-box" style="background-color: #c6a1cd;"></div><span class="color-name">Pale Lavender (#c6a1cd)</span></div>
-    <div class="color-sample"><div class="color-box" style="background-color: #a1c7a7;"></div><span class="color-name">Light Mint (#a1c7a7)</span></div>
-    <div class="color-sample"><div class="color-box" style="background-color: #ffeba8;"></div><span class="color-name">Creamy Yellow (#ffeba8)</span></div>
-    <div class="color-sample"><div class="color-box" style="background-color: #b2d1e9;"></div><span class="color-name">Baby Blue (#b2d1e9)</span></div>
-    <div class="color-sample"><div class="color-box" style="background-color: #f7acb6;"></div><span class="color-name">Soft Coral (#f7acb6)</span></div>
-    <div class="color-sample"><div class="color-box" style="background-color: #e89baf;"></div><span class="color-name">Dusty Rose (#e89baf)</span></div>
-    <div class="color-sample"><div class="color-box" style="background-color: #ab96bd;"></div><span class="color-name">Muted Lavender (#ab96bd)</span></div>
-    <div class="color-sample"><div class="color-box" style="background-color: #ffb6b6;"></div><span class="color-name">Light Peach (#ffb6b6)</span></div>
-    <div class="color-sample"><div class="color-box" style="background-color: #a4b9e3;"></div><span class="color-name">Periwinkle (#a4b9e3)</span></div>
-    <div class="color-sample"><div class="color-box" style="background-color: #d1d5dd;"></div><span class="color-name">Soft Gray (#d1d5dd)</span></div>
-    <div class="color-sample"><div class="color-box" style="background-color: #f5f3ef;"></div><span class="color-name">Cloud White (#f5f3ef)</span></div>
-</div>
-
-<!-- Desert Dusk Palette -->
-<div class="palette">
-    <h2>Desert Dusk</h2>
-    <div class="color-sample"><div class="color-box" style="background-color: #d9b57b;"></div><span class="color-name">Sandstone (#d9b57b)</span></div>
-    <div class="color-sample"><div class="color-box" style="background-color: #e1c47a;"></div><span class="color-name">Golden Sand (#e1c47a)</span></div>
-    <div class="color-sample"><div class="color-box" style="background-color: #eea393;"></div><span class="color-name">Desert Rose (#eea393)</span></div>
-    <div class="color-sample"><div class="color-box" style="background-color: #dc7e45;"></div><span class="color-name">Rusty Orange (#dc7e45)</span></div>
-    <div class="color-sample"><div class="color-box" style="background-color: #8c4a25;"></div><span class="color-name">Earth Red (#8c4a25)</span></div>
-    <div class="color-sample"><div class="color-box" style="background-color: #a3ac94;"></div><span class="color-name">Sagebrush (#a3ac94)</span></div>
-    <div class="color-sample"><div class="color-box" style="background-color: #bd8052;"></div><span class="color-name">Clay Brown (#bd8052)</span></div>
-    <div class="color-sample"><div class="color-box" style="background-color: #6f7a60;"></div><span class="color-name">Cactus Green (#6f7a60)</span></div>
-    <div class="color-sample"><div class="color-box" style="background-color: #e08d80;"></div><span class="color-name">Sunset Blush (#e08d80)</span></div>
-    <div class="color-sample"><div class="color-box" style="background-color: #cf9c50;"></div><span class="color-name">Warm Ochre (#cf9c50)</span></div>
-    <div class="color-sample"><div class="color-box" style="background-color: #ecc2a4;"></div><span class="color-name">Faded Peach (#ecc2a4)</span></div>
-    <div class="color-sample"><div class="color-box" style="background-color: #5c4e3b;"></div><span class="color-name">Shadow Brown (#5c4e3b)</span></div>
-</div>
-
-<!-- Winter Frost Palette -->
-<div class="palette">
-    <h2>Winter Frost</h2>
-    <div class="color-sample"><div class="color-box" style="background-color: #c3d9ed;"></div><span class="color-name">Frost Blue (#c3d9ed)</span></div>
-    <div class="color-sample"><div class="color-box" style="background-color: #eff9fb;"></div><span class="color-name">Snow White (#eff9fb)</span></div>
-    <div class="color-sample"><div class="color-box" style="background-color: #dde6f2;"></div><span class="color-name">Ice Gray (#dde6f2)</span></div>
-    <div class="color-sample"><div class="color-box" style="background-color: #c9c7e8;"></div><span class="color-name">Pale Lilac (#c9c7e8)</span></div>
-    <div class="color-sample"><div class="color-box" style="background-color: #91a6c9;"></div><span class="color-name">Cool Blue (#91a6c9)</span></div>
-    <div class="color-sample"><div class="color-box" style="background-color: #97c1bc;"></div><span class="color-name">Frozen Green (#97c1bc)</span></div>
-    <div class="color-sample"><div class="color-box" style="background-color: #b5b4e2;"></div><span class="color-name">Frosted Lavender (#b5b4e2)</span></div>
-    <div class="color-sample"><div class="color-box" style="background-color: #ccd0d9;"></div><span class="color-name">Soft Silver (#ccd0d9)</span></div>
-    <div class="color-sample"><div class="color-box" style="background-color: #8a9ca4;"></div><span class="color-name">Cold Steel (#8a9ca4)</span></div>
-    <div class="color-sample"><div class="color-box" style="background-color: #9dc9c2;"></div><span class="color-name">Winter Mint (#9dc9c2)</span></div>
-    <div class="color-sample"><div class="color-box" style="background-color: #f2c6cb;"></div><span class="color-name">Icy Pink (#f2c6cb)</span></div>
-    <div class="color-sample"><div class="color-box" style="background-color: #4c5a7a;"></div><span class="color-name">Arctic Navy (#4c5a7a)</span></div>
+    <h2 id="retro-neon">Retro Neon</h2>
+    <div class="color-sample"><div class="color-box" style="background-color: #ff0099;"></div><pre>RetroNeon::NEON_PINK</pre><span class="color-name">0xff_00_99_ff</span></div>
+    <div class="color-sample"><div class="color-box" style="background-color: #b200ff;"></div><pre>RetroNeon::ELECTRIC_PURPLE</pre><span class="color-name">0xb2_00_ff_ff</span></div>
+    <div class="color-sample"><div class="color-box" style="background-color: #00faff;"></div><pre>RetroNeon::TURQUOISE_TEAL</pre><span class="color-name">0x00_fa_ff_ff</span></div>
+    <div class="color-sample"><div class="color-box" style="background-color: #00ffe1;"></div><pre>RetroNeon::VIBRANT_CYAN</pre><span class="color-name">0x00_ff_e1_ff</span></div>
+    <div class="color-sample"><div class="color-box" style="background-color: #ccff00;"></div><pre>RetroNeon::LASER_LIME</pre><span class="color-name">0xcc_ff_00_ff</span></div>
+    <div class="color-sample"><div class="color-box" style="background-color: #ff00ff;"></div><pre>RetroNeon::MAGENTA_GLOW</pre><span class="color-name">0xff_00_ff_ff</span></div>
+    <div class="color-sample"><div class="color-box" style="background-color: #009aff;"></div><pre>RetroNeon::CYBER_BLUE</pre><span class="color-name">0x00_9a_ff_ff</span></div>
+    <div class="color-sample"><div class="color-box" style="background-color: #ff5793;"></div><pre>RetroNeon::HOT_PINK</pre><span class="color-name">0xff_57_93_ff</span></div>
+    <div class="color-sample"><div class="color-box" style="background-color: #0095ff;"></div><pre>RetroNeon::ELECTRIC_BLUE</pre><span class="color-name">0x00_95_ff_ff</span></div>
+    <div class="color-sample"><div class="color-box" style="background-color: #80ff00;"></div><pre>RetroNeon::ACID_GREEN</pre><span class="color-name">0x80_ff_00_ff</span></div>
+    <div class="color-sample"><div class="color-box" style="background-color: #56007a;"></div><pre>RetroNeon::DARK_PURPLE</pre><span class="color-name">0x56_00_7a_ff</span></div>
+    <div class="color-sample"><div class="color-box" style="background-color: #9a9a9a;"></div><pre>RetroNeon::VAPORWAVE_GRAY</pre><span class="color-name">0x9a_9a_9a_ff</span></div>
 </div>
 
 <!-- Autumn Harvest Palette -->
 <div class="palette">
-    <h2>Autumn Harvest</h2>
-    <div class="color-sample"><div class="color-box" style="background-color: #ff7d4e;"></div><span class="color-name">Pumpkin Orange (#ff7d4e)</span></div>
-    <div class="color-sample"><div class="color-box" style="background-color: #e63b3b;"></div><span class="color-name">Maple Red (#e63b3b)</span></div>
-    <div class="color-sample"><div class="color-box" style="background-color: #d9572c;"></div><span class="color-name">Burnt Sienna (#d9572c)</span></div>
-    <div class="color-sample"><div class="color-box" style="background-color: #cda87e;"></div><span class="color-name">Warm Beige (#cda87e)</span></div>
-    <div class="color-sample"><div class="color-box" style="background-color: #ffd36e;"></div><span class="color-name">Harvest Gold (#ffd36e)</span></div>
-    <div class="color-sample"><div class="color-box" style="background-color: #428a47;"></div><span class="color-name">Forest Green (#428a47)</span></div>
-    <div class="color-sample"><div class="color-box" style="background-color: #7d4e2f;"></div><span class="color-name">Chestnut Brown (#7d4e2f)</span></div>
-    <div class="color-sample"><div class="color-box" style="background-color: #ffc435;"></div><span class="color-name">Mustard Yellow (#ffc435)</span></div>
-    <div class="color-sample"><div class="color-box" style="background-color: #6a7d33;"></div><span class="color-name">Olive Green (#6a7d33)</span></div>
-    <div class="color-sample"><div class="color-box" style="background-color: #b53230;"></div><span class="color-name">Rust Red (#b53230)</span></div>
-    <div class="color-sample"><div class="color-box" style="background-color: #dca866;"></div><span class="color-name">Tawny (#dca866)</span></div>
-    <div class="color-sample"><div class="color-box" style="background-color: #ffc15d;"></div><span class="color-name">Golden Rod (#ffc15d)</span></div>
+    <h2 id="autumn-harvest">Autumn Harvest</h2>
+    <div class="color-sample"><div class="color-box" style="background-color: #ff7d4e;"></div><pre>AutumnHarvest::PUMPKIN_ORANGE</pre><span class="color-name">0xff_7d_4e_ff</span></div>
+    <div class="color-sample"><div class="color-box" style="background-color: #e63b3b;"></div><pre>AutumnHarvest::MAPLE_RED</pre><span class="color-name">0xe6_3b_3b_ff</span></div>
+    <div class="color-sample"><div class="color-box" style="background-color: #d9572c;"></div><pre>AutumnHarvest::BURNT_SIENNA</pre><span class="color-name">0xd9_57_2c_ff</span></div>
+    <div class="color-sample"><div class="color-box" style="background-color: #cda87e;"></div><pre>AutumnHarvest::WARM_BEIGE</pre><span class="color-name">0xcd_a8_7e_ff</span></div>
+    <div class="color-sample"><div class="color-box" style="background-color: #ffd36e;"></div><pre>AutumnHarvest::HARVEST_GOLD</pre><span class="color-name">0xff_d3_6e_ff</span></div>
+    <div class="color-sample"><div class="color-box" style="background-color: #428a47;"></div><pre>AutumnHarvest::FOREST_GREEN</pre><span class="color-name">0x42_8a_47_ff</span></div>
+    <div class="color-sample"><div class="color-box" style="background-color: #7d4e2f;"></div><pre>AutumnHarvest::CHESTNUT_BROWN</pre><span class="color-name">0x7d_4e_2f_ff</span></div>
+    <div class="color-sample"><div class="color-box" style="background-color: #ffc435;"></div><pre>AutumnHarvest::MUSTARD_YELLOW</pre><span class="color-name">0xff_c4_35_ff</span></div>
+    <div class="color-sample"><div class="color-box" style="background-color: #6a7d33;"></div><pre>AutumnHarvest::OLIVE_GREEN</pre><span class="color-name">0x6a_7d_33_ff</span></div>
+    <div class="color-sample"><div class="color-box" style="background-color: #b53230;"></div><pre>AutumnHarvest::RUST_RED</pre><span class="color-name">0xb5_32_30_ff</span></div>
+    <div class="color-sample"><div class="color-box" style="background-color: #dca866;"></div><pre>AutumnHarvest::TAWNY</pre><span class="color-name">0xdc_a8_66_ff</span></div>
+    <div class="color-sample"><div class="color-box" style="background-color: #ffc15d;"></div><pre>AutumnHarvest::GOLDEN_ROD</pre><span class="color-name">0xff_c1_5d_ff</span></div>
 </div>
+
+<!-- Sunset Glow Palette -->
+<div class="palette">
+    <h2 id="sunset-glow">Sunset Glow</h2>
+    <div class="color-sample"><div class="color-box" style="background-color: #fa8e4b;"></div><pre>SunsetGlow::SOFT_ORANGE</pre><span class="color-name">0xfa_8e_4b_ff</span></div>
+    <div class="color-sample"><div class="color-box" style="background-color: #ffb375;"></div><pre>SunsetGlow::WARM_PEACH</pre><span class="color-name">0xff_b3_75_ff</span></div>
+    <div class="color-sample"><div class="color-box" style="background-color: #ffa1c0;"></div><pre>SunsetGlow::FADED_PINK</pre><span class="color-name">0xff_a1_c0_ff</span></div>
+    <div class="color-sample"><div class="color-box" style="background-color: #a388bc;"></div><pre>SunsetGlow::DUSTY_LAVENDER</pre><span class="color-name">0xa3_88_bc_ff</span></div>
+    <div class="color-sample"><div class="color-box" style="background-color: #668fbd;"></div><pre>SunsetGlow::EVENING_SKY_BLUE</pre><span class="color-name">0x66_8f_bd_ff</span></div>
+    <div class="color-sample"><div class="color-box" style="background-color: #3d5a73;"></div><pre>SunsetGlow::GENTLE_INDIGO</pre><span class="color-name">0x3d_5a_73_ff</span></div>
+    <div class="color-sample"><div class="color-box" style="background-color: #234e52;"></div><pre>SunsetGlow::DEEP_TEAL</pre><span class="color-name">0x23_4e_52_ff</span></div>
+    <div class="color-sample"><div class="color-box" style="background-color: #465d6a;"></div><pre>SunsetGlow::MELLOW_SLATE</pre><span class="color-name">0x46_5d_6a_ff</span></div>
+    <div class="color-sample"><div class="color-box" style="background-color: #4a4e57;"></div><pre>SunsetGlow::DUSK_GRAY</pre><span class="color-name">0x4a_4e_57_ff</span></div>
+    <div class="color-sample"><div class="color-box" style="background-color: #c6b4c8;"></div><pre>SunsetGlow::PALE_MAUVE</pre><span class="color-name">0xc6_b4_c8_ff</span></div>
+    <div class="color-sample"><div class="color-box" style="background-color: #5c336b;"></div><pre>SunsetGlow::TWILIGHT_PURPLE</pre><span class="color-name">0x5c_33_6b_ff</span></div>
+    <div class="color-sample"><div class="color-box" style="background-color: #1f2a4b;"></div><pre>SunsetGlow::NIGHTFALL_BLUE</pre><span class="color-name">0x1f_2a_4b_ff</span></div>
+</div>
+
+<!-- Forest Mist Palette -->
+<div class="palette">
+    <h2 id="forest-mist">Forest Mist</h2>
+    <div class="color-sample"><div class="color-box" style="background-color: #29624c;"></div><pre>ForestMist::PINE_GREEN</pre><span class="color-name">0x29_62_4c_ff</span></div>
+    <div class="color-sample"><div class="color-box" style="background-color: #184a2e;"></div><pre>ForestMist::FOREST_GREEN</pre><span class="color-name">0x18_4a_2e_ff</span></div>
+    <div class="color-sample"><div class="color-box" style="background-color: #7d8f4e;"></div><pre>ForestMist::MOSS_GREEN</pre><span class="color-name">0x7d_8f_4e_ff</span></div>
+    <div class="color-sample"><div class="color-box" style="background-color: #6a4e2d;"></div><pre>ForestMist::CEDAR_BROWN</pre><span class="color-name">0x6a_4e_2d_ff</span></div>
+    <div class="color-sample"><div class="color-box" style="background-color: #8b795e;"></div><pre>ForestMist::EARTHY_TAUPE</pre><span class="color-name">0x8b_79_5e_ff</span></div>
+    <div class="color-sample"><div class="color-box" style="background-color: #a8b6b5;"></div><pre>ForestMist::MIST_GRAY</pre><span class="color-name">0xa8_b6_b5_ff</span></div>
+    <div class="color-sample"><div class="color-box" style="background-color: #92b1bc;"></div><pre>ForestMist::FOG_BLUE</pre><span class="color-name">0x92_b1_bc_ff</span></div>
+    <div class="color-sample"><div class="color-box" style="background-color: #ccd3c7;"></div><pre>ForestMist::SKY_GRAY</pre><span class="color-name">0xcc_d3_c7_ff</span></div>
+    <div class="color-sample"><div class="color-box" style="background-color: #98af75;"></div><pre>ForestMist::SOFT_FERN</pre><span class="color-name">0x98_af_75_ff</span></div>
+    <div class="color-sample"><div class="color-box" style="background-color: #3d332d;"></div><pre>ForestMist::DEEP_BARK</pre><span class="color-name">0x3d_33_2d_ff</span></div>
+    <div class="color-sample"><div class="color-box" style="background-color: #76815c;"></div><pre>ForestMist::MOSSY_ROCK</pre><span class="color-name">0x76_81_5c_ff</span></div>
+    <div class="color-sample"><div class="color-box" style="background-color: #4e6a41;"></div><pre>ForestMist::WOODLAND_GREEN</pre><span class="color-name">0x4e_6a_41_ff</span></div>
+</div>
+
+
+
+<!-- Vintage Pastel Palette -->
+<div class="palette">
+    <h2 id="vintage-pastel">Vintage Pastel</h2>
+    <div class="color-sample"><div class="color-box" style="background-color: #f3b5d0;"></div><pre>VintagePastel::POWDER_PINK</pre><span class="color-name">0xf3_b5_d0_ff</span></div>
+    <div class="color-sample"><div class="color-box" style="background-color: #c6a1cd;"></div><pre>VintagePastel::PALE_LAVENDER</pre><span class="color-name">0xc6_a1_cd_ff</span></div>
+    <div class="color-sample"><div class="color-box" style="background-color: #a1c7a7;"></div><pre>VintagePastel::LIGHT_MINT</pre><span class="color-name">0xa1_c7_a7_ff</span></div>
+    <div class="color-sample"><div class="color-box" style="background-color: #ffeba8;"></div><pre>VintagePastel::CREAMY_YELLOW</pre><span class="color-name">0xff_eb_a8_ff</span></div>
+    <div class="color-sample"><div class="color-box" style="background-color: #b2d1e9;"></div><pre>VintagePastel::BABY_BLUE</pre><span class="color-name">0xb2_d1_e9_ff</span></div>
+    <div class="color-sample"><div class="color-box" style="background-color: #f7acb6;"></div><pre>VintagePastel::SOFT_CORAL</pre><span class="color-name">0xf7_ac_b6_ff</span></div>
+    <div class="color-sample"><div class="color-box" style="background-color: #e89baf;"></div><pre>VintagePastel::DUSTY_ROSE</pre><span class="color-name">0xe8_9b_af_ff</span></div>
+    <div class="color-sample"><div class="color-box" style="background-color: #ab96bd;"></div><pre>VintagePastel::MUTED_LAVENDER</pre><span class="color-name">0xab_96_bd_ff</span></div>
+    <div class="color-sample"><div class="color-box" style="background-color: #ffb6b6;"></div><pre>VintagePastel::LIGHT_PEACH</pre><span class="color-name">0xff_b6_b6_ff</span></div>
+    <div class="color-sample"><div class="color-box" style="background-color: #a4b9e3;"></div><pre>VintagePastel::PERIWINKLE</pre><span class="color-name">0xa4_b9_e3_ff</span></div>
+    <div class="color-sample"><div class="color-box" style="background-color: #d1d5dd;"></div><pre>VintagePastel::SOFT_GRAY</pre><span class="color-name">0xd1_d5_dd_ff</span></div>
+    <div class="color-sample"><div class="color-box" style="background-color: #f5f3ef;"></div><pre>VintagePastel::CLOUD_WHITE</pre><span class="color-name">0xf5_f3_ef_ff</span></div>
+</div>
+
+
+<!-- Desert Dusk Palette -->
+<div class="palette">
+    <h2 id="desert-dusk">Desert Dusk</h2>
+    <div class="color-sample"><div class="color-box" style="background-color: #d9b57b;"></div><pre>DesertDusk::SANDSTONE</pre><span class="color-name">0xd9_b5_7b_ff</span></div>
+    <div class="color-sample"><div class="color-box" style="background-color: #e1c47a;"></div><pre>DesertDusk::GOLDEN_SAND</pre><span class="color-name">0xe1_c4_7a_ff</span></div>
+    <div class="color-sample"><div class="color-box" style="background-color: #eea393;"></div><pre>DesertDusk::DESERT_ROSE</pre><span class="color-name">0xee_a3_93_ff</span></div>
+    <div class="color-sample"><div class="color-box" style="background-color: #dc7e45;"></div><pre>DesertDusk::RUSTY_ORANGE</pre><span class="color-name">0xdc_7e_45_ff</span></div>
+    <div class="color-sample"><div class="color-box" style="background-color: #8c4a25;"></div><pre>DesertDusk::EARTH_RED</pre><span class="color-name">0x8c_4a_25_ff</span></div>
+    <div class="color-sample"><div class="color-box" style="background-color: #a3ac94;"></div><pre>DesertDusk::SAGEBRUSH</pre><span class="color-name">0xa3_ac_94_ff</span></div>
+    <div class="color-sample"><div class="color-box" style="background-color: #bd8052;"></div><pre>DesertDusk::CLAY_BROWN</pre><span class="color-name">0xbd_80_52_ff</span></div>
+    <div class="color-sample"><div class="color-box" style="background-color: #6f7a60;"></div><pre>DesertDusk::CACTUS_GREEN</pre><span class="color-name">0x6f_7a_60_ff</span></div>
+    <div class="color-sample"><div class="color-box" style="background-color: #e08d80;"></div><pre>DesertDusk::SUNSET_BLUSH</pre><span class="color-name">0xe0_8d_80_ff</span></div>
+    <div class="color-sample"><div class="color-box" style="background-color: #cf9c50;"></div><pre>DesertDusk::WARM_OCHRE</pre><span class="color-name">0xcf_9c_50_ff</span></div>
+    <div class="color-sample"><div class="color-box" style="background-color: #ecc2a4;"></div><pre>DesertDusk::FADED_PEACH</pre><span class="color-name">0xec_c2_a4_ff</span></div>
+    <div class="color-sample"><div class="color-box" style="background-color: #5c4e3b;"></div><pre>DesertDusk::SHADOW_BROWN</pre><span class="color-name">0x5c_4e_3b_ff</span></div>
+</div>
+
+
+<!-- Winter Frost Palette -->
+<div class="palette">
+    <h2 id="winter-frost">Winter Frost</h2>
+    <div class="color-sample"><div class="color-box" style="background-color: #c3d9ed;"></div><pre>WinterFrost::FROST_BLUE</pre><span class="color-name">0xc3_d9_ed_ff</span></div>
+    <div class="color-sample"><div class="color-box" style="background-color: #eff9fb;"></div><pre>WinterFrost::SNOW_WHITE</pre><span class="color-name">0xef_f9_fb_ff</span></div>
+    <div class="color-sample"><div class="color-box" style="background-color: #dde6f2;"></div><pre>WinterFrost::ICE_GRAY</pre><span class="color-name">0xdd_e6_f2_ff</span></div>
+    <div class="color-sample"><div class="color-box" style="background-color: #c9c7e8;"></div><pre>WinterFrost::PALE_LILAC</pre><span class="color-name">0xc9_c7_e8_ff</span></div>
+    <div class="color-sample"><div class="color-box" style="background-color: #91a6c9;"></div><pre>WinterFrost::COOL_BLUE</pre><span class="color-name">0x91_a6_c9_ff</span></div>
+    <div class="color-sample"><div class="color-box" style="background-color: #97c1bc;"></div><pre>WinterFrost::FROZEN_GREEN</pre><span class="color-name">0x97_c1_bc_ff</span></div>
+    <div class="color-sample"><div class="color-box" style="background-color: #b5b4e2;"></div><pre>WinterFrost::FROSTED_LAVENDER</pre><span class="color-name">0xb5_b4_e2_ff</span></div>
+    <div class="color-sample"><div class="color-box" style="background-color: #ccd0d9;"></div><pre>WinterFrost::SOFT_SILVER</pre><span class="color-name">0xcc_d0_d9_ff</span></div>
+    <div class="color-sample"><div class="color-box" style="background-color: #8a9ca4;"></div><pre>WinterFrost::COLD_STEEL</pre><span class="color-name">0x8a_9c_a4_ff</span></div>
+    <div class="color-sample"><div class="color-box" style="background-color: #9dc9c2;"></div><pre>WinterFrost::WINTER_MINT</pre><span class="color-name">0x9d_c9_c2_ff</span></div>
+    <div class="color-sample"><div class="color-box" style="background-color: #f2c6cb;"></div><pre>WinterFrost::ICY_PINK</pre><span class="color-name">0xf2_c6_cb_ff</span></div>
+    <div class="color-sample"><div class="color-box" style="background-color: #4c5a7a;"></div><pre>WinterFrost::ARCTIC_NAVY</pre><span class="color-name">0x4c_5a_7a_ff</span></div>
+</div>
+
+
+
 
 <!-- Ocean Breeze Palette -->
 <div class="palette">
-    <h2>Ocean Breeze</h2>
-    <div class="color-sample"><div class="color-box" style="background-color: #a8efdc;"></div><span class="color-name">Seafoam (#a8efdc)</span></div>
-    <div class="color-sample"><div class="color-box" style="background-color: #75d5b3;"></div><span class="color-name">Aquamarine (#75d5b3)</span></div>
-    <div class="color-sample"><div class="color-box" style="background-color: #4ea8a1;"></div><span class="color-name">Lagoon Blue (#4ea8a1)</span></div>
-    <div class="color-sample"><div class="color-box" style="background-color: #386b8e;"></div><span class="color-name">Marine Blue (#386b8e)</span></div>
-    <div class="color-sample"><div class="color-box" style="background-color: #1c4e75;"></div><span class="color-name">Deep Sea Blue (#1c4e75)</span></div>
-    <div class="color-sample"><div class="color-box" style="background-color: #f1e8ca;"></div><span class="color-name">Light Sand (#f1e8ca)</span></div>
-    <div class="color-sample"><div class="color-box" style="background-color: #ffa785;"></div><span class="color-name">Coral Reef (#ffa785)</span></div>
-    <div class="color-sample"><div class="color-box" style="background-color: #a38d7b;"></div><span class="color-name">Driftwood (#a38d7b)</span></div>
-    <div class="color-sample"><div class="color-box" style="background-color: #ff8e77;"></div><span class="color-name">Bright Coral (#ff8e77)</span></div>
-    <div class="color-sample"><div class="color-box" style="background-color: #9ab3bc;"></div><span class="color-name">Dolphin Gray (#9ab3bc)</span></div>
-    <div class="color-sample"><div class="color-box" style="background-color: #e6f2f1;"></div><span class="color-name">Foam White (#e6f2f1)</span></div>
-    <div class="color-sample"><div class="color-box" style="background-color: #2b3b50;"></div><span class="color-name">Harbor Navy (#2b3b50)</span></div>
+    <h2 id="ocean-breeze">Ocean Breeze</h2>
+    <div class="color-sample"><div class="color-box" style="background-color: #a8efdc;"></div><pre>OceanBreeze::SEAFOAM</pre><span class="color-name">0xa8_ef_dc_ff</span></div>
+    <div class="color-sample"><div class="color-box" style="background-color: #75d5b3;"></div><pre>OceanBreeze::AQUAMARINE</pre><span class="color-name">0x75_d5_b3_ff</span></div>
+    <div class="color-sample"><div class="color-box" style="background-color: #4ea8a1;"></div><pre>OceanBreeze::LAGOON_BLUE</pre><span class="color-name">0x4e_a8_a1_ff</span></div>
+    <div class="color-sample"><div class="color-box" style="background-color: #386b8e;"></div><pre>OceanBreeze::MARINE_BLUE</pre><span class="color-name">0x38_6b_8e_ff</span></div>
+    <div class="color-sample"><div class="color-box" style="background-color: #1c4e75;"></div><pre>OceanBreeze::DEEP_SEA_BLUE</pre><span class="color-name">0x1c_4e_75_ff</span></div>
+    <div class="color-sample"><div class="color-box" style="background-color: #f1e8ca;"></div><pre>OceanBreeze::LIGHT_SAND</pre><span class="color-name">0xf1_e8_ca_ff</span></div>
+    <div class="color-sample"><div class="color-box" style="background-color: #ffa785;"></div><pre>OceanBreeze::CORAL_REEF</pre><span class="color-name">0xff_a7_85_ff</span></div>
+    <div class="color-sample"><div class="color-box" style="background-color: #a38d7b;"></div><pre>OceanBreeze::DRIFTWOOD</pre><span class="color-name">0xa3_8d_7b_ff</span></div>
+    <div class="color-sample"><div class="color-box" style="background-color: #ff8e77;"></div><pre>OceanBreeze::BRIGHT_CORAL</pre><span class="color-name">0xff_8e_77_ff</span></div>
+    <div class="color-sample"><div class="color-box" style="background-color: #9ab3bc;"></div><pre>OceanBreeze::DOLPHIN_GRAY</pre><span class="color-name">0x9a_b3_bc_ff</span></div>
+    <div class="color-sample"><div class="color-box" style="background-color: #e6f2f1;"></div><pre>OceanBreeze::FOAM_WHITE</pre><span class="color-name">0xe6_f2_f1_ff</span></div>
+    <div class="color-sample"><div class="color-box" style="background-color: #2b3b50;"></div><pre>OceanBreeze::HARBOR_NAVY</pre><span class="color-name">0x2b_3b_50_ff</span></div>
 </div>
+
 
 <!-- Urban Concrete Palette -->
 <div class="palette">
-    <h2>Urban Concrete</h2>
-    <div class="color-sample"><div class="color-box" style="background-color: #6b7c85;"></div><span class="color-name">Slate Gray (#6b7c85)</span></div>
-    <div class="color-sample"><div class="color-box" style="background-color: #363a40;"></div><span class="color-name">Dark Charcoal (#363a40)</span></div>
-    <div class="color-sample"><div class="color-box" style="background-color: #999999;"></div><span class="color-name">Ash Gray (#999999)</span></div>
-    <div class="color-sample"><div class="color-box" style="background-color: #f7f7f7;"></div><span class="color-name">Cloud White (#f7f7f7)</span></div>
-    <div class="color-sample"><div class="color-box" style="background-color: #415e75;"></div><span class="color-name">Steel Blue (#415e75)</span></div>
-    <div class="color-sample"><div class="color-box" style="background-color: #424e5e;"></div><span class="color-name">Iron Gray (#424e5e)</span></div>
-    <div class="color-sample"><div class="color-box" style="background-color: #1a1a1a;"></div><span class="color-name">Shadow Black (#1a1a1a)</span></div>
-    <div class="color-sample"><div class="color-box" style="background-color: #b0b7c3;"></div><span class="color-name">Concrete Gray (#b0b7c3)</span></div>
-    <div class="color-sample"><div class="color-box" style="background-color: #cdc6b3;"></div><span class="color-name">Cement Beige (#cdc6b3)</span></div>
-    <div class="color-sample"><div class="color-box" style="background-color: #8b5a55;"></div><span class="color-name">Brick Red (#8b5a55)</span></div>
-    <div class="color-sample"><div class="color-box" style="background-color: #2f3c44;"></div><span class="color-name">Asphalt Gray (#2f3c44)</span></div>
-    <div class="color-sample"><div class="color-box" style="background-color: #e8e8e8;"></div><span class="color-name">Foggy White (#e8e8e8)</span></div>
+    <h2 id="urban-concrete">Urban Concrete</h2>
+    <div class="color-sample"><div class="color-box" style="background-color: #6b7c85;"></div><pre>UrbanConcrete::SLATE_GRAY</pre><span class="color-name">0x6b_7c_85_ff</span></div>
+    <div class="color-sample"><div class="color-box" style="background-color: #363a40;"></div><pre>UrbanConcrete::DARK_CHARCOAL</pre><span class="color-name">0x36_3a_40_ff</span></div>
+    <div class="color-sample"><div class="color-box" style="background-color: #999999;"></div><pre>UrbanConcrete::ASH_GRAY</pre><span class="color-name">0x99_99_99_ff</span></div>
+    <div class="color-sample"><div class="color-box" style="background-color: #f7f7f7;"></div><pre>UrbanConcrete::CLOUD_WHITE</pre><span class="color-name">0xf7_f7_f7_ff</span></div>
+    <div class="color-sample"><div class="color-box" style="background-color: #415e75;"></div><pre>UrbanConcrete::STEEL_BLUE</pre><span class="color-name">0x41_5e_75_ff</span></div>
+    <div class="color-sample"><div class="color-box" style="background-color: #424e5e;"></div><pre>UrbanConcrete::IRON_GRAY</pre><span class="color-name">0x42_4e_5e_ff</span></div>
+    <div class="color-sample"><div class="color-box" style="background-color: #1a1a1a;"></div><pre>UrbanConcrete::SHADOW_BLACK</pre><span class="color-name">0x1a_1a_1a_ff</span></div>
+    <div class="color-sample"><div class="color-box" style="background-color: #b0b7c3;"></div><pre>UrbanConcrete::CONCRETE_GRAY</pre><span class="color-name">0xb0_b7_c3_ff</span></div>
+    <div class="color-sample"><div class="color-box" style="background-color: #cdc6b3;"></div><pre>UrbanConcrete::CEMENT_BEIGE</pre><span class="color-name">0xcd_c6_b3_ff</span></div>
+    <div class="color-sample"><div class="color-box" style="background-color: #8b5a55;"></div><pre>UrbanConcrete::BRICK_RED</pre><span class="color-name">0x8b_5a_55_ff</span></div>
+    <div class="color-sample"><div class="color-box" style="background-color: #2f3c44;"></div><pre>UrbanConcrete::ASPHALT_GRAY</pre><span class="color-name">0x2f_3c_44_ff</span></div>
+    <div class="color-sample"><div class="color-box" style="background-color: #e8e8e8;"></div><pre>UrbanConcrete::FOGGY_WHITE</pre><span class="color-name">0xe8_e8_e8_ff</span></div>
 </div>
+
 
 <!-- Grayscale Palette -->
 <div class="palette">
-    <h2>Grayscale</h2>
-    <div class="color-sample"><div class="color-box" style="background-color: #ffffff;"></div><span class="color-name">X01 White (#ffffff)</span></div>
-    <div class="color-sample"><div class="color-box" style="background-color: #f2f2f2;"></div><span class="color-name">X02 Soft White (#f2f2f2)</span></div>
-    <div class="color-sample"><div class="color-box" style="background-color: #e6e6e6;"></div><span class="color-name">X03 Light Gray (#e6e6e6)</span></div>
-    <div class="color-sample"><div class="color-box" style="background-color: #cccccc;"></div><span class="color-name">X04 Silver (#cccccc)</span></div>
-    <div class="color-sample"><div class="color-box" style="background-color: #b3b3b3;"></div><span class="color-name">X05 Pale Gray (#b3b3b3)</span></div>
-    <div class="color-sample"><div class="color-box" style="background-color: #999999;"></div><span class="color-name">X06 Gray (#999999)</span></div>
-    <div class="color-sample"><div class="color-box" style="background-color: #808080;"></div><span class="color-name">X07 Medium Gray (#808080)</span></div>
-    <div class="color-sample"><div class="color-box" style="background-color: #666666;"></div><span class="color-name">X08 Dark Gray (#666666)</span></div>
-    <div class="color-sample"><div class="color-box" style="background-color: #4d4d4d;"></div><span class="color-name">X09 Charcoal (#4d4d4d)</span></div>
-    <div class="color-sample"><div class="color-box" style="background-color: #333333;"></div><span class="color-name">X0A Slate (#333333)</span></div>
-    <div class="color-sample"><div class="color-box" style="background-color: #1a1a1a;"></div><span class="color-name">X0B Almost Black (#1a1a1a)</span></div>
-    <div class="color-sample"><div class="color-box" style="background-color: #000000;"></div><span class="color-name">X0C Black (#000000)</span></div>
+    <h2 id="grayscale">Grayscale</h2>
+    <div class="color-sample"><div class="color-box" style="background-color: #ffffff;"></div><pre>Grayscale::X01_WHITE</pre><span class="color-name">0xff_ff_ff_ff</span></div>
+    <div class="color-sample"><div class="color-box" style="background-color: #f2f2f2;"></div><pre>Grayscale::X02_SOFT_WHITE</pre><span class="color-name">0xf2_f2_f2_ff</span></div>
+    <div class="color-sample"><div class="color-box" style="background-color: #e6e6e6;"></div><pre>Grayscale::X03_LIGHT_GRAY</pre><span class="color-name">0xe6_e6_e6_ff</span></div>
+    <div class="color-sample"><div class="color-box" style="background-color: #cccccc;"></div><pre>Grayscale::X04_SILVER</pre><span class="color-name">0xcc_cc_cc_ff</span></div>
+    <div class="color-sample"><div class="color-box" style="background-color: #b3b3b3;"></div><pre>Grayscale::X05_PALE_GRAY</pre><span class="color-name">0xb3_b3_b3_ff</span></div>
+    <div class="color-sample"><div class="color-box" style="background-color: #999999;"></div><pre>Grayscale::X06_GRAY</pre><span class="color-name">0x99_99_99_ff</span></div>
+    <div class="color-sample"><div class="color-box" style="background-color: #808080;"></div><pre>Grayscale::X07_MEDIUM_GRAY</pre><span class="color-name">0x80_80_80_ff</span></div>
+    <div class="color-sample"><div class="color-box" style="background-color: #666666;"></div><pre>Grayscale::X08_DARK_GRAY</pre><span class="color-name">0x66_66_66_ff</span></div>
+    <div class="color-sample"><div class="color-box" style="background-color: #4d4d4d;"></div><pre>Grayscale::X09_CHARCOAL</pre><span class="color-name">0x4d_4d_4d_ff</span></div>
+    <div class="color-sample"><div class="color-box" style="background-color: #333333;"></div><pre>Grayscale::X0A_SLATE</pre><span class="color-name">0x33_33_33_ff</span></div>
+    <div class="color-sample"><div class="color-box" style="background-color: #1a1a1a;"></div><pre>Grayscale::X0B_ALMOST_BLACK</pre><span class="color-name">0x1a_1a_1a_ff</span></div>
+    <div class="color-sample"><div class="color-box" style="background-color: #000000;"></div><pre>Grayscale::X0C_BLACK</pre><span class="color-name">0x00_00_00_ff</span></div>
 </div>
+
+
+<script>
+    document.querySelectorAll('.color-box').forEach((box) => {
+        box.addEventListener('click', () => {
+            // Find the associated <pre> and <span> elements within the same .color-sample container
+            const container = box.closest('.color-sample');
+            const pre = container.querySelector('pre');
+            const colorName = pre.innerText;
+            const colorNameSpan = container.querySelector('.color-name');
+
+            // Store the original text of colorNameSpan for later restoration
+            const originalText = colorNameSpan.innerText;
+
+            // Copy color name to clipboard
+            navigator.clipboard.writeText(colorName).then(() => {
+                console.log(`${colorName} copied to clipboard!`);
+
+                // Update the span text to "Copied!"
+                colorNameSpan.innerHTML = "<span style='color:#FFD700'>&larr; copied</span>";
+
+                // Add a small visual feedback on the box itself
+                box.style.border = '2px solid #FFD700'; // gold border as feedback
+
+                // Restore original text and border after 0.5 seconds
+                setTimeout(() => {
+                    colorNameSpan.innerText = originalText;
+                    box.style.border = '';
+                }, 780);
+
+            }).catch(err => {
+                console.error('Failed to copy the color :( ', err);
+            });
+        });
+    });
+</script>
 
 </body>
 </html>
