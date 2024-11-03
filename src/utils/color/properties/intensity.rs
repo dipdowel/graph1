@@ -6,47 +6,55 @@ use crate::primitives::plane::RectArea;
 /// * `red` - The red channel value (0-255).
 /// * `green` - The green channel value (0-255).
 /// * `blue` - The blue channel value (0-255).
+/// * `squared` - If `true`, calculates the intensity as the square root of the sum of squares of the channels. Slower but more accurate.
 ///
 /// # Returns
 /// A `u8` representing the average intensity.
-pub fn rgb_pixel_intensity(red: u8, green: u8, blue: u8) -> u8 {
+pub fn rgb_pixel_intensity(red: u8, green: u8, blue: u8, squared: bool) -> u8 {
+    if squared {
+        return (red as f32 * red as f32
+            + green as f32 * green as f32
+            + blue as f32 * blue as f32 / 3f32)
+            .sqrt() as u8;
+    }
+
     ((red as u16 + green as u16 + blue as u16) / 3) as u8
 }
 
-/// Calculates intensity from an RGBA color (`u32`) by taking a simple mean of the channels. <br />
+/// Converts an RGBA color to IIIA . <br />
+/// IIIA = Intensity, Intensity, Intensity, Alpha <br />
 /// Ignores the alpha channel and uses only RGB values for the calculation.
 /// # Arguments
 /// * `color` - The color as a `u32` in RGBA format.
+/// * `squared` - If `true`, calculates the intensity as the square root of the sum of squares of the channels. Slower but more accurate.
 ///
 /// # Returns
-/// A `u8` representing the average intensity.
-pub fn rgba_pixel_intensity(color: u32, squared: bool) -> u8 { //FIXME: return `u32`!
-
+/// A `u32` representing the average intensity.
+pub fn rgba_pixel_intensity(color: u32, squared: bool) -> u32 {
 
 
     let red = (color >> 24) & 0xff;
     let green = (color >> 16) & 0xff;
     let blue = (color >> 8) & 0xff;
 
-    // TODO: Add support for `squared` to the other functions in this file!
-    // TODO: Add support for `squared` to the other functions in this file!
-    // TODO: Add support for `squared` to the other functions in this file!
-    // TODO: Add support for `squared` to the other functions in this file!
     if squared {
-        return ((red * red + green * green + blue * blue) as f32 / 3f32).sqrt() as u8;
+        return ((red * red + green * green + blue * blue) as f32 / 3f32).sqrt() as u32;
     }
 
-    ((red + green + blue) / 3) as u8
+    (red + green + blue) / 3
 }
 
 /// Calculates intensity of each pixel from a buffer of `u32` with RGBA colors. <br />
 /// Ignores the alpha channel and uses only RGB values for the calculation.
+/// The resulting intensity of each pixel
 /// # Arguments
 /// * `dst` - A mutable slice where the calculated intensities will be stored.
 /// * `src` - A slice of RGBA pixels to calculate the intensity from, where each pixel is a `u32`.
+/// * `squared` - If `true`, calculates the intensity as the square root of the sum of squares of the channels. Slower but more accurate.
+///
 /// # Panics
 /// Panics if `dst` and `src` have different lengths.
-pub fn rgba_buffer_intensity(dst: &mut [u8], src: &[u32]) { //FIXME: make `dst: &mut [u32]`
+pub fn rgba_buffer_intensity(dst: &mut [u32], src: &[u32], squared: bool) {
     assert_eq!(
         dst.len(),
         src.len(),
@@ -54,13 +62,27 @@ pub fn rgba_buffer_intensity(dst: &mut [u8], src: &[u32]) { //FIXME: make `dst: 
     );
 
     for (dst_value, &src_color) in dst.iter_mut().zip(src.iter()) {
-        let red = ((src_color >> 24) & 0xff) as u8;
-        let green = ((src_color >> 16) & 0xff) as u8;
-        let blue = ((src_color >> 8) & 0xff) as u8;
-        *dst_value = ((red as u16 + green as u16 + blue as u16) / 3) as u8;
+        let red = src_color >> 24 & 0xff;
+        let green = src_color >> 16 & 0xff;
+        let blue = src_color >> 8 & 0xff;
+        let original_alpha = src_color & 0x00_00_00_ff;
+
+        let intensity: u32 = if squared {
+            ((red * red + green * green + blue * blue) as f32 / 3f32).sqrt() as u32
+        } else {
+            (red + green + blue) / 3
+        };
+
+        *dst_value = intensity << 24 | intensity << 16 | intensity << 8 | original_alpha;
     }
 }
 
+/// Converts RGBA pixels in the frame buffer to IIIA pixels. <br /
+/// IIIA = Intensity, Intensity, Intensity, Alpha <br />
+/// The operation occurs in-place.
+/// The alpha channel remains unchanged.
+/// # Arguments
+///
 pub fn rgba_region_intensity<UserData>(
     ctx: &mut GraphContext<UserData>,
     region: &RectArea,
@@ -91,8 +113,10 @@ pub fn rgba_region_intensity<UserData>(
     loop {
         pixel_index = (y * ctx.win.w + x) as usize;
         let intensity = rgba_pixel_intensity(ctx.frame_buf[pixel_index], squared);
-        resulting_color =
-            (intensity as u32) << 24 | (intensity as u32) << 16 | (intensity as u32) << 8 | 0xff;
+
+        let original_alpha = ctx.frame_buf[pixel_index] & 0x00_00_00_ff;
+
+        resulting_color = intensity << 24 | intensity << 16 | intensity << 8 | original_alpha;
 
         // resulting_color = 0x00_00_00_ff | intensity_level << 16 | intensity_level << 8 | intensity_level;
         ctx.frame_buf[pixel_index] = resulting_color;
