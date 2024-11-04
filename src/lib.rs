@@ -39,7 +39,7 @@ pub mod utils {
         }
         pub mod palettes;
         /// Color properties calculations, color analysis
-        pub mod properties {
+        pub mod desaturate {
             pub mod intensity;
             pub mod luminance;
 
