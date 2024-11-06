@@ -71,13 +71,11 @@ pub fn rgba_region_luminance<UserData>(ctx: &mut GraphContext<UserData>, region:
 
     let end_x = start_x + width;
     let end_y = start_y + height;
-
     let mut x = start_x;
     let mut y = start_y;
 
     // Which pixel in the vector should be filled in next.
     let mut pixel_index: usize;
-
     let mut resulting_color: u32 = 0;
 
     loop {

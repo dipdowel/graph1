@@ -26,18 +26,18 @@ pub fn rgb_pixel_intensity(red: u8, green: u8, blue: u8, squared: bool) -> u8 {
 /// Ignores the alpha channel and uses only RGB values for the calculation.
 /// # Arguments
 /// * `color` - The color as a `u32` in RGBA format.
-/// * `squared` - If `true`, calculates the intensity as the square root of the sum of squares of the channels. Slower but more accurate.
+/// * `quadratic` - If `true`, calculates the intensity as the square root of the sum of squares of the channels. Slower but more "physically" accurate.
 ///
 /// # Returns
 /// A `u32` representing the average intensity.
-pub fn rgba_pixel_intensity(color: u32, squared: bool) -> u32 {
+pub fn rgba_pixel_intensity(color: u32, quadratic: bool) -> u32 {
 
 
     let red = (color >> 24) & 0xff;
     let green = (color >> 16) & 0xff;
     let blue = (color >> 8) & 0xff;
 
-    if squared {
+    if quadratic {
         return ((red * red + green * green + blue * blue) as f32 / 3f32).sqrt() as u32;
     }
 
@@ -50,11 +50,11 @@ pub fn rgba_pixel_intensity(color: u32, squared: bool) -> u32 {
 /// # Arguments
 /// * `dst` - A mutable slice where the calculated intensities will be stored.
 /// * `src` - A slice of RGBA pixels to calculate the intensity from, where each pixel is a `u32`.
-/// * `squared` - If `true`, calculates the intensity as the square root of the sum of squares of the channels. Slower but more accurate.
+/// * `quadratic` - If `true`, calculates the intensity as the square root of the sum of squares of the channels. Slower but more "physically" accurate.
 ///
 /// # Panics
 /// Panics if `dst` and `src` have different lengths.
-pub fn rgba_buffer_intensity(dst: &mut [u32], src: &[u32], squared: bool) {
+pub fn rgba_buffer_intensity(dst: &mut [u32], src: &[u32], quadratic: bool) {
     assert_eq!(
         dst.len(),
         src.len(),
@@ -67,7 +67,7 @@ pub fn rgba_buffer_intensity(dst: &mut [u32], src: &[u32], squared: bool) {
         let blue = src_color >> 8 & 0xff;
         let original_alpha = src_color & 0x00_00_00_ff;
 
-        let intensity: u32 = if squared {
+        let intensity: u32 = if quadratic {
             ((red * red + green * green + blue * blue) as f32 / 3f32).sqrt() as u32
         } else {
             (red + green + blue) / 3
@@ -82,11 +82,13 @@ pub fn rgba_buffer_intensity(dst: &mut [u32], src: &[u32], squared: bool) {
 /// The operation occurs in-place.
 /// The alpha channel remains unchanged.
 /// # Arguments
-///
+/// * `ctx` - The GraphContext containing the frame buffer to be desaturated.
+/// * `region` - The region of the frame buffer to be desaturated.
+/// * `quadratic` - If `true`, calculates the intensity as the square root of the sum of squares of the channels. Slower but more "physically" accurate.
 pub fn rgba_region_intensity<UserData>(
     ctx: &mut GraphContext<UserData>,
     region: &RectArea,
-    squared: bool,
+    quadratic: bool,
 ) {
     // Dereference the options
     let start_x = region.top_left.x;
@@ -112,7 +114,7 @@ pub fn rgba_region_intensity<UserData>(
 
     loop {
         pixel_index = (y * ctx.win.w + x) as usize;
-        let intensity = rgba_pixel_intensity(ctx.frame_buf[pixel_index], squared);
+        let intensity = rgba_pixel_intensity(ctx.frame_buf[pixel_index], quadratic);
 
         let original_alpha = ctx.frame_buf[pixel_index] & 0x00_00_00_ff;
 
