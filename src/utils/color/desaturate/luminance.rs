@@ -84,7 +84,6 @@ pub fn rgba_region_luminance<UserData>(ctx: &mut GraphContext<UserData>, region:
         resulting_color =
             (intensity as u32) << 24 | (intensity as u32) << 16 | (intensity as u32) << 8 | 0xff;
 
-        // resulting_color = 0x00_00_00_ff | intensity_level << 16 | intensity_level << 8 | intensity_level;
         ctx.frame_buf[pixel_index] = resulting_color;
 
         x += 1;
