@@ -1,5 +1,5 @@
-use crate::graph1_core::alpha::{AlphaConfig, AlphaMethod};
-use crate::graph1_core::default_colors;
+use crate::core::alpha::{AlphaConfig, AlphaMethod};
+use crate::core::default_colors;
 use crate::primitives::helper_types::BufferRGBA;
 use crate::primitives::plane::Dimensions2d;
 
@@ -20,16 +20,20 @@ pub struct WindowContext {
     /// Window height but as `i32`
     pub h_i32: i32,
     /// Size of the framebuffer to render the window, in bytes
-    pub size: usize,
+    // pub size: usize,
     /// Window width and height as a `Dimensions2d`
     pub dimensions: Dimensions2d,
     /// Background color of the window, RGBA
     pub background_color: u32,
+    /// Foreground color of the window, RGBA
+    pub foreground_color: u32,
 }
 
+
 impl WindowContext {
+
     /// Instantiates a window context
-    pub fn new(w: u32, h: u32, background_color_rgba: Option<u32>) -> Self {
+    pub fn new(w: u32, h: u32, background_color_rgba: Option<u32>, foreground_color_rgba: Option<u32>) -> Self {
         Self {
             w,
             h,
@@ -38,15 +42,18 @@ impl WindowContext {
             w_i32: w as i32,
             h_i32: h as i32,
             dimensions: Dimensions2d { w, h },
-            size: (4 * w * h) as usize,
+            // size: (4 * w * h) as usize,
             background_color: background_color_rgba.unwrap_or(default_colors::BACKGROUND),
+            foreground_color: foreground_color_rgba.unwrap_or(default_colors::FOREGROUND),
+
         }
     }
-    /*
+
+        /// Instantiates a window context of 320x240 pixels with  default background and foreground colors
        pub fn default() -> Self {
-           WindowContext::new(320, 240)
+           WindowContext::new(320, 240, Some(default_colors::BACKGROUND), Some(default_colors::FOREGROUND))
        }
-    */
+
 }
 
 /// Settings for rendering controls for Bezier curves

@@ -1,4 +1,4 @@
-use crate::graph1_core::context::GraphContext;
+use crate::core::context::GraphContext;
 use crate::primitives::primitives::{Dimensions2d, PixelColorTransformerFn, Point};
 use crate::text::font::PixelFont;
 use crate::utils::pixel_copy::image_data;

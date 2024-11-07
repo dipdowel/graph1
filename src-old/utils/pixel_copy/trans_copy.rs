@@ -1,4 +1,4 @@
-use crate::graph1_core::context::WindowContext;
+use crate::core::context::WindowContext;
 use crate::primitives::primitives::{Point, RectArea};
 
 /// Transparency-aware copy -- copies non-transparent pixels from the source memory buf to the destination memory buf.

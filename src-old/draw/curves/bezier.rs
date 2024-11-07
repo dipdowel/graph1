@@ -1,6 +1,6 @@
 use crate::draw::line::between_two_points;
 use crate::draw::rectangle_filled;
-use crate::graph1_core::context::GraphContext;
+use crate::core::context::GraphContext;
 use crate::primitives::primitives::{Dimensions2d, Pixel, Point, PointI32, RectArea};
 use crate::{draw, filters};
 

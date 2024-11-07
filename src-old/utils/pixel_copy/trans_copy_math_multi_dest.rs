@@ -1,4 +1,4 @@
-use crate::graph1_core::context::WindowContext;
+use crate::core::context::WindowContext;
 use crate::primitives::primitives::{Pixel, RectArea};
 use crate::utils::color::math::argb_math::argb_math;
 use crate::utils::color::math::ColorOperation;

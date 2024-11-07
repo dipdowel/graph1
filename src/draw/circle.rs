@@ -1,5 +1,5 @@
 use crate::draw;
-use crate::graph1_core::context::GraphContext;
+use crate::core::context::GraphContext;
 use crate::primitives::Pixel;
 
 /// Draws a filled circle with a specified center, radius, and color.

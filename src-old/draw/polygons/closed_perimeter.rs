@@ -1,5 +1,5 @@
 use crate::draw::line::between_two_points;
-use crate::graph1_core::context::GraphContext;
+use crate::core::context::GraphContext;
 use crate::primitives::primitives::{Pixel, Point};
 
 /// Draws straight lines between consecutive points to form a closed path

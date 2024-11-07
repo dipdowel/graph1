@@ -1,6 +1,6 @@
 use std::cmp::PartialEq;
-use crate::graph1_core::alpha::AlphaMethod;
-use crate::graph1_core::context::GraphContext;
+use crate::core::alpha::AlphaMethod;
+use crate::core::context::GraphContext;
 use crate::primitives::plane::RectArea;
 use crate::utils::color::alpha::{blend_pixel_f32, blend_pixel_int};
 

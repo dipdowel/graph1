@@ -1,4 +1,4 @@
-use crate::graph1_core::context::GraphContext;
+use crate::core::context::GraphContext;
 use crate::primitives::Pixel;
 use crate::primitives::point::Point;
 

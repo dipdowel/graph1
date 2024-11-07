@@ -1,5 +1,6 @@
+
 /// Core functionality for the library, e.g. contexts, default values, etc.
-pub mod graph1_core {
+pub mod core {
     /// `GraphContext` and its sub-contexts
     pub mod context;
     /// Default colors used in the library if no custom colors specified
@@ -25,6 +26,9 @@ pub mod primitives {
 
 /// Utilities for working with colors, color-specific math, pixel model conversions, etc.
 pub mod utils {
+    mod common;
+    pub use common::clear_screen;
+
     /// Utils for processing colors
     pub mod color {
         /// Functions to blend colors taking into account the alpha channel
