@@ -9,14 +9,14 @@ pub enum AlphaMethod {
 }
 
 #[derive(Debug)]
-pub struct AlphaConfig {
+pub struct AlphaContext {
     /// If false, the alpha channel will be ignored when performing image/color operations and rendering
     pub enabled: bool,
     /// Method for alpha blending: `Float` for precision, `Int` for speed
     pub method: AlphaMethod,
 }
 
-impl Default for AlphaConfig {
+impl Default for AlphaContext {
      fn default() -> Self {
         Self {
             enabled: false,

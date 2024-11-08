@@ -1,4 +1,4 @@
-use crate::core::alpha::{AlphaConfig, AlphaMethod};
+use crate::core::alpha::{AlphaContext, AlphaMethod};
 use crate::core::default_colors;
 use crate::primitives::helper_types::BufferRGBA;
 use crate::primitives::plane::Dimensions2d;
@@ -19,8 +19,6 @@ pub struct WindowContext {
     pub w_i32: i32,
     /// Window height but as `i32`
     pub h_i32: i32,
-    /// Size of the framebuffer to render the window, in bytes
-    // pub size: usize,
     /// Window width and height as a `Dimensions2d`
     pub dimensions: Dimensions2d,
     /// Background color of the window, RGBA
@@ -29,11 +27,14 @@ pub struct WindowContext {
     pub foreground_color: u32,
 }
 
-
 impl WindowContext {
-
     /// Instantiates a window context
-    pub fn new(w: u32, h: u32, background_color_rgba: Option<u32>, foreground_color_rgba: Option<u32>) -> Self {
+    pub fn new(
+        w: u32,
+        h: u32,
+        background_color_rgba: Option<u32>,
+        foreground_color_rgba: Option<u32>,
+    ) -> Self {
         Self {
             w,
             h,
@@ -42,18 +43,25 @@ impl WindowContext {
             w_i32: w as i32,
             h_i32: h as i32,
             dimensions: Dimensions2d { w, h },
-            // size: (4 * w * h) as usize,
             background_color: background_color_rgba.unwrap_or(default_colors::BACKGROUND),
             foreground_color: foreground_color_rgba.unwrap_or(default_colors::FOREGROUND),
-
         }
     }
 
-        /// Instantiates a window context of 320x240 pixels with  default background and foreground colors
-       pub fn default() -> Self {
-           WindowContext::new(320, 240, Some(default_colors::BACKGROUND), Some(default_colors::FOREGROUND))
-       }
+    /// Instantiates a window context of 320x240 pixels with  default background and foreground colors
+    pub fn default() -> Self {
+        WindowContext::new(
+            320,
+            240,
+            Some(default_colors::BACKGROUND),
+            Some(default_colors::FOREGROUND),
+        )
+    }
 
+    /// Returns the needed size of framebuffer (in bytes) to render the window
+    pub fn get_buf_size(&self) -> usize {
+        4 * self.w_usize * self.h_usize
+    }
 }
 
 /// Settings for rendering controls for Bezier curves
@@ -81,8 +89,6 @@ impl BezierContext {
     }
 }
 
-
-
 #[derive(Debug)]
 pub struct GraphContext<'c, UserDataType = Vec<i32>> {
     /// Reference to the window context
@@ -98,11 +104,13 @@ pub struct GraphContext<'c, UserDataType = Vec<i32>> {
     /// Current frame in animation. If no animation is needed, can be set to `0`
     pub frame_count: usize,
     ///  Configurations for alpha blending (where applicable)
-    pub alpha: AlphaConfig,
+    pub alpha: AlphaContext,
 }
 
 impl<'d, UserDataType: Default> GraphContext<'d, UserDataType> {
-    /// TODO: review the implementation of `new` method! It might need some adjustments.
+    /// Instantiates a new `GraphContext`.
+    /// The advanced settings like `alpha` and `bezier` are set to default,
+    /// please configure them manually via your context instance.
     pub fn new(
         win: &'d WindowContext,
         frame_buf: BufferRGBA<'d>,
@@ -117,7 +125,7 @@ impl<'d, UserDataType: Default> GraphContext<'d, UserDataType> {
             user_data: Box::new(user_data.unwrap_or_default()),
             bezier: None,
             frame_count: 0,
-            alpha: AlphaConfig {
+            alpha: AlphaContext {
                 enabled: use_alpha,
                 method: AlphaMethod::Int,
             },
