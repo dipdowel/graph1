@@ -1,12 +1,23 @@
 
 /// Core functionality for the library, e.g. contexts, default values, etc.
 pub mod core {
-    /// `GraphContext` and its sub-contexts
-    pub mod context;
+
+    /// Heart of the library: `GraphContext` and its sub-contexts
+    pub mod context{
+        pub mod alpha;
+        mod bezier;
+        mod graph;
+        mod window;
+
+        pub use alpha::AlphaContext;
+        // pub use alpha::AlphaMethod;
+        pub use bezier::BezierContext;
+        pub use graph::GraphContext;
+        pub use window::WindowContext;
+    }
+
     /// Default colors used in the library if no custom colors specified
     pub mod default_colors;
-    /// Alpha blending configurations
-    pub mod alpha;
 }
 /// Building blocks: essential structs, traits, types, constants, etc.
 pub mod primitives {
