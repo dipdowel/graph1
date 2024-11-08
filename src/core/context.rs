@@ -93,8 +93,6 @@ pub struct GraphContext<'c, UserDataType = Vec<i32>> {
     pub draft_buf: Option<BufferRGBA<'c>>,
     /// A vector of user-defined data. Store any information here that needs to be passed around with the context
     pub user_data: Box<UserDataType>,
-    /// A default color for rendering
-    pub default_color: u32,
     /// Settings for rendering controls for Bezier curves
     pub bezier: Option<BezierContext>,
     /// Current frame in animation. If no animation is needed, can be set to `0`
@@ -109,14 +107,12 @@ impl<'d, UserDataType: Default> GraphContext<'d, UserDataType> {
         win: &'d WindowContext,
         frame_buf: BufferRGBA<'d>,
         use_alpha: bool,
-        default_color: Option<u32>,
         user_data: Option<UserDataType>,
     ) -> GraphContext<'d, UserDataType> {
         GraphContext {
             win,
             frame_buf,
             draft_buf: None,
-            default_color: default_color.unwrap_or(default_colors::FOREGROUND),
             // Use the provided `user_data` or default to `UserDataType::default()`
             user_data: Box::new(user_data.unwrap_or_default()),
             bezier: None,

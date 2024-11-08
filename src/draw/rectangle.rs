@@ -16,7 +16,7 @@ impl PartialEq for AlphaMethod {
 
 /// Draws a rectangle with dimensions and filled with a color specified in the `RectArea` struct.
 pub fn filled<UserData>(ctx: &mut GraphContext<UserData>, rect: &RectArea) {
-    let color = rect.color.unwrap_or(ctx.default_color);
+    let color = rect.color.unwrap_or(ctx.win.foreground_color);
 
     // Dereference the options
     let start_x = rect.top_left.x;
