@@ -47,7 +47,7 @@ pub fn rgba_to_abgr(dst: &mut [u32], src: &[u32], stats:bool) -> Option<AdapterS
     let mut total_r = 0u64;
     let mut total_g = 0u64;
     let mut total_b = 0u64;
-    let mut num_pixels = (src.len() / 4) as u64;
+    let num_pixels = (src.len() / 4) as u64;
 
     for (dst_pixel, &src_pixel) in dst.iter_mut().zip(src.iter()) {
         // Extract individual color channels from RGBA
@@ -106,7 +106,6 @@ pub fn rgba_to_0rgb(dst: &mut [u32], src: &[u32], stats:bool) -> Option<AdapterS
             let r = (src_pixel >> 24) & 0xFF;
             let g = (src_pixel >> 16) & 0xFF;
             let b = (src_pixel >> 8) & 0xFF;
-            let a = src_pixel & 0xFF;
 
             // Reassemble in ABGR format and store in dst
             *dst_pixel = (0 << 24) | (r << 16) | (g << 8) | b;
@@ -118,14 +117,13 @@ pub fn rgba_to_0rgb(dst: &mut [u32], src: &[u32], stats:bool) -> Option<AdapterS
     let mut total_r = 0u64;
     let mut total_g = 0u64;
     let mut total_b = 0u64;
-    let mut num_pixels = (src.len() / 4) as u64;
+    let  num_pixels = (src.len() / 4) as u64;
 
     for (dst_pixel, &src_pixel) in dst.iter_mut().zip(src.iter()) {
         // Extract individual color channels from RGBA
         let r = (src_pixel >> 24) & 0xFF;
         let g = (src_pixel >> 16) & 0xFF;
         let b = (src_pixel >> 8) & 0xFF;
-        let a = src_pixel & 0xFF;
 
         // Reassemble in ABGR format and store in dst
         *dst_pixel = (0 << 24) | (r << 16) | (g << 8) | b;
