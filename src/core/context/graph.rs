@@ -1,15 +1,29 @@
 use crate::core::context::{AlphaContext, BezierContext, WindowContext};
 use crate::core::context::alpha::AlphaMethod;
-use crate::primitives::helper_types::BufferRGBA;
+use crate::primitives::plane::Dimensions2d;
+
+
+/// Helps resize the window context
+fn resize_window(win: &mut WindowContext, w: u32, h: u32) {
+    win.w = w;
+    win.h = h;
+    win.w_usize = w as usize;
+    win.h_usize = h as usize;
+    win.w_i32 = w as i32;
+    win.h_i32 = h as i32;
+    win.dimensions = Dimensions2d { w, h };
+}
 
 #[derive(Debug)]
-pub struct GraphContext<'c, UserDataType = Vec<i32>> {
+pub struct GraphContext<UserDataType = Vec<i32>> {
     /// Reference to the window context
-    pub win: &'c WindowContext,
-    /// Reference to the main renderable buffer
-    pub frame_buf: BufferRGBA<'c>,
-    /// Reference to the off-screen buffer (can be used to prepare graphics in advance)
-    pub draft_buf: Option<BufferRGBA<'c>>,
+    pub win: WindowContext,
+    /// The main renderable buffer
+    pub frame_buf: Vec<u32>,
+    /// The off-screen buffer (can be used to prepare graphics in advance)
+    pub draft_buf: Vec<u32>,
+    /// Whether to initialise and use the draft buffer
+    pub use_draft_buf: bool,
     /// A vector of user-defined data. Store any information here that needs to be passed around with the context
     pub user_data: Box<UserDataType>,
     /// Settings for rendering controls for Bezier curves
@@ -20,20 +34,38 @@ pub struct GraphContext<'c, UserDataType = Vec<i32>> {
     pub alpha: AlphaContext,
 }
 
-impl<'d, UserDataType: Default> GraphContext<'d, UserDataType> {
+impl<UserDataType: Default> GraphContext<UserDataType> {
     /// Instantiates a new `GraphContext`.
     /// The advanced settings like `alpha` and `bezier` are set to default,
     /// please configure them manually via your context instance.
+    /// # Arguments
+    /// * `win` - The window context
+    /// * `use_alpha` - Whether to enable alpha blending
+    /// * `use_draft_buf` - if `true`, create and use the draft buffer (same size as the frame buffer)
+    /// * `user_data` - Optional user-defined data
+    /// # Returns
+    /// A new `GraphContext` instance
     pub fn new(
-        win: &'d WindowContext,
-        frame_buf: BufferRGBA<'d>,
+        win: WindowContext,
         use_alpha: bool,
+        use_draft_buf: bool,
         user_data: Option<UserDataType>,
-    ) -> GraphContext<'d, UserDataType> {
+    ) -> GraphContext<UserDataType> {
+
+        let buf_size = win.get_buf_size();
+
+        let draft_buf = if use_draft_buf {
+            vec![win.background_color; buf_size]
+        } else {
+            vec![win.background_color; 0]
+        };
+
         GraphContext {
             win,
-            frame_buf,
-            draft_buf: None,
+            frame_buf:vec![0x0; buf_size],
+            draft_buf,
+            use_draft_buf,
+
             // Use the provided `user_data` or default to `UserDataType::default()`
             user_data: Box::new(user_data.unwrap_or_default()),
             bezier: None,
@@ -44,4 +76,19 @@ impl<'d, UserDataType: Default> GraphContext<'d, UserDataType> {
             },
         }
     }
+
+
+
+    /// Resizes the window context, the frame buffer, and the draft buffer (if `use_draft_buf == true`)
+    pub fn resize(&mut self, w: u32, h: u32) {
+        // resize the window and the frame buffer
+        resize_window (&mut self.win,w, h);
+        self.frame_buf.resize(self.win.get_buf_size(), self.win.background_color);
+
+        // resize the draft buffer if it's enabled
+        if self.use_draft_buf {
+            self.draft_buf.resize(self.win.get_buf_size(), self.win.background_color);
+        }
+    }
+
 }
