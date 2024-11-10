@@ -52,17 +52,20 @@ impl<UserDataType: Default> GraphContext<UserDataType> {
         user_data: Option<UserDataType>,
     ) -> GraphContext<UserDataType> {
 
-        let buf_size = win.get_buf_size();
+
+        // How many pixels are in the frame buffer
+        let num_pixels =  win.w_usize * win.h_usize;
+        let bg_color = win.background_color;
 
         let draft_buf = if use_draft_buf {
-            vec![win.background_color; buf_size]
+            vec![bg_color; num_pixels]
         } else {
-            vec![win.background_color; 0]
+            vec![bg_color; 0]
         };
 
         GraphContext {
             win,
-            frame_buf:vec![0x0; buf_size],
+            frame_buf:vec![bg_color; num_pixels],
             draft_buf,
             use_draft_buf,
 
@@ -83,11 +86,13 @@ impl<UserDataType: Default> GraphContext<UserDataType> {
     pub fn resize(&mut self, w: u32, h: u32) {
         // resize the window and the frame buffer
         resize_window (&mut self.win,w, h);
-        self.frame_buf.resize(self.win.get_buf_size(), self.win.background_color);
+        let num_pixels =  self.win.w_usize * self.win.h_usize;
+
+        self.frame_buf.resize(num_pixels, self.win.background_color);
 
         // resize the draft buffer if it's enabled
         if self.use_draft_buf {
-            self.draft_buf.resize(self.win.get_buf_size(), self.win.background_color);
+            self.draft_buf.resize(num_pixels, self.win.background_color);
         }
     }
 

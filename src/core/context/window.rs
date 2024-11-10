@@ -55,9 +55,4 @@ impl WindowContext {
             Some(default_colors::FOREGROUND),
         )
     }
-
-    /// Returns the needed size of framebuffer (in bytes) to render the window
-    pub fn get_buf_size(&self) -> usize {
-        4 * self.w_usize * self.h_usize
-    }
 }
