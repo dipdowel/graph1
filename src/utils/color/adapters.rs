@@ -12,7 +12,6 @@ pub struct AdapterStatistics {
     pub num_pixels: u32,
 }
 
-
 /// Converts the source buffer `src` from RGBA to ABGR and writes the result to `dst`.
 /// # Arguments
 ///
@@ -25,8 +24,12 @@ pub struct AdapterStatistics {
 /// Panics if `dst` and `src` have different lengths.
 /// # Returns
 /// An `AdapterStatistics` struct containing some basics statistics on the conversion.
-pub fn rgba_to_abgr(dst: &mut [u32], src: &[u32], stats:bool) -> Option<AdapterStatistics> {
-    assert_eq!(dst.len(), src.len(), "Source and destination buffers must have the same length!");
+pub fn rgba_to_abgr(dst: &mut [u32], src: &[u32], stats: bool) -> Option<AdapterStatistics> {
+    assert_eq!(
+        dst.len(),
+        src.len(),
+        "Source and destination buffers must have the same length!"
+    );
 
     // Faster version without the statistics
     if !stats {
@@ -66,12 +69,12 @@ pub fn rgba_to_abgr(dst: &mut [u32], src: &[u32], stats:bool) -> Option<AdapterS
     }
 
     // Calculate average color values
-    let avg_r = (total_r / num_pixels ) as u32;
-    let avg_g = (total_g / num_pixels ) as u32;
-    let avg_b = (total_b / num_pixels ) as u32;
+    let avg_r = (total_r / num_pixels) as u32;
+    let avg_g = (total_g / num_pixels) as u32;
+    let avg_b = (total_b / num_pixels) as u32;
 
     // Average ABGR color - using average alpha channel as 255 (opaque)
-    let average_color =  (avg_r << 24) | (avg_g << 16) | (avg_b << 8) | 0xff;
+    let average_color = (avg_r << 24) | (avg_g << 16) | (avg_b << 8) | 0xff;
 
     Some(AdapterStatistics {
         average_color,
@@ -81,7 +84,6 @@ pub fn rgba_to_abgr(dst: &mut [u32], src: &[u32], stats:bool) -> Option<AdapterS
         num_pixels: num_pixels as u32,
     })
 }
-
 
 /// Converts the source buffer `src` from RGBA to 0RGB and writes the result to `dst`.
 /// 0RGB model is used by some rendering libraries, such as minifb.
@@ -96,8 +98,12 @@ pub fn rgba_to_abgr(dst: &mut [u32], src: &[u32], stats:bool) -> Option<AdapterS
 /// Panics if `dst` and `src` have different lengths.
 /// # Returns
 /// An `AdapterStatistics` struct containing some basics statistics on the conversion.
-pub fn rgba_to_0rgb(dst: &mut [u32], src: &[u32], stats:bool) -> Option<AdapterStatistics> {
-    assert_eq!(dst.len(), src.len(), "Source and destination buffers must have the same length!");
+pub fn rgba_to_0rgb(dst: &mut [u32], src: &[u32], stats: bool) -> Option<AdapterStatistics> {
+    assert_eq!(
+        dst.len(),
+        src.len(),
+        "Source and destination buffers must have the same length!"
+    );
 
     // Faster version without the statistics
     if !stats {
@@ -117,7 +123,7 @@ pub fn rgba_to_0rgb(dst: &mut [u32], src: &[u32], stats:bool) -> Option<AdapterS
     let mut total_r = 0u64;
     let mut total_g = 0u64;
     let mut total_b = 0u64;
-    let  num_pixels = (src.len() / 4) as u64;
+    let num_pixels = (src.len() / 4) as u64;
 
     for (dst_pixel, &src_pixel) in dst.iter_mut().zip(src.iter()) {
         // Extract individual color channels from RGBA
@@ -135,12 +141,12 @@ pub fn rgba_to_0rgb(dst: &mut [u32], src: &[u32], stats:bool) -> Option<AdapterS
     }
 
     // Calculate average color values
-    let avg_r = (total_r / num_pixels ) as u32;
-    let avg_g = (total_g / num_pixels ) as u32;
-    let avg_b = (total_b / num_pixels ) as u32;
+    let avg_r = (total_r / num_pixels) as u32;
+    let avg_g = (total_g / num_pixels) as u32;
+    let avg_b = (total_b / num_pixels) as u32;
 
     // Average ABGR color - using average alpha channel as 255 (opaque)
-    let average_color =  (avg_r << 24) | (avg_g << 16) | (avg_b << 8) | 0xff;
+    let average_color = (avg_r << 24) | (avg_g << 16) | (avg_b << 8) | 0xff;
 
     Some(AdapterStatistics {
         average_color,
@@ -149,4 +155,26 @@ pub fn rgba_to_0rgb(dst: &mut [u32], src: &[u32], stats:bool) -> Option<AdapterS
         average_blue: avg_b & 0xff,
         num_pixels: num_pixels as u32,
     })
+}
+
+/// Converts a given RGBA color to ABGR format.
+pub fn rgba_color_to_abgr(rgba_color: u32) -> u32 {
+    // Extract individual color channels from RGBA
+    let r = (rgba_color >> 24) & 0xFF;
+    let g = (rgba_color >> 16) & 0xFF;
+    let b = (rgba_color >> 8) & 0xFF;
+    let a = rgba_color & 0xFF;
+
+    // Reassemble the color in ABGR format
+    (a << 24) | (b << 16) | (g << 8) | r
+}
+
+/// Converts a given RGBA color to 0RGB format.
+pub fn rgba_color_to_0rgb(rgba_color: u32) -> u32 {
+    let r = (rgba_color >> 24) & 0xFF;
+    let g = (rgba_color >> 16) & 0xFF;
+    let b = (rgba_color >> 8) & 0xFF;
+
+    // Reassemble in 0RGB format
+    (0 << 24) | (r << 16) | (g << 8) | b
 }
