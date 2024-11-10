@@ -54,7 +54,7 @@ impl<UserDataType: Default> GraphContext<UserDataType> {
 
 
         // How many pixels are in the frame buffer
-        let num_pixels =  win.w_usize * win.h_usize;
+        let num_pixels =  win.get_num_pixels();
         let bg_color = win.background_color;
 
         let draft_buf = if use_draft_buf {
@@ -86,7 +86,7 @@ impl<UserDataType: Default> GraphContext<UserDataType> {
     pub fn resize(&mut self, w: u32, h: u32) {
         // resize the window and the frame buffer
         resize_window (&mut self.win,w, h);
-        let num_pixels =  self.win.w_usize * self.win.h_usize;
+        let num_pixels =  self.win.get_num_pixels();
 
         self.frame_buf.resize(num_pixels, self.win.background_color);
 

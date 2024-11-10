@@ -55,4 +55,9 @@ impl WindowContext {
             Some(default_colors::FOREGROUND),
         )
     }
+
+    /// Returns the number of pixels in the window
+    pub fn get_num_pixels(&self) -> usize {
+        self.w_usize * self.h_usize
+    }
 }
