@@ -15,7 +15,7 @@ fn resize_window(win: &mut WindowContext, w: u32, h: u32) {
 }
 
 #[derive(Debug)]
-pub struct GraphContext<UserDataType = Vec<i32>> {
+pub struct GraphContext<UserData = Vec<i32>> {
     /// Reference to the window context
     pub win: WindowContext,
     /// The main renderable buffer
@@ -25,7 +25,7 @@ pub struct GraphContext<UserDataType = Vec<i32>> {
     /// Whether to initialise and use the draft buffer
     pub use_draft_buf: bool,
     /// A vector of user-defined data. Store any information here that needs to be passed around with the context
-    pub user_data: Box<UserDataType>,
+    pub user_data: Box<UserData>,
     /// Settings for rendering controls for Bezier curves
     pub bezier: Option<BezierContext>,
     /// Current frame in animation. If no animation is needed, can be set to `0`
@@ -34,7 +34,7 @@ pub struct GraphContext<UserDataType = Vec<i32>> {
     pub alpha: AlphaContext,
 }
 
-impl<UserDataType: Default> GraphContext<UserDataType> {
+impl<UserData: Default> GraphContext<UserData> {
     /// Instantiates a new `GraphContext`.
     /// The advanced settings like `alpha` and `bezier` are set to default,
     /// please configure them manually via your context instance.
@@ -49,8 +49,8 @@ impl<UserDataType: Default> GraphContext<UserDataType> {
         win: WindowContext,
         use_alpha: bool,
         use_draft_buf: bool,
-        user_data: Option<UserDataType>,
-    ) -> GraphContext<UserDataType> {
+        user_data: Option<UserData>,
+    ) -> GraphContext<UserData> {
 
 
         // How many pixels are in the frame buffer
@@ -69,7 +69,7 @@ impl<UserDataType: Default> GraphContext<UserDataType> {
             draft_buf,
             use_draft_buf,
 
-            // Use the provided `user_data` or default to `UserDataType::default()`
+            // Use the provided `user_data` or default to `UserData::default()`
             user_data: Box::new(user_data.unwrap_or_default()),
             bezier: None,
             frame_count: 0,
