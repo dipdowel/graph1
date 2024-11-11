@@ -1,10 +1,9 @@
 use crate::core::context::GraphContext;
-use crate::primitives::Pixel;
 use crate::primitives::point::Point;
+use crate::primitives::Pixel;
 
 /// Draws a horizontal line (from left to right) with a specified color and length
 pub fn horizontal<UserData>(ctx: &mut GraphContext<UserData>, start: &Pixel, length: u32) {
-
     // if length+start.x > WIN_WIDTH {
     //     println!(">>> HORIZONTAL! {}, {:?}", length, start);
     // }
@@ -56,7 +55,6 @@ pub fn vertical<UserData>(ctx: &mut GraphContext<UserData>, start: &Pixel, lengt
 
 /// Draws a line of a specified color between two arbitrary points
 pub fn between_two_points<UserData>(ctx: &mut GraphContext<UserData>, start: &Pixel, end: &Point) {
-
     // Don't let the start of the line to fall outside the visible buffer
     let mut start: Pixel = Pixel {
         x: u32::min(start.x, ctx.win.w - 1),

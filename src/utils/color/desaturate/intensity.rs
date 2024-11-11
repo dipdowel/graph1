@@ -31,8 +31,6 @@ pub fn rgb_pixel_intensity(red: u8, green: u8, blue: u8, squared: bool) -> u8 {
 /// # Returns
 /// A `u32` representing the average intensity.
 pub fn rgba_pixel_intensity(color: u32, quadratic: bool) -> u32 {
-
-
     let red = (color >> 24) & 0xff;
     let green = (color >> 16) & 0xff;
     let blue = (color >> 8) & 0xff;

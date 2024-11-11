@@ -1,9 +1,8 @@
-
 /// Core functionality for the library, e.g. contexts, default values, etc.
 pub mod core {
 
     /// Heart of the library: `GraphContext` and its sub-contexts
-    pub mod context{
+    pub mod context {
         pub mod alpha;
         mod bezier;
         mod graph;
@@ -42,10 +41,10 @@ pub mod utils {
 
     /// Utils for processing colors
     pub mod color {
-        /// Functions to blend colors taking into account the alpha channel
-        pub mod alpha;
         /// Color adapters for converting between different color models.
         pub mod adapters;
+        /// Functions to blend colors taking into account the alpha channel
+        pub mod alpha;
         /// Math operations on colors
         pub mod math {
 
@@ -57,19 +56,18 @@ pub mod utils {
         pub mod desaturate {
             pub mod intensity;
             pub mod luminance;
-
         }
     }
 }
 
 /// Drawing tools and operations
-pub mod draw{
-    /// Draw rectangles
-    pub mod rectangle;
-    /// Draw lines
-    pub mod line;
+pub mod draw {
     /// Draw circles
     pub mod circle;
+    /// Draw lines
+    pub mod line;
+    /// Draw rectangles
+    pub mod rectangle;
 
     /// Drawing tools
     pub mod tools {

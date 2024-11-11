@@ -1,6 +1,6 @@
-use std::collections::VecDeque;
-use crate::primitives::Pixel;
 use crate::primitives::plane::Dimensions2d;
+use crate::primitives::Pixel;
+use std::collections::VecDeque;
 
 /// A low-level fill tool.
 /// Unsafely fills a buffer with a given color
@@ -29,13 +29,8 @@ pub fn buffer(buf_view: &mut [u32], color: u32) {
     }
 }
 
-
 /// Flood fills a shape with a color and starting at a position specified by `start`
-pub fn flood(
-    buf: &mut [u32],
-    buf_dimensions: &Dimensions2d,
-    start_pixel: &Pixel,
-) {
+pub fn flood(buf: &mut [u32], buf_dimensions: &Dimensions2d, start_pixel: &Pixel) {
     // Buffer dimensions
     let width = buf_dimensions.w;
     let height = buf_dimensions.h;

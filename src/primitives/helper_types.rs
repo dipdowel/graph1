@@ -1,4 +1,3 @@
-
 /// Array of pixels. Each pixel has the `RGBA` model.
 pub type BufferRGBA<'a> = &'a mut [u32];
 
@@ -21,4 +20,4 @@ pub type BufferRGBA<'a> = &'a mut [u32];
 ///
 /// An RGBA value representing the transformed pixel
 pub type PixelColorTransformerFn =
-fn(color: u32, x: u32, y: u32, w: u32, h: u32, data: Option<&Vec<u32>>) -> u32;
+    fn(color: u32, x: u32, y: u32, w: u32, h: u32, data: Option<&Vec<u32>>) -> u32;

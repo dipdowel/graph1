@@ -1,5 +1,5 @@
 /// A custom trait that serves as a marker for allowed types.
-pub trait Numeric : Clone + Copy {
+pub trait Numeric: Clone + Copy {
     fn to_f64(self) -> f64;
     fn from_f64(value: f64) -> Self;
 }

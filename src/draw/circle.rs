@@ -1,5 +1,5 @@
-use crate::draw;
 use crate::core::context::GraphContext;
+use crate::draw;
 use crate::primitives::Pixel;
 
 /// Draws a filled circle with a specified center, radius, and color.
@@ -10,8 +10,12 @@ use crate::primitives::Pixel;
 /// - `center`: A reference to a `Pixel` that specifies the center of the circle and its color.
 /// - `radius`: The radius of the circle in pixels.
 /// - `skip_every`: The number of lines to skip while drawing. This provides a less dense, stylised circle.
-pub fn filled<UserData>(ctx: &mut GraphContext<UserData>, center: &Pixel, radius: u32, skip_every: u32) {
-
+pub fn filled<UserData>(
+    ctx: &mut GraphContext<UserData>,
+    center: &Pixel,
+    radius: u32,
+    skip_every: u32,
+) {
     let radius_sq = radius.pow(2) as i32;
 
     let mut skip_every = skip_every;

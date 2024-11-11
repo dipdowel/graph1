@@ -17,7 +17,7 @@ pub struct AlphaContext {
 }
 
 impl Default for AlphaContext {
-     fn default() -> Self {
+    fn default() -> Self {
         Self {
             enabled: false,
             method: AlphaMethod::Int,

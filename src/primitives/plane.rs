@@ -1,7 +1,6 @@
 use crate::primitives::numeric::Numeric;
 use crate::primitives::point::Point;
 
-
 #[derive(Debug, Clone, Copy)]
 /// A combination of width and height on a 2D plane.
 pub struct Dimensions2d<T: Numeric = u32> {
@@ -27,11 +26,9 @@ impl<T: Numeric> Dimensions2d<T> {
 
     /// Creates a new square `Dimensions2d`, with the given side length (i.e. w == h == side).
     pub fn square(side: T) -> Self {
-        Self { w:side, h:side }
+        Self { w: side, h: side }
     }
 }
-
-
 
 #[derive(Debug, Clone, Copy)]
 /// A rectangle area with a top-left point, dimensions, and color.
@@ -42,10 +39,9 @@ pub struct RectArea<T: Numeric = u32> {
     pub color: Option<u32>,
 }
 
-impl<T: Numeric>  RectArea<T> {
-
+impl<T: Numeric> RectArea<T> {
     /// Creates a new `RectArea` with the given top-left point, dimensions, and color.
-    pub fn new(x:T, y:T, w:T, h:T, color: Option<u32>) -> Self {
+    pub fn new(x: T, y: T, w: T, h: T, color: Option<u32>) -> Self {
         Self {
             top_left: Point { x, y },
             dimensions: Dimensions2d { w, h },
@@ -54,12 +50,14 @@ impl<T: Numeric>  RectArea<T> {
     }
 
     /// Creates a new square `RectArea`, with the given top-left point, side length, and color.
-    pub fn square(x:T, y:T, side:T, color: Option<u32>) -> Self {
+    pub fn square(x: T, y: T, side: T, color: Option<u32>) -> Self {
         Self {
             top_left: Point { x, y },
-            dimensions: Dimensions2d { w: side.clone(), h: side.clone() },
+            dimensions: Dimensions2d {
+                w: side.clone(),
+                h: side.clone(),
+            },
             color,
         }
     }
-
 }

@@ -26,9 +26,11 @@ pub fn blend_pixel_int(bg: u32, fg: u32) -> u32 {
     let blended_a = (fg_a * alpha as u16 + bg_a * inv_alpha as u16) / 255;
 
     // Reassemble channels into a single u32 RGBA value
-    ((blended_r as u32) << 24) | ((blended_g as u32) << 16) | ((blended_b as u32) << 8) | (blended_a as u32)
+    ((blended_r as u32) << 24)
+        | ((blended_g as u32) << 16)
+        | ((blended_b as u32) << 8)
+        | (blended_a as u32)
 }
-
 
 /// Blends foreground and background colors using `f32` for higher precision.
 /// - `bg` is the background color in RGBA format as `u32`
@@ -59,13 +61,11 @@ pub fn blend_pixel_f32(bg: u32, fg: u32) -> u32 {
     let blended_a = fg_a * alpha + bg_a * inv_alpha;
 
     // Convert back to `u32` and assemble into a single RGBA value
-    ((blended_r.round() as u32) << 24) |
-        ((blended_g.round() as u32) << 16) |
-        ((blended_b.round() as u32) << 8) |
-        (blended_a.round() as u32)
+    ((blended_r.round() as u32) << 24)
+        | ((blended_g.round() as u32) << 16)
+        | ((blended_b.round() as u32) << 8)
+        | (blended_a.round() as u32)
 }
-
-
 
 /*
 #[cfg(test)]

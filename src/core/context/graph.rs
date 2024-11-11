@@ -1,7 +1,6 @@
-use crate::core::context::{AlphaContext, BezierContext, WindowContext};
 use crate::core::context::alpha::AlphaMethod;
+use crate::core::context::{AlphaContext, BezierContext, WindowContext};
 use crate::primitives::plane::Dimensions2d;
-
 
 /// Helps resize the window context
 fn resize_window(win: &mut WindowContext, w: u32, h: u32) {
@@ -51,10 +50,8 @@ impl<UserData: Default> GraphContext<UserData> {
         use_draft_buf: bool,
         user_data: Option<UserData>,
     ) -> GraphContext<UserData> {
-
-
         // How many pixels are in the frame buffer
-        let num_pixels =  win.get_num_pixels();
+        let num_pixels = win.get_num_pixels();
         let bg_color = win.background_color;
 
         let draft_buf = if use_draft_buf {
@@ -65,7 +62,7 @@ impl<UserData: Default> GraphContext<UserData> {
 
         GraphContext {
             win,
-            frame_buf:vec![bg_color; num_pixels],
+            frame_buf: vec![bg_color; num_pixels],
             draft_buf,
             use_draft_buf,
 
@@ -80,13 +77,11 @@ impl<UserData: Default> GraphContext<UserData> {
         }
     }
 
-
-
     /// Resizes the window context, the frame buffer, and the draft buffer (if `use_draft_buf == true`)
     pub fn resize(&mut self, w: u32, h: u32) {
         // resize the window and the frame buffer
-        resize_window (&mut self.win,w, h);
-        let num_pixels =  self.win.get_num_pixels();
+        resize_window(&mut self.win, w, h);
+        let num_pixels = self.win.get_num_pixels();
 
         self.frame_buf.resize(num_pixels, self.win.background_color);
 
@@ -95,5 +90,4 @@ impl<UserData: Default> GraphContext<UserData> {
             self.draft_buf.resize(num_pixels, self.win.background_color);
         }
     }
-
 }
