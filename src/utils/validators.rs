@@ -3,15 +3,20 @@ use crate::primitives::numeric::Numeric;
 use crate::primitives::plane::RectArea;
 
 
+/// Validates whether `rect_2` fits within `rect_1`.
+///
+/// # Arguments
+/// * `rect_1` - The outer rectangle.
+/// * `rect_2` - The inner rectangle candidate.
+///
+/// # Returns
+/// `true` if `rect_2` fits within `rect_1`, `false` otherwise.
 pub fn rect_fits_rect(rect_1: &RectArea, rect_2: &RectArea) -> bool {
     rect_2.top_left.x >= rect_1.top_left.x
         && rect_2.top_left.y >= rect_1.top_left.y
         && (rect_2.top_left.x + rect_2.dimensions.w) <= (rect_1.top_left.x + rect_1.dimensions.w)
         && (rect_2.top_left.y + rect_2.dimensions.h) <= (rect_1.top_left.y + rect_1.dimensions.h)
 }
-
-
-
 
 /// validate if the rectangle is within the window bounds
 ///
@@ -21,11 +26,9 @@ pub fn rect_fits_rect(rect_1: &RectArea, rect_2: &RectArea) -> bool {
 ///
 /// # Returns
 /// `true` if the rectangle is within the window bounds, `false` otherwise.
+
 pub fn rect_fits_window<UserData>(ctx: &mut GraphContext<UserData>, rect: &RectArea) -> bool {
-    rect.top_left.x >= 0
-        && rect.top_left.y >= 0
-        && (rect.top_left.x  + rect.dimensions.w) <= ctx.win.w
-        && rect.top_left.y + rect.dimensions.h <= ctx.win.h
+    rect_fits_rect(&ctx.win.rect_area, rect)
 }
 
 #[cfg(test)]
