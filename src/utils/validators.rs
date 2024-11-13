@@ -18,7 +18,7 @@ pub fn rect_fits_rect(rect_1: &RectArea, rect_2: &RectArea) -> bool {
         && (rect_2.top_left.y + rect_2.dimensions.h) <= (rect_1.top_left.y + rect_1.dimensions.h)
 }
 
-/// validate if the rectangle is within the window bounds
+/// validate whether a given rectangle fits within the window bounds
 ///
 /// # Arguments
 /// * `ctx` - The graph context
@@ -37,6 +37,7 @@ mod tests {
     use crate::primitives::plane::RectArea;
     use crate::test::mock_contexts::get_mock_graph_context;
 
+    //======== [ RECT FITS WINDOW ] ================================================================
     #[test]
     fn test_rect_fits_window_within_bounds() {
         let rect = RectArea::new(100, 100, 200, 150, None);
@@ -75,7 +76,7 @@ mod tests {
     }
 
 
-    //**********************************************************************************************/
+    //======== [ RECT FITS ANOTHER RECT ] ==========================================================
 
     #[test]
     fn test_rect_fits_rect_within_bounds() {
