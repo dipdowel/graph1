@@ -57,7 +57,9 @@ pub mod utils {
         pub mod math {
 
             /// Addition and subtraction of RGBA colors
-            pub mod rgba_operation;
+            mod rgba_operation;
+            pub use rgba_operation::rgba_operation;
+            pub use rgba_operation::ColorOperation;
         }
         pub mod palettes;
         /// Color properties calculations, color analysis
