@@ -35,44 +35,44 @@ pub fn rect_fits_window<UserData>(ctx: &mut GraphContext<UserData>, rect: &RectA
 mod tests {
     use super::*;
     use crate::primitives::plane::RectArea;
-    use crate::test::mock_contexts::get_mock_graph_context;
+    use crate::test::mock_contexts::{get_mock_graph_context};
 
     //======== [ RECT FITS WINDOW ] ================================================================
     #[test]
     fn test_rect_fits_window_within_bounds() {
         let rect = RectArea::new(100, 100, 200, 150, None);
-        assert!(rect_fits_window(&mut get_mock_graph_context(), &rect));
+        assert!(rect_fits_window(&mut get_mock_graph_context(800, 600), &rect));
     }
 
     #[test]
     fn test_rect_fits_window_out_of_bounds_x() {
         let rect = RectArea::new(900, 100, 200, 150, None);
-        assert!(!rect_fits_window(&mut get_mock_graph_context(), &rect));
+        assert!(!rect_fits_window(&mut get_mock_graph_context(800, 600), &rect));
     }
 
     #[test]
     fn test_rect_fits_window_out_of_bounds_y() {
         let rect = RectArea::new(100, 900, 200, 150, None);
-        assert!(!rect_fits_window(&mut get_mock_graph_context(), &rect));
+        assert!(!rect_fits_window(&mut get_mock_graph_context(800, 600), &rect));
     }
 
     #[test]
     fn test_rect_fits_window_too_wide() {
         let rect = RectArea::new(10, 10, 1200, 150, None);
-        assert!(!rect_fits_window(&mut get_mock_graph_context(), &rect));
+        assert!(!rect_fits_window(&mut get_mock_graph_context(800, 600), &rect));
     }
 
 
     #[test]
     fn test_rect_fits_window_too_tall() {
         let rect = RectArea::new(10, 10, 120, 1500, None);
-        assert!(!rect_fits_window(&mut get_mock_graph_context(), &rect));
+        assert!(!rect_fits_window(&mut get_mock_graph_context(800, 600), &rect));
     }
 
     #[test]
     fn test_rect_fits_window_exact_fit() {
         let rect = RectArea::new(0, 0, 800, 600, None);
-        assert!(rect_fits_window(&mut get_mock_graph_context(), &rect));
+        assert!(rect_fits_window(&mut get_mock_graph_context(800, 600), &rect));
     }
 
 
