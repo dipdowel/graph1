@@ -7,56 +7,91 @@ use std::fmt;
 
 
 
-struct BenchContexts {
-    ctx_src: GraphContext<MockUserData>,
-    ctx_dst: GraphContext<MockUserData>,
-}
-
-impl fmt::Display for BenchContexts {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        // Write the desired string representation to the formatter
-        write!(
-            f,
-            "ctx_dst: {:?}, ctx_src: {:?}",
-            self.ctx_dst, self.ctx_dst
-        )
-    }
-}
-
-fn rgba_to_0rgb_unsafe_bench(data: &mut BenchContexts) {
+fn rgba_to_0rgb_unsafe_bench(ctx_dst: &mut GraphContext<MockUserData>, ctx_src: &mut GraphContext<MockUserData>) {
     adapters::rgba_to_0rgb_unsafe(
-        &mut data.ctx_dst.frame_buf,
-        &mut data.ctx_src.frame_buf,
+        &mut ctx_dst.frame_buf,
+        &mut ctx_src.frame_buf,
         false,
     );
 }
-fn rgba_to_0rgb_bench(data: &mut BenchContexts) {
+fn rgba_to_0rgb_bench(ctx_dst: &mut GraphContext<MockUserData>, ctx_src: &mut GraphContext<MockUserData>) {
     adapters::rgba_to_0rgb(
-        &mut data.ctx_dst.frame_buf,
-        &mut data.ctx_src.frame_buf,
+        &mut ctx_dst.frame_buf,
+        &mut ctx_src.frame_buf,
         false,
     );
 }
 fn benchmark_comparison(c: &mut Criterion) {
     // Test set-up
-    let mut bench_contexts: BenchContexts = BenchContexts {
-        ctx_src: get_mock_graph_context(1024,768),
-        ctx_dst: get_mock_graph_context(1024,768),
-    };
-    fill::buffer(&mut bench_contexts.ctx_src.frame_buf, 0x33_44_55_ff);
+    let mut ctx_dst: GraphContext<MockUserData> = get_mock_graph_context(640, 480);
+    let mut ctx_src: GraphContext<MockUserData> = get_mock_graph_context(640, 480);
+    fill::buffer(&mut ctx_src.frame_buf, 0x33_44_55_ff);
 
     // Create a benchmark group
     let mut group = c.benchmark_group("Function Comparison");
 
 
-    group.bench_function("rgba_to_0rgb_unsafe", |b| {
-        b.iter(|| rgba_to_0rgb_unsafe_bench(&mut bench_contexts));
+    group.bench_function("rgba_to_0rgb_unsafe_640x480", |b| {
+        b.iter(|| rgba_to_0rgb_unsafe_bench(&mut ctx_dst, &mut ctx_src));
     });
 
+    group.bench_function("rgba_to_0rgb_640x480", |b| {
+        b.iter(|| rgba_to_0rgb_bench(&mut ctx_dst, &mut ctx_src));
+    });
+
+    ctx_dst.resize(800, 600);
+    ctx_src.resize(800, 600);
+
+
+    group.bench_function("rgba_to_0rgb_800x600", |b| {
+        b.iter(|| rgba_to_0rgb_bench(&mut ctx_dst, &mut ctx_src));
+    });
+
+    group.bench_function("rgba_to_0rgb_unsafe_800x600", |b| {
+        b.iter(|| rgba_to_0rgb_unsafe_bench(&mut ctx_dst, &mut ctx_src));
+    });
+
+
+    ctx_dst.resize(1024, 768);
+    ctx_src.resize(1024, 768);
+
+    group.bench_function("rgba_to_0rgb_unsafe_1024x768", |b| {
+        b.iter(|| rgba_to_0rgb_unsafe_bench(&mut ctx_dst, &mut ctx_src));
+    });
+
+    group.bench_function("rgba_to_0rgb_1024x768", |b| {
+        b.iter(|| rgba_to_0rgb_bench(&mut ctx_dst, &mut ctx_src));
+    });
+
+
+    ctx_dst.resize(2048, 1536);
+    ctx_src.resize(2048, 1536);
+
+    group.bench_function("rgba_to_0rgb_unsafe_2048x1536);", |b| {
+        b.iter(|| rgba_to_0rgb_unsafe_bench(&mut ctx_dst, &mut ctx_src));
+    });
+
+    group.bench_function("rgba_to_0rgb_2048x1536);", |b| {
+        b.iter(|| rgba_to_0rgb_bench(&mut ctx_dst, &mut ctx_src));
+    });
+
+
+    ctx_dst.resize(4096, 3072);
+    ctx_src.resize(4096, 3072);
+
+    group.bench_function("rgba_to_0rgb_unsafe_4096x3072);", |b| {
+        b.iter(|| rgba_to_0rgb_unsafe_bench(&mut ctx_dst, &mut ctx_src));
+    });
+
+    group.bench_function("rgba_to_0rgb_4096x3072);", |b| {
+        b.iter(|| rgba_to_0rgb_bench(&mut ctx_dst, &mut ctx_src));
+    });
+
+    /*
     group.bench_function("rgba_to_0rgb", |b| {
-        b.iter(|| rgba_to_0rgb_bench(&mut bench_contexts));
+        b.iter(|| rgba_to_0rgb_bench(&mut ctx_dst, &mut ctx_src));
     });
-
+*/
     group.finish();
 
 }
