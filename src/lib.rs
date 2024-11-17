@@ -19,9 +19,24 @@ pub mod core {
     pub mod default_colors;
 }
 
+/// Drawing tools and operations
+pub mod draw {
+    /// Draw circles
+    pub mod circle;
+    /// Draw lines
+    pub mod line;
+    /// Draw rectangles
+    pub mod rectangle;
+
+    /// Drawing tools
+    pub mod tools {
+        /// Fill a shape or a buffer with a color
+        pub mod fill;
+    }
+}
+
 pub mod fx {
     pub mod scanline;
-
 }
 
 /// Building blocks: essential structs, traits, types, constants, etc.
@@ -40,12 +55,25 @@ pub mod primitives {
     pub mod point;
 }
 
+pub mod text {
+
+    pub mod char_width_map;
+    pub mod font;
+    pub mod font_constants;
+    pub mod font_embedder;
+    pub mod printer;
+
+    pub mod utils;
+}
+
 /// Utilities for working with colors, color-specific math, pixel model conversions, etc.
 pub mod utils {
+
+    pub mod bit_operations;
     mod common;
     pub use common::clear_screen;
 
-    pub mod validators;
+
 
     /// Utils for processing colors
     pub mod color {
@@ -61,30 +89,22 @@ pub mod utils {
             pub use rgba_operation::rgba_operation;
             pub use rgba_operation::ColorOperation;
         }
+
         pub mod palettes;
+
         /// Color properties calculations, color analysis
         pub mod desaturate {
             pub mod intensity;
             pub mod luminance;
         }
     }
-}
-
-/// Drawing tools and operations
-pub mod draw {
-    /// Draw circles
-    pub mod circle;
-    /// Draw lines
-    pub mod line;
-    /// Draw rectangles
-    pub mod rectangle;
-
-    /// Drawing tools
-    pub mod tools {
-        /// Fill a shape or a buffer with a color
-        pub mod fill;
+    pub mod math;
+    pub mod pixel_copy {
+        pub mod image_data;
     }
+    pub mod validators;
 }
+
 pub mod test {
     pub mod mock_contexts;
 }
