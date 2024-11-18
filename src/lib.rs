@@ -1,3 +1,6 @@
+
+//-=[ C }=------------------------------------------------------------------------------------------
+
 /// Core functionality for the library, e.g. contexts, default values, etc.
 pub mod core {
 
@@ -18,6 +21,7 @@ pub mod core {
     /// Default colors used in the library if no custom colors specified
     pub mod default_colors;
 }
+//-=[ D }=------------------------------------------------------------------------------------------
 
 /// Drawing tools and operations
 pub mod draw {
@@ -35,9 +39,13 @@ pub mod draw {
     }
 }
 
+//-=[ F }=------------------------------------------------------------------------------------------
+
 pub mod fx {
     pub mod scanline;
 }
+
+//-=[ P }=------------------------------------------------------------------------------------------
 
 /// Building blocks: essential structs, traits, types, constants, etc.
 pub mod primitives {
@@ -55,6 +63,11 @@ pub mod primitives {
     pub mod point;
 }
 
+//-=[ T }=------------------------------------------------------------------------------------------
+
+pub mod test {
+    pub mod mock_contexts;
+}
 pub mod text {
 
     pub mod char_width_map;
@@ -65,6 +78,8 @@ pub mod text {
 
     pub mod utils;
 }
+
+//-=[ U }=------------------------------------------------------------------------------------------
 
 /// Utilities for working with colors, color-specific math, pixel model conversions, etc.
 pub mod utils {
@@ -105,9 +120,8 @@ pub mod utils {
     pub mod validators;
 }
 
-pub mod test {
-    pub mod mock_contexts;
-}
+
+
 // pub mod draw;
 // pub mod primitives;
 // pub mod text;
