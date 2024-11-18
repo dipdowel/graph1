@@ -12,7 +12,7 @@ use crate::primitives::point::POINT_ZERO;
 use crate::text::font::{PixelFont, PixelFontMeta, Spacing};
 use crate::text::{font, font_constants};
 use crate::text::utils::u16_vec_to_utf8_char;
-use crate::utils::bit_operations;
+use crate::utils::color::bit_operations;
 use crate::utils::math::nearest_power_of_two_towards_zero;
 use crate::utils::pixel_copy::image_data;
 
@@ -216,7 +216,7 @@ pub fn instantiate_external_font(
     let mut font_pixel_data = vec![];
     font_data.read_to_end(&mut font_pixel_data).unwrap();
 
-    let src_font_image: Vec<u32> = bit_operations::one_bit_image_to_rgb(&font_pixel_data);
+    let src_font_image: Vec<u32> = bit_operations::one_bit_image_to_rgba(&font_pixel_data);
     let mut font_image_buf: Vec<u32> = src_font_image.clone();
 
     let mut font_image_buf_dim: Dimensions2d = Dimensions2d {

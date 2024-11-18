@@ -82,8 +82,6 @@ pub mod text {
 
 /// Utilities for working with colors, color-specific math, pixel model conversions, etc.
 pub mod utils {
-
-    pub mod bit_operations;
     mod common;
     pub use common::clear_screen;
 
@@ -93,6 +91,8 @@ pub mod utils {
         pub mod adapters;
         /// Functions to blend colors taking into account the alpha channel
         pub mod alpha;
+        /// Conversions between RGBA and 1-bit image
+        pub mod bit_operations;
         /// Math operations on colors
         pub mod math {
 
@@ -103,6 +103,7 @@ pub mod utils {
         }
 
         pub mod palettes;
+
 
         /// Color properties calculations, color analysis
         pub mod desaturate {

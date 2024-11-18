@@ -5,7 +5,7 @@ use crate::primitives::point::Point;
 use crate::text::font::PixelFont;
 use crate::utils::pixel_copy::image_data;
 
-const DEFAULT_TRANSPARENCY_COLOR: u32 = 0x00_ff_ff_ff;
+const DEFAULT_TRANSPARENCY_COLOR: u32 = 0xff_ff_ff_ff;
 
 pub struct ColorProperties<'a> {
     /// Text color. If `color` provided, `color_transformer` is ignored

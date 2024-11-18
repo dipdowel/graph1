@@ -103,7 +103,7 @@ impl PixelFont {
             glyphs.insert(character, glyph);
         }
 
-        return Self {
+        Self {
             font_image_buf,
             img_dimensions,
             char_order,
@@ -111,7 +111,7 @@ impl PixelFont {
             spacing,
             glyphs,
             meta,
-        };
+        }
     }
 
     pub fn get_glyph(&self, character: &char) -> &RectArea {
