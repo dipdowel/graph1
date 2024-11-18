@@ -4,6 +4,9 @@ pub fn get_c_c_red_alert_inet0<'a>(scale_factor: u8) -> HashMap<char, u8> {
     // The resulting map: each character in the charset mapped to the character width (in pixels)
     let mut char_map: HashMap<char, u8> = HashMap::new();
 
+    // TODO: Improve European languages support
+    // TODO: - https://github.com/dipdowel/graph1/issues/4
+
     // Map character width to the characters with that width
     let mut width_to_chars: HashMap<u8, &str> = HashMap::new();
     width_to_chars.insert(7, "MWmw#%@_~");
@@ -19,7 +22,8 @@ pub fn get_c_c_red_alert_inet0<'a>(scale_factor: u8) -> HashMap<char, u8> {
             char_map.insert(ch, width * scale_factor);
         }
     }
-    return char_map;
+
+    char_map
 }
 
 //
