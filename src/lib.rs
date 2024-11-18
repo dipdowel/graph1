@@ -1,4 +1,3 @@
-
 //-=[ C }=------------------------------------------------------------------------------------------
 
 /// Core functionality for the library, e.g. contexts, default values, etc.
@@ -88,8 +87,6 @@ pub mod utils {
     mod common;
     pub use common::clear_screen;
 
-
-
     /// Utils for processing colors
     pub mod color {
         /// Color adapters for converting between different color models.
@@ -101,8 +98,8 @@ pub mod utils {
 
             /// Addition and subtraction of RGBA colors
             mod rgba_operation;
-            pub use rgba_operation::rgba_operation;
             pub use rgba_operation::ColorOperation;
+            pub use rgba_operation::rgba_operation;
         }
 
         pub mod palettes;
@@ -119,8 +116,6 @@ pub mod utils {
     }
     pub mod validators;
 }
-
-
 
 // pub mod draw;
 // pub mod primitives;
