@@ -4,6 +4,9 @@ use std::fmt::Display;
 use crate::primitives::plane::{Dimensions2d, RectArea};
 use crate::primitives::point::Point;
 
+// FIXME: Improve European languages support
+// FIXME: https://github.com/dipdowel/graph1/issues/4
+
 pub const DEFAULT_CHAR_ORDER: &str = " ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!\"#$%&'()*+,-./:;<=>?@[\\]^_`{|}~";
 
 /// Space between glyphs in the font source image file
