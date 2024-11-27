@@ -1,5 +1,7 @@
 use std::ptr;
-use crate::primitives::primitives::{Dimensions2d, PixelColorTransformerFn, Point, RectArea};
+use crate::primitives::helper_types::PixelColorTransformerFn;
+use crate::primitives::plane::{Dimensions2d, RectArea};
+use crate::primitives::point::Point;
 use crate::utils::math::is_power_of_two;
 
 

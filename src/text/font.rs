@@ -1,8 +1,11 @@
 use std::collections::HashMap;
 use std::fmt;
 use std::fmt::Display;
+use crate::primitives::plane::{Dimensions2d, RectArea};
+use crate::primitives::point::Point;
 
-use crate::primitives::primitives::{Dimensions2d, Point, RectArea};
+// FIXME: Improve European languages support
+// FIXME: https://github.com/dipdowel/graph1/issues/4
 
 pub const DEFAULT_CHAR_ORDER: &str = " ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!\"#$%&'()*+,-./:;<=>?@[\\]^_`{|}~";
 
@@ -96,13 +99,14 @@ impl PixelFont {
                     w: width as u32,
                     h: img_dimensions.h,
                 },
+                color: None,
             };
 
             width_count += glyph.dimensions.w + src_kerning_px;
             glyphs.insert(character, glyph);
         }
 
-        return Self {
+        Self {
             font_image_buf,
             img_dimensions,
             char_order,
@@ -110,7 +114,7 @@ impl PixelFont {
             spacing,
             glyphs,
             meta,
-        };
+        }
     }
 
     pub fn get_glyph(&self, character: &char) -> &RectArea {

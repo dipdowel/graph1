@@ -1,3 +1,5 @@
+//-=[ C }=------------------------------------------------------------------------------------------
+
 /// Core functionality for the library, e.g. contexts, default values, etc.
 pub mod core {
 
@@ -18,11 +20,31 @@ pub mod core {
     /// Default colors used in the library if no custom colors specified
     pub mod default_colors;
 }
+//-=[ D }=------------------------------------------------------------------------------------------
+
+/// Drawing tools and operations
+pub mod draw {
+    /// Draw circles
+    pub mod circle;
+    /// Draw lines
+    pub mod line;
+    /// Draw rectangles
+    pub mod rectangle;
+
+    /// Drawing tools
+    pub mod tools {
+        /// Fill a shape or a buffer with a color
+        pub mod fill;
+    }
+}
+
+//-=[ F }=------------------------------------------------------------------------------------------
 
 pub mod fx {
     pub mod scanline;
-
 }
+
+//-=[ P }=------------------------------------------------------------------------------------------
 
 /// Building blocks: essential structs, traits, types, constants, etc.
 pub mod primitives {
@@ -40,12 +62,28 @@ pub mod primitives {
     pub mod point;
 }
 
+//-=[ T }=------------------------------------------------------------------------------------------
+
+pub mod test {
+    pub mod mock_contexts;
+}
+pub mod text {
+
+    pub mod char_width_map;
+    pub mod font;
+    pub mod font_constants;
+    pub mod font_embedder;
+    pub mod printer;
+
+    pub mod utils;
+}
+
+//-=[ U }=------------------------------------------------------------------------------------------
+
 /// Utilities for working with colors, color-specific math, pixel model conversions, etc.
 pub mod utils {
     mod common;
     pub use common::clear_screen;
-
-    pub mod validators;
 
     /// Utils for processing colors
     pub mod color {
@@ -53,41 +91,33 @@ pub mod utils {
         pub mod adapters;
         /// Functions to blend colors taking into account the alpha channel
         pub mod alpha;
+        /// Conversions between RGBA and 1-bit image
+        pub mod bit_operations;
         /// Math operations on colors
         pub mod math {
 
             /// Addition and subtraction of RGBA colors
             mod rgba_operation;
-            pub use rgba_operation::rgba_operation;
             pub use rgba_operation::ColorOperation;
+            pub use rgba_operation::rgba_operation;
         }
+
         pub mod palettes;
+
+
         /// Color properties calculations, color analysis
         pub mod desaturate {
             pub mod intensity;
             pub mod luminance;
         }
     }
-}
-
-/// Drawing tools and operations
-pub mod draw {
-    /// Draw circles
-    pub mod circle;
-    /// Draw lines
-    pub mod line;
-    /// Draw rectangles
-    pub mod rectangle;
-
-    /// Drawing tools
-    pub mod tools {
-        /// Fill a shape or a buffer with a color
-        pub mod fill;
+    pub mod math;
+    pub mod pixel_copy {
+        pub mod image_data;
     }
+    pub mod validators;
 }
-pub mod test {
-    pub mod mock_contexts;
-}
+
 // pub mod draw;
 // pub mod primitives;
 // pub mod text;
