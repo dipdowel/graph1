@@ -7,6 +7,8 @@ use crate::utils::pixel_copy::image_data;
 
 const DEFAULT_TRANSPARENCY_COLOR: u32 = 0xff_ff_ff_ff;
 
+
+#[derive(Debug, Clone, Copy)]
 pub struct ColorProperties<'a> {
     /// Text color. If `color` provided, `color_transformer` is ignored
     pub color: Option<u32>,
@@ -17,7 +19,7 @@ pub struct ColorProperties<'a> {
     pub data: Option<&'a Vec<u32>>,
 }
 
-#[derive(PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub enum Align {
     Left,
     Right,

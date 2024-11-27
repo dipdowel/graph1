@@ -12,7 +12,7 @@ pub const DEFAULT_CHAR_ORDER: &str = " ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmno
 /// Space between glyphs in the font source image file
 pub const DEFAULT_KERNING_PX: u8 = 1;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 /// Font spacing properties (typography)
 pub struct Spacing {
     /// Horizontal spacing between characters
@@ -21,7 +21,7 @@ pub struct Spacing {
     pub leading_px: u8,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct PixelFontMeta {
     pub font_ver: u16,
     pub date_year: u16,
@@ -31,7 +31,8 @@ pub struct PixelFontMeta {
     pub author_signature: String,
 }
 
-#[derive(Debug)]
+
+#[derive(Debug, Clone)]
 pub struct PixelFont {
     /// Buffer with the font source image
     pub font_image_buf: Vec<u32>,
