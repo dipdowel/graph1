@@ -11,3 +11,13 @@
 
 ## Intensity
 - [ ] Implement `square` parameter for all the functions, adjust the RUstDoc accordingly!
+
+
+
+## multithreaded support in operations
+- Make a multithreaded function that copies one buffer to another 
+- Add multithreaded support to buffer fill
+- Drawing a rectangle can be multithreaded, try it!
+- Make multithreaded color adapters
+- The scanline effect can potentially be multithreaded
+- Check if flood fill can be multithreaded
