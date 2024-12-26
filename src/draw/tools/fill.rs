@@ -8,13 +8,13 @@ use std::collections::VecDeque;
 /// TODO: check the claim about the speed above!!!
 /// TODO: check the claim about the speed above!!!
 /// TODO: check the claim about the speed above!!!
-pub fn buffer(buf_view: &mut [u32], color: u32) {
+pub fn buffer(buffer: &mut [u32], color: u32, num_threads: usize) {
     unsafe {
         // Obtain a raw pointer
-        let buffer_ptr = buf_view.as_mut_ptr();
+        let buffer_ptr = buffer.as_mut_ptr();
 
         // Calculate the end pointer for our loop. This is safe because we are not dereferencing the pointer yet.
-        let end_ptr = buffer_ptr.add(buf_view.len());
+        let end_ptr = buffer_ptr.add(buffer.len());
 
         // Initialize a mutable pointer to iterate through the buffer.
         let mut current_ptr = buffer_ptr;
