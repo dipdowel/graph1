@@ -31,6 +31,12 @@ pub struct GraphContext<UserData = Vec<i32>> {
     pub frame_count: usize,
     ///  Configurations for alpha blending (where applicable)
     pub alpha: AlphaContext,
+    /// Some operations in Graph1 can be sped up using multiple CPUs / CPU cores.
+    /// If the target hardware has multiple cores and `num_threads > 1`,
+    /// Graph1 will attempt to create `num_threads` threads to parallelize some computations.
+    /// If `1`, Graph1 will perform calculations only on the main thread.
+    /// If `0`, Graph1 will not perform those operations, that support multithreading. Not recommended for usage.
+    pub num_threads:usize,
 }
 
 impl<UserData: Default> GraphContext<UserData> {
@@ -42,6 +48,10 @@ impl<UserData: Default> GraphContext<UserData> {
     /// * `use_alpha` - Whether to enable alpha blending
     /// * `use_draft_buf` - if `true`, create and use the draft buffer (same size as the frame buffer)
     /// * `user_data` - Optional user-defined data
+    /// * `num_threads` - How many threads to use for rendering.
+    ///     * `0` - skip operations that support multithreading (rather should not be used).
+    ///     * `1` - use main thread only.
+    ///     * `2` - and more - use that many threads.
     /// # Returns
     /// A new `GraphContext` instance
     pub fn new(
@@ -49,6 +59,7 @@ impl<UserData: Default> GraphContext<UserData> {
         use_alpha: bool,
         use_draft_buf: bool,
         user_data: Option<UserData>,
+        num_threads:usize,
     ) -> GraphContext<UserData> {
         // How many pixels are in the frame buffer
         let num_pixels = win.get_num_pixels();
@@ -74,6 +85,7 @@ impl<UserData: Default> GraphContext<UserData> {
                 enabled: use_alpha,
                 method: AlphaMethod::Int,
             },
+            num_threads,
         }
     }
 
