@@ -89,7 +89,6 @@ pub fn buffer(buffer: &mut [u32], color: u32, num_threads: usize) {
     let mut chunks: Vec<&mut [u32]> = buffer.chunks_mut(chunk_size).collect();
 
     thread::scope(|s| {
-        // FIXME: get rid of `chunk_index`
         // Iterate over the chunks and process each in its own thread
         for chunk in &mut chunks.iter_mut() {
             s.spawn(move || buffer_fill_thread(chunk, color));
