@@ -12,7 +12,7 @@ use std::time::Instant;
 /// * `color` - The color to fill the buffer with.
 fn buffer_fill_thread(buffer: &mut [u32], color: u32) {
     // println!("[threads: {}] thread: {}, chunk {:?}/{:?}", total_chunks,chunk_index, chunk_index+1, total_chunks);
-    let thread_id = thread::current().id();
+    // let thread_id = thread::current().id();
     // println!("[thread: {:?}] ", thread_id);
 
     unsafe {
@@ -48,7 +48,7 @@ pub fn buffer(buffer: &mut [u32], color: u32, num_threads: usize) {
     let start = Instant::now();
 
     // We were instructed not to do anything
-    if num_threads == 0 {
+    if num_threads < 1 {
         #[cfg(debug_assertions)]
         {
             let duration = start.elapsed();
