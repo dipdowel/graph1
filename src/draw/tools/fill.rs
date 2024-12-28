@@ -107,6 +107,9 @@ pub fn buffer(buffer: &mut [u32], color: u32, num_threads: usize) {
     }
 }
 
+// TODO: refactor the module into multiple files! (just like with adapters)
+
+
 /// Flood fills a shape with a color and starting at a position specified by `start`
 pub fn flood(buf: &mut [u32], buf_dimensions: &Dimensions2d, start_pixel: &Pixel) {
     // Buffer dimensions
