@@ -177,14 +177,14 @@ pub unsafe fn rgba_to_abgr_unsafe(
 /// Panics if `dst` and `src` have different lengths.
 /// # Returns
 /// An `AdapterStatistics` struct containing some basics statistics on the conversion.
-pub fn rgba_to_0rgb(dst: &mut [u32], src: &[u32], stats: bool) -> Option<AdapterStatistics> {
+pub fn rgba_to_0rgb(dst: &mut [u32], src: &[u32], num_threads:usize, stats: bool) -> Option<AdapterStatistics> {
     assert_eq!(
         dst.len(),
         src.len(),
         "Source and destination buffers must have the same length!"
     );
 
-    // Faster version without the statistics
+    // ===[ FASTER CONVERSION, NO STATISTICS ]======================================================
     if !stats {
         for (dst_pixel, &src_pixel) in dst.iter_mut().zip(src.iter()) {
             // Extract individual color channels from RGBA
@@ -198,7 +198,7 @@ pub fn rgba_to_0rgb(dst: &mut [u32], src: &[u32], stats: bool) -> Option<Adapter
         return None;
     }
 
-    // Slower version with the statistics
+    // ===[ SLOWER CONVERSION, WITH THE STATISTICS ]================================================
     let mut total_r = 0u64;
     let mut total_g = 0u64;
     let mut total_b = 0u64;

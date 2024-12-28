@@ -88,7 +88,27 @@ pub mod utils {
     /// Utils for processing colors
     pub mod color {
         /// Color adapters for converting between different color models.
-        pub mod adapters;
+        pub mod adapters_old;
+
+        /// FIXME: finish the refactoring and rename `adapters2` to `adapters`
+        /// Color adapters for converting between different color models.
+        pub mod adapters{
+            mod rgba_to_0rgb;
+            mod adapter_statistics;
+            mod rgba_to_abgr_unsafe;
+            mod rgba_to_abgr;
+            mod rgba_to_0rgb_unsafe;
+            mod single_pixel;
+
+            pub use rgba_to_0rgb::rgba_to_0rgb;
+            pub use adapter_statistics::AdapterStatistics;
+            pub use rgba_to_abgr_unsafe::rgba_to_abgr_unsafe;
+            pub use rgba_to_abgr::rgba_to_abgr;
+            pub use rgba_to_0rgb_unsafe::rgba_to_0rgb_unsafe;
+            pub use single_pixel::rgba_color_to_0rgb;
+            pub use single_pixel::rgba_color_to_abgr;
+        }
+
         /// Functions to blend colors taking into account the alpha channel
         pub mod alpha;
         /// Conversions between RGBA and 1-bit image
