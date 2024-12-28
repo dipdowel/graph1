@@ -88,10 +88,6 @@ pub mod utils {
     /// Utils for processing colors
     pub mod color {
         /// Color adapters for converting between different color models.
-        pub mod adapters_old;
-
-        /// FIXME: finish the refactoring and rename `adapters2` to `adapters`
-        /// Color adapters for converting between different color models.
         pub mod adapters{
             mod rgba_to_0rgb;
             mod adapter_statistics;
