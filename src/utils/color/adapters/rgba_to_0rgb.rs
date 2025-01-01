@@ -130,15 +130,6 @@ pub fn rgba_to_0rgb(
 
     let num_pixels = src.len() as u64;
 
-    // TODO:    Handle the two cases below!
-    // TODO: ==================================
-    // if num_threads < 1 {
-    //   // TODO: implement
-    // }
-    // if num_threads == 1 {
-    // // TODO: implement
-    // }
-
     // Thread-safe totals of color channels, per thread
     let color_totals: Arc<Mutex<ColorTotals>> = Arc::new(Mutex::new(ColorTotals {
         red: 0,

@@ -53,14 +53,15 @@ pub fn rgba_to_abgr(dst: &mut [u32], src: &[u32], stats: bool) -> Option<Adapter
 
         let average_color = (avg_r << 24) | (avg_g << 16) | (avg_b << 8) | 0xFF;
 
-        Some(AdapterStatistics {
+        return Some(AdapterStatistics {
             average_color,
             average_red: avg_r & 0xFF,
             average_green: avg_g & 0xFF,
             average_blue: avg_b & 0xFF,
             num_pixels: num_pixels as u32,
         })
-    } else {
-        None
     }
+
+    None
+
 }
