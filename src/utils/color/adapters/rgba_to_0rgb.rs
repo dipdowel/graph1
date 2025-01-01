@@ -31,11 +31,11 @@ fn buffer_rgba_to_0rgb_thread(
             // Reassemble in ABGR format and store in dst
             *dst_pixel = (0 << 24) | (r << 16) | (g << 8) | b;
         }
-        println!(
-            "thread id: {:?}, buf size: {:?} - No stats",
-            thread::current().id(),
-            dst.len()
-        );
+        // println!(
+        //     "thread id: {:?}, buf size: {:?} - No stats",
+        //     thread::current().id(),
+        //     dst.len()
+        // );
         return;
     }
 
@@ -69,6 +69,7 @@ fn buffer_rgba_to_0rgb_thread(
     // Mutex is expected to unlock automatically when `color_totals_ref` goes out of scope.
 }
 
+/// Converts `ColorTotals` into `AdapterStatistics`.
 fn prepare_stats(color_totals: ColorTotals, num_pixels: u64) -> AdapterStatistics {
     // Calculate average color values
     let avg_r = (color_totals.red / num_pixels) as u32;
