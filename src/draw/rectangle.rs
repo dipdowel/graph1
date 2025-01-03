@@ -14,6 +14,88 @@ impl PartialEq for AlphaMethod {
     }
 }
 
+///
+fn draw_lines_of_rectangle_thread(
+    rectangle_slice: &mut [u32],
+    line_length: usize,
+    total_lines: usize,
+    color_start: usize,
+    color_end: usize,
+    color: u32,
+    alpha_method: AlphaMethod,
+) {
+    let mut index: usize;
+
+    match alpha_method {
+        AlphaMethod::None => {
+            for line in 0..total_lines {
+                for pixel in color_start..color_end {
+                    index = line * line_length + pixel;
+                    rectangle_slice[index] = color;
+                }
+            }
+        }
+        AlphaMethod::Int => {
+            for line in 0..total_lines {
+                for pixel in color_start..color_end {
+                    index = line * line_length + pixel;
+                    rectangle_slice[index] = blend_pixel_int(rectangle_slice[index], color);
+                }
+            }
+        }
+        AlphaMethod::Float => {
+            for line in 0..total_lines {
+                for pixel in color_start..color_end {
+                    index = line * line_length + pixel;
+                    rectangle_slice[index] = blend_pixel_f32(rectangle_slice[index], color);
+                }
+            }
+        }
+    }
+
+    // for line in 0..total_lines {
+    //     for pixel in color_start..color_end {
+    //         index = line * line_length + pixel;
+    //
+    //         rectangle_slice[index] = color;
+    //
+    //         // match alpha_method {
+    //         //     AlphaMethod::None => {
+    //         //         rectangle_slice[index] = color;
+    //         //     }
+    //         //     AlphaMethod::Int => {
+    //         //         rectangle_slice[index] = blend_pixel_int(rectangle_slice[index], color);
+    //         //     }
+    //         //     AlphaMethod::Float => {
+    //         //         rectangle_slice[index] = blend_pixel_f32(rectangle_slice[index], color);
+    //         //     }
+    //         // }
+    //     }
+    // }
+
+    /*
+    // THis is a working solution, but it probably can be simplified
+    for line in 0..total_lines {
+        for pixel in 0..line_length {
+            let index = line * line_length + pixel;
+            if pixel >= color_start && pixel < color_end {
+                match alpha_method {
+                    AlphaMethod::None => {
+                        rectangle_slice[index] = color;
+                    }
+                    AlphaMethod::Int => {
+                        rectangle_slice[index] = blend_pixel_int(rectangle_slice[index], color);
+                    }
+                    AlphaMethod::Float => {
+                        rectangle_slice[index] = blend_pixel_f32(rectangle_slice[index], color);
+                    }
+                }
+            }
+        }
+    }
+    */
+}
+
 /// Draws a rectangle with dimensions and filled with a color specified in the `RectArea` struct.
 pub fn filled<UserData>(ctx: &mut GraphContext<UserData>, rect: &RectArea) {
     let color = rect.color.unwrap_or(ctx.win.foreground_color);
@@ -21,7 +103,6 @@ pub fn filled<UserData>(ctx: &mut GraphContext<UserData>, rect: &RectArea) {
     // rect.dimensions.h /
     //
     // // ctx.num_threads
-
 
     // ==[ MULTIPLE THREADS ]=======================================================================
     // let num_lines: u32 = rect.dimensions.h;
@@ -35,13 +116,18 @@ pub fn filled<UserData>(ctx: &mut GraphContext<UserData>, rect: &RectArea) {
     // TODO:    So yeah, extract the logic into a lower level function that would not need to know
     // TODO:    anything about the context and window.
 
-
     // TODO: 2. That way we can chunkify the buffer and process each chunk in a parallel thread
 
+    let alpha_method = if ctx.alpha.enabled {
+        ctx.alpha.method
+    } else {
+        AlphaMethod::None
+    };
+
     // index of the first pixel in the first horizontal line of the rectangle
-    let first_line_start:usize = (rect.top_left.y * ctx.win.w) as usize;
+    let first_line_start: usize = (rect.top_left.y * ctx.win.w) as usize;
     // index of the last pixel in the last horizontal line of the rectangle
-    let last_line_end:usize = ((rect.top_left.y + rect.dimensions.h) * ctx.win.w) as usize;
+    let last_line_end: usize = ((rect.top_left.y + rect.dimensions.h) * ctx.win.w) as usize;
 
     let rectangle_slice = &mut ctx.frame_buf[first_line_start..last_line_end];
     let line_length = ctx.win.w_usize;
@@ -49,17 +135,25 @@ pub fn filled<UserData>(ctx: &mut GraphContext<UserData>, rect: &RectArea) {
     let color_start = rect.top_left.x as usize;
     let color_end = (rect.top_left.x + rect.dimensions.w) as usize;
 
-    for line in 0..total_lines {
-        for pixel in 0..line_length {
-            let index = line * line_length + pixel;
-            if pixel >= color_start && pixel < color_end {
-                rectangle_slice[index] = color;
-            }
-        }
-    }
+    draw_lines_of_rectangle_thread(
+        rectangle_slice,
+        line_length,
+        total_lines,
+        color_start,
+        color_end,
+        color,
+        alpha_method,
+    );
 
-
-
+    //
+    // for line in 0..total_lines {
+    //     for pixel in 0..line_length {
+    //         let index = line * line_length + pixel;
+    //         if pixel >= color_start && pixel < color_end {
+    //             rectangle_slice[index] = color;
+    //         }
+    //     }
+    // }
 
     /*
     // This is a working solution, but it requires the context, so let's leave it aside for now
@@ -80,15 +174,12 @@ pub fn filled<UserData>(ctx: &mut GraphContext<UserData>, rect: &RectArea) {
             // Alpha Float
             if ctx.alpha.method == AlphaMethod::Float {
                 ctx.frame_buf[index ] = blend_pixel_f32(ctx.frame_buf[index ], color);
-
             }
         }
     }
     */
 
-
     // ==[ MULTIPLE THREADS ]=======================================================================
-
 
     //     let index = start_index + line *
     // }
