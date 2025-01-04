@@ -1,9 +1,7 @@
 #[derive(Debug, Default, Clone, Copy)]
 /// Available methods for alpha blending
 pub enum AlphaMethod {
-    // TODO: use `None` instead of `ctx.alpha`?
-    /// No alpha blending
-    None,
+
     /// Use integer-based alpha blending, faster but less precise
     #[default]
     Int,

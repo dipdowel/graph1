@@ -36,7 +36,13 @@ pub struct GraphContext<UserData = Vec<i32>> {
     /// Graph1 will attempt to create `num_threads` threads to parallelize some computations.
     /// If `1`, Graph1 will perform calculations only on the main thread.
     /// If `0`, Graph1 will not perform those operations, that support multithreading. Not recommended for usage.
-    pub num_threads:usize,
+    pub num_threads: usize,
+    /*
+    // TODO: Consider implementing the following feature:
+    /// Autodetect when it's cheaper to perform an operation on just one thread (e.g. due to a small buffer size)
+    /// and auto-switch to single-threaded mode and then back to multithreaded mode, once the operation is finished.
+    pub num_threads_autoadjust:bool,
+     */
 }
 
 impl<UserData: Default> GraphContext<UserData> {
@@ -59,7 +65,7 @@ impl<UserData: Default> GraphContext<UserData> {
         use_alpha: bool,
         use_draft_buf: bool,
         user_data: Option<UserData>,
-        num_threads:usize,
+        num_threads: usize,
     ) -> GraphContext<UserData> {
         // How many pixels are in the frame buffer
         let num_pixels = win.get_num_pixels();
