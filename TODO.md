@@ -6,7 +6,7 @@
 -[ ] Explode `Default`: .../stdlib-local-copy/bundled-1.82.0/library/core/src/default.rs
 
 
-## Alpha and blening:
+## Alpha and blending:
 - [ ] consider using `AlphaMethod::None` instead of `AlphaContext::enabled`
   - AlphaMethod::None
   - AlphaMethod::Int
@@ -27,6 +27,9 @@
 ## Intensity
 - [ ] Implement `square` parameter for all the functions, adjust the RUstDoc accordingly!
 
+
+## Documentation
+Update the documentation with the multithreaded support in the operations. 
 
 
 ## multithreaded support in operations
