@@ -20,6 +20,29 @@ Eventually, we may move to `ARGB` model, but that's not the case now.
 
 
 
+## Multithreaded operations
+Some operations in Graph1 can be performed in parallel. For example, filling a buffer with a color, copying one buffer to another, etc.
+The buffer gets split into chunks, and each chunk is processed by a separate thread. In lower-level functions, 
+the number of threads must be passed explicitly. In higher-level functions, the number of threads to spawn read taken from `GraphContext.num_threads`.
+
+Here's a list of functions that support multithreading:
+- `draw::tools::fill::buffer()` - fills a buffer with a color
+- `draw::rectangle::filled()` - draws a filled rectangle
+- `fx::scanline::window()` - applies a scanline effect to a window
+- `utils::color::adapters::rgba_to_0rgb::rgba_to_0rgb()` - converts an RGBA buffer to 0RGB
+- To be continued...
+
+### `num_threads == 0`
+Graph1 will not perform the multithreaded operation at all (in most cases this is not what you want).
+
+### `num_threads == 1`
+Graph1 will use only the main thread to perform the operation
+
+### `num_threads > 1`
+Graph1 will spawn `num_threads` threads to perform the operation. The relevant buffer(s) will be split into `num_threads` chunks, 
+and each chunk will be processed by a separate thread. Main thread will wait for all the spawned threads to finish their work.
+
+
 ## Fonts
 
 ### Default embedded fonts

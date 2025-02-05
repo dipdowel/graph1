@@ -1,10 +1,14 @@
-use crate::graph1_core::context::GraphContext;
-use crate::primitives::primitives::{Dimensions2d, PixelColorTransformerFn, Point};
+use crate::core::context::GraphContext;
+use crate::primitives::helper_types::PixelColorTransformerFn;
+use crate::primitives::plane::Dimensions2d;
+use crate::primitives::point::Point;
 use crate::text::font::PixelFont;
 use crate::utils::pixel_copy::image_data;
 
-const DEFAULT_TRANSPARENCY_COLOR: u32 = 0x00_ff_ff_ff;
+const DEFAULT_TRANSPARENCY_COLOR: u32 = 0xff_ff_ff_ff;
 
+
+#[derive(Debug, Clone, Copy)]
 pub struct ColorProperties<'a> {
     /// Text color. If `color` provided, `color_transformer` is ignored
     pub color: Option<u32>,
@@ -15,7 +19,7 @@ pub struct ColorProperties<'a> {
     pub data: Option<&'a Vec<u32>>,
 }
 
-#[derive(PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub enum Align {
     Left,
     Right,
@@ -35,8 +39,8 @@ pub enum Align {
 /// # Returns
 /// Dimensions of the printed line of text, in pixels
 ///
-pub fn print_line(
-    ctx: &mut GraphContext,
+pub fn print_line<UserData>(
+    ctx: &mut GraphContext<UserData>,
     dst_position: &Point,
     font: &PixelFont,
     color_props: &ColorProperties,
@@ -64,7 +68,7 @@ pub fn print_line(
         };
 
         image_data::copy(
-            ctx.buf_view,
+            &mut ctx.frame_buf,
             &ctx.win.dimensions,
             &dst_point,
             &font.font_image_buf,
@@ -134,8 +138,8 @@ fn get_line_widths(font: &PixelFont, text: &[&str]) -> Vec<usize> {
 /// # Returns
 /// Dimensions of the printed line of text, in pixels
 ///
-pub fn print(
-    ctx: &mut GraphContext,
+pub fn print<UserData>(
+    ctx: &mut GraphContext<UserData>,
     dst_position: &Point,
     font: &PixelFont,
     color_props: &ColorProperties,
