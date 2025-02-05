@@ -11,6 +11,7 @@
   - AlphaMethod::None
   - AlphaMethod::Int
   - AlphaMethod::Float
+- **NB:** This might not be the best idea, since it removes a simple way to toggle alpha blending on and off.  
   
 
 - [ ] consider renaming `AlphaMethod` to `BlendingMethod`, so that: 
