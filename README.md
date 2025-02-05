@@ -27,7 +27,10 @@ the number of threads must be passed explicitly. In higher-level functions, the 
 
 Here's a list of functions that support multithreading:
 - `draw::tools::fill::buffer()` - fills a buffer with a color
-- TBD
+- `draw::rectangle::filled()` - draws a filled rectangle
+- `fx::scanline::window()` - applies a scanline effect to a window
+- `utils::color::adapters::rgba_to_0rgb::rgba_to_0rgb()` - converts an RGBA buffer to 0RGB
+- To be continued...
 
 ### `num_threads == 0`
 Graph1 will not perform the multithreaded operation at all (in most cases this is not what you want).
