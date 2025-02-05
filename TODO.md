@@ -5,21 +5,7 @@
 -[ ] Consider adding `#[derive(Default)]` in places where it makes sense!
 -[ ] Explode `Default`: .../stdlib-local-copy/bundled-1.82.0/library/core/src/default.rs
 
-
-## Alpha and blending:
-- [ ] consider using `AlphaMethod::None` instead of `AlphaContext::enabled`
-  - AlphaMethod::None
-  - AlphaMethod::Int
-  - AlphaMethod::Float
-- **NB:** This might not be the best idea, since it removes a simple way to toggle alpha blending on and off.  
-  
-
-- [ ] consider renaming `AlphaMethod` to `BlendingMethod`, so that: 
-  - BlendingMethod::None
-  - BlendingMethod::Alpha_Int
-  - BlendingMethod::Alpha_Float
-  - BlendingMethod::Color
-  - Etc.
+ 
 
 ## Luminance and Intensity
 - [ ] Make both of them return `u32` and operate on `u32` buffers
