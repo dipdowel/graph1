@@ -2,7 +2,6 @@ use crate::primitives::plane::Dimensions2d;
 use crate::primitives::Pixel;
 use std::collections::VecDeque;
 use std::thread;
-use std::time::Instant;
 
 /// Buffer fill logic to be executed by each thread in the multithreaded buffer operation
 /// Unsafely fills a buffer with a given color

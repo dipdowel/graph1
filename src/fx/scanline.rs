@@ -41,12 +41,6 @@ fn buffer_scanline_fx_thread(buffer: &mut [u32], intensity: u32, line_flipper: u
 /// * `size` - The size of the scanline effect. Must be greater than 0.
 /// * `intensity` - The intensity of the scanline effect. Must be between 0 and 255.
 pub fn window<UserData>(ctx: &mut GraphContext<UserData>, size: u8, intensity: u8) {
-    // TODO:
-    // TODO:
-    // TODO: 1. Implement performance logging like in `fill::buffer()`
-    // TODO: 2. Make a custom setting for compiling the  performance logging into the binary
-    // TODO:
-    // TODO:
 
     if ctx.num_threads < 1 {
         return;
