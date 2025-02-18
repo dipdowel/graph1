@@ -2,7 +2,8 @@ use crate::primitives::plane::Dimensions2d;
 use crate::primitives::Pixel;
 use std::collections::VecDeque;
 
-/// Flood fills a shape with a color and starting at a position specified by `start`
+/// Flood fills a shape with a color. 
+/// The color and the starting position of the fill are  specified in `start_pixel`
 pub fn flood(buf: &mut [u32], buf_dimensions: &Dimensions2d, start_pixel: &Pixel) {
     // Buffer dimensions
     let width = buf_dimensions.w;
