@@ -21,7 +21,6 @@ Update the documentation with the multithreaded support in the operations.
 
 ## multithreaded support in operations
 - Make a multithreaded function that copies one buffer to another 
-- Add multithreaded support to buffer fill
 - Drawing a rectangle can be multithreaded, try it!
 - Make multithreaded color adapters
 - The scanline effect can potentially be multithreaded
