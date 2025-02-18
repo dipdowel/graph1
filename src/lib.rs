@@ -34,7 +34,14 @@ pub mod draw {
     /// Drawing tools
     pub mod tools {
         /// Fill a shape or a buffer with a color
-        pub mod fill;
+        pub mod fill {
+            mod buffer;
+            mod flood;
+            /// Fill a buffer with a color
+            pub use buffer::buffer;
+            /// Fill a shape with a color
+            pub use flood::flood;
+        }
     }
 }
 

@@ -3,7 +3,7 @@
 -[ ] Create a package with formulas, like formulas of circle, ellipse, etc.
  ================================================================================================================
 -[ ] Consider adding `#[derive(Default)]` in places where it makes sense!
--[ ] Explode `Default`: .../stdlib-local-copy/bundled-1.82.0/library/core/src/default.rs
+-[ ] Explore `Default`: .../stdlib-local-copy/bundled-1.82.0/library/core/src/default.rs
 
  
 
