@@ -35,7 +35,7 @@ pub fn rect_fits_window<UserData>(ctx: &mut GraphContext<UserData>, rect: &RectA
 mod tests {
     use super::*;
     use crate::primitives::plane::RectArea;
-    use crate::test::mock_contexts::{get_mock_graph_context};
+    use crate::test::mock_contexts::get_mock_graph_context;
 
     //======== [ RECT FITS WINDOW ] ================================================================
     #[test]

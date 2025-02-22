@@ -18,7 +18,7 @@ impl Numeric for u32 {
         self as f64
     }
     fn from_f64(value: f64) -> Self {
-        value as u32
+        f64::round(value)  as u32
     }
     /*
     fn add(self, other: Self) -> Self {
@@ -35,7 +35,7 @@ impl Numeric for i32 {
         self as f64
     }
     fn from_f64(value: f64) -> Self {
-        value as i32
+        f64::round(value) as i32
     }
 
     /*

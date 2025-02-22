@@ -134,20 +134,20 @@ mod tests {
 
     #[test]
     fn test_f32_to_other_types() {
-        let point_f32 = Point {
-            x: 10.5_f32,
-            y: -20.7_f32,
+        let point_f32:Point<f32> = Point {
+            x: 10.5,
+            y: -20.7,
         };
 
         // Convert to u32 (fractional and negative values truncated)
         let point_u32: Point<u32> = point_f32.convert();
-        assert_eq!(point_u32.x, 10); // 10.5 truncated to 10
+        assert_eq!(point_u32.x, 11); // 10.5 rounded up to 10
         assert_eq!(point_u32.y, 0); // -20.7 truncated to 0
 
         // Convert to i32
         let point_i32: Point<i32> = point_f32.convert();
-        assert_eq!(point_i32.x, 10); // 10.5 truncated to 10
-        assert_eq!(point_i32.y, -20); // -20.7 truncated to -20
+        assert_eq!(point_i32.x, 11); // 10.5 rounded up to 10
+        assert_eq!(point_i32.y, -21); // 10.5 rounded down to -21
 
         // // Convert to f64 (these fail due to floating-point precision)
         // let point_f64: Point<f64> = point_f32.convert();
@@ -163,24 +163,24 @@ mod tests {
 
     #[test]
     fn test_f64_to_other_types() {
-        let point_f64 = Point {
-            x: 10.9_f64,
-            y: -20.1_f64,
+        let point_f64:Point<f64> = Point {
+            x: 10.2,
+            y: -20.1,
         };
 
         // Convert to u32 (fractional and negative values truncated)
         let point_u32: Point<u32> = point_f64.convert();
-        assert_eq!(point_u32.x, 10); // 10.9 truncated to 10
+        assert_eq!(point_u32.x, 10); // 10.2 rounded down to 10
         assert_eq!(point_u32.y, 0); // -20.1 truncated to 0
 
         // Convert to i32
         let point_i32: Point<i32> = point_f64.convert();
-        assert_eq!(point_i32.x, 10); // 10.9 truncated to 10
-        assert_eq!(point_i32.y, -20); // -20.1 truncated to -20
+        assert_eq!(point_i32.x, 10); // 10.2 rounded down to 10
+        assert_eq!(point_i32.y, -20); // -20.1 up to -20
 
         // Convert to f32
         let point_f32: Point<f32> = point_f64.convert();
-        assert!((point_f32.x - 10.9).abs() < f32::EPSILON);
+        assert!((point_f32.x - 10.2).abs() < f32::EPSILON);
         assert!((point_f32.y + 20.1).abs() < f32::EPSILON);
     }
 }
