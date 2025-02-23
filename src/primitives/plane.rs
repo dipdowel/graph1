@@ -1,7 +1,7 @@
 use crate::primitives::numeric::Numeric;
 use crate::primitives::point::Point;
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 /// A combination of width and height on a 2D plane.
 pub struct Dimensions2d<T: Numeric = u32> {
     pub w: T,
@@ -30,7 +30,7 @@ impl<T: Numeric> Dimensions2d<T> {
     }
 }
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 /// A rectangle area with a top-left point, dimensions, and color.
 /// It is used to represent a rectangle on the screen, so the coordinates can only be positive integers.
 pub struct RectArea<T: Numeric = u32> {
