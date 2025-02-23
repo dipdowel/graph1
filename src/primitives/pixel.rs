@@ -1,7 +1,8 @@
+use std::fmt;
 use crate::primitives::numeric::Numeric;
 use crate::primitives::point::Point;
 
-#[derive(Debug, Clone, Copy, PartialEq)]
+#[derive(Clone, Copy, PartialEq)]
 /// A pixel with coordinates and color.
 /// `x` and `y` can be only positive integers, since they represent a physical pixel on the screen.
 
@@ -10,6 +11,14 @@ pub struct Pixel {
     pub y: u32,
     pub color: u32,
 }
+
+impl fmt::Debug for Pixel {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "Pixel {{ x: {}, y: {}, color: {:#x} }}", self.x, self.y, self.color)
+    }
+}
+
+
 
 // FIXME: Can the 4 implementations below be merged into one?
 
