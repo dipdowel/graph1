@@ -7,7 +7,8 @@ use crate::primitives::numeric::Numeric;
 /// e.g. `let point_f64: Point<f64> = point_i32.convert();`<br />
 /// Be aware that precision loss may occur during conversion!<br />
 /// **NB:** For a note on performance see documentation for `convert()` method.
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq)]
+
 pub struct Point<T: Numeric = u32> {
     pub x: T,
     pub y: T,
