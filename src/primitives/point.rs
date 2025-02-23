@@ -1,4 +1,5 @@
 use crate::primitives::numeric::Numeric;
+use crate::primitives::Pixel;
 
 /// A generic 2D-point: `(x: u32, y:u32)`. Other `Numeric` types can be used instead of `u32`.
 ///
@@ -24,11 +25,25 @@ impl<T: Numeric> Point<T> {
     /// - **NB 3:** When converting a point between different `Numeric` types using `convert()`,<br />
     /// keep in mind that it is a two-step conversion for every coordinate: `T -> f64 -> U`. <br />
     /// This may result in slower performance, so use it only in non-performance-critical code. <br />
-    /// If performance is critical, consider implementing a faster direct conversion by yourself.
+    /// If performance is critical, consider implementing your own faster direct conversion.
     pub fn convert<U: Numeric>(self) -> Point<U> {
         Point {
             x: U::from_f64(self.x.to_f64()),
             y: U::from_f64(self.y.to_f64()),
+        }
+    }
+
+    /// Converts the point to a `Pixel` with the given `color`.
+    /// Please use this function only in non-performance-critical code.
+    /// If performance is critical, consider implementing a faster  conversion yourself.
+    /// The `x` and `y` coordinates are rounded to the nearest integer.
+    /// # Parameters
+    /// - `color`: The color of the pixel.
+    pub fn to_pixel(self, color: u32) -> Pixel {
+        Pixel {
+            x: f64::round(self.x.to_f64()) as u32,
+            y: f64::round(self.y.to_f64()) as u32,
+            color,
         }
     }
 
@@ -65,7 +80,7 @@ impl<T: Numeric> Point3D<T> {
     /// - **NB 3:** When converting a point between different `Numeric` types using `convert()`,<br />
     /// keep in mind that it is a two-step conversion for every coordinate: `T -> f64 -> U`. <br />
     /// This may result in slower performance, so use it only in non-performance-critical code. <br />
-    /// If performance is critical, consider implementing a faster direct conversion by yourself.
+    /// If performance is critical, consider implementing your own faster direct conversion.
     pub fn convert<U: Numeric>(self) -> Point3D<U> {
         Point3D {
             x: U::from_f64(self.x.to_f64()),
@@ -135,10 +150,7 @@ mod tests {
 
     #[test]
     fn test_f32_to_other_types() {
-        let point_f32:Point<f32> = Point {
-            x: 10.5,
-            y: -20.7,
-        };
+        let point_f32: Point<f32> = Point { x: 10.5, y: -20.7 };
 
         // Convert to u32 (fractional and negative values truncated)
         let point_u32: Point<u32> = point_f32.convert();
@@ -164,10 +176,7 @@ mod tests {
 
     #[test]
     fn test_f64_to_other_types() {
-        let point_f64:Point<f64> = Point {
-            x: 10.2,
-            y: -20.1,
-        };
+        let point_f64: Point<f64> = Point { x: 10.2, y: -20.1 };
 
         // Convert to u32 (fractional and negative values truncated)
         let point_u32: Point<u32> = point_f64.convert();
@@ -183,5 +192,23 @@ mod tests {
         let point_f32: Point<f32> = point_f64.convert();
         assert!((point_f32.x - 10.2).abs() < f32::EPSILON);
         assert!((point_f32.y + 20.1).abs() < f32::EPSILON);
+    }
+
+    #[test]
+    fn test_to_pixel() {
+
+        let mut pixel:Pixel;
+        pixel = Point { x: 10.8_f64, y: -20.1_f64 }.to_pixel(0xff_ff_ff_ff);
+        assert_eq!(pixel, Pixel { x: 11, y: 0, color: 0xff_ff_ff_ff });
+
+        pixel = Point { x: 10.8_f32, y: -20.1_f32 }.to_pixel(0xff_ff_ff_ff);
+        assert_eq!(pixel, Pixel { x: 11, y: 0, color: 0xff_ff_ff_ff });
+
+        pixel = Point { x: -20_i32, y: 30_i32 }.to_pixel(0xff_ff_00_ff);
+        assert_eq!(pixel, Pixel { x: 0, y: 30, color: 0xff_ff_00_ff });
+
+        pixel = Point { x: 33_u32, y: 88_u32 }.to_pixel(0xff_ff_00_ff);
+        assert_eq!(pixel, Pixel { x: 33, y: 88, color: 0xff_ff_00_ff });
+
     }
 }
