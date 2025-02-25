@@ -1,6 +1,7 @@
-use crate::draw::line::between_two_points;
 use crate::core::context::GraphContext;
-use crate::primitives::primitives::{Pixel, Point};
+use crate::draw::line;
+use crate::primitives::Pixel;
+use crate::primitives::point::Point;
 
 /// Draws straight lines between consecutive points to form a closed path
 ///
@@ -8,14 +9,18 @@ use crate::primitives::primitives::{Pixel, Point};
 ///
 /// * `ctx` - A mutable reference to the `GraphContext`
 /// * `vertices` - Dots to connect
-/// * `color` - A color as `0rgb`
+/// * `color` - A color as `RGBA`, if `None`, `ctx.win.foreground_color` will be used
 ///
-pub fn render(ctx: &mut GraphContext, vertices: &Vec<Point>, color: u32) {
+pub fn closed_perimeter<UserData>(ctx: &mut GraphContext<UserData>, vertices: &Vec<Point>, color: Option<u32>) {
+
+    let color = color.unwrap_or(ctx.win.foreground_color);
 
     if let Some(first_vertex) = vertices.first() {
+
         let mut previous_vertex = first_vertex;
+
         for vertex in vertices.iter().skip(1) {
-            between_two_points(
+            line::between_two_points(
                 ctx,
                 &Pixel {
                     x: previous_vertex.x,
@@ -27,7 +32,7 @@ pub fn render(ctx: &mut GraphContext, vertices: &Vec<Point>, color: u32) {
             previous_vertex = vertex;
         }
         // Connect the last point to the first to complete the shape
-        between_two_points(
+        line::between_two_points(
             ctx,
             &Pixel {
                 x: previous_vertex.x,

@@ -1,11 +1,12 @@
 use std::f64::consts::PI;
-
-use crate::draw::polygons::closed_perimeter;
 use crate::core::context::GraphContext;
-use crate::primitives::primitives::{Pixel, Point};
+use crate::draw::polygons::closed_perimeter;
+use crate::primitives::Pixel;
+use crate::primitives::point::Point;
+
 #[derive(Debug, Clone, Copy)]
 pub struct PolygonProperties {
-    /// Location of the central point of the polygon
+    /// Location and color of the central point of the polygon
     pub center: Pixel,
 
     /// Number of sides the polygon has
@@ -28,8 +29,8 @@ pub struct PolygonProperties {
 /// * `props` - Properties of the polygon to render
 /// # Returns
 /// A vector of `Point`s representing the vertices of the polygon.
-pub fn render(ctx: &mut GraphContext, props: &PolygonProperties) -> Vec<Point> {
-    // Do nothing if it's not even a triangle
+pub fn polygon<UserData>(ctx: &mut GraphContext<UserData>, props: &PolygonProperties) -> Vec<Point> {
+    // Do nothing if it's not at least a triangle
     if props.num_sides < 3 {
         return Vec::new();
     }
@@ -50,7 +51,6 @@ pub fn render(ctx: &mut GraphContext, props: &PolygonProperties) -> Vec<Point> {
     let mut vertices = Vec::with_capacity(num_sides_usize);
     vertices.resize(num_sides_usize, Point { x: 0, y: 0 });
 
-    // let mut vertices = Vec::new();
 
     for i in 0..num_sides_usize {
         let angle = i as f64 * angle_step + rotation_radians; // Current angle adjusted for rotation
@@ -62,8 +62,8 @@ pub fn render(ctx: &mut GraphContext, props: &PolygonProperties) -> Vec<Point> {
 
     if !props.skip_rendering {
         // Draw lines between consecutive vertices
-        closed_perimeter::render(ctx, &vertices, props.center.color);
+        closed_perimeter::closed_perimeter(ctx, &vertices, Some(props.center.color));
     }
 
-    return vertices;
+    vertices
 }

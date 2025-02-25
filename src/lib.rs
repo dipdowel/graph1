@@ -28,6 +28,27 @@ pub mod draw {
     pub mod circle;
     /// Draw lines
     pub mod line;
+
+    /// Various closed shapes with multiple vertices
+    pub mod polygons {
+        mod closed_perimeter;
+        mod polygon;
+        mod star;
+        /// Connects a given vector of points with lines
+        pub use closed_perimeter::closed_perimeter;
+
+        /// Draws a polygon based on the provided properties
+        pub use polygon::polygon;
+        /// Properties for drawing a polygon
+        pub use polygon::PolygonProperties;
+
+        /// Draws a star based on the provided properties
+        pub use star::star;
+        /// Properties for drawing a star
+        pub use star::StarProperties;
+
+    }
+
     /// Draw rectangles
     pub mod rectangle;
 

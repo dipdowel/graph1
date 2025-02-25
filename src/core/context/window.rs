@@ -1,5 +1,6 @@
 use crate::core::default_colors;
 use crate::primitives::plane::{Dimensions2d, RectArea};
+use crate::primitives::point::Point;
 
 #[derive(Debug)]
 /// A collection of window properties, such as width, height, and background color,
@@ -25,6 +26,8 @@ pub struct WindowContext {
     pub background_color: u32,
     /// Foreground color of the window, RGBA
     pub foreground_color: u32,
+    /// The central point of the window
+    pub center:Point<u32>
 }
 
 impl WindowContext {
@@ -48,6 +51,7 @@ impl WindowContext {
             rect_area: RectArea::new(0, 0, w, h, Some(fg_color)),
             background_color: background_color_rgba.unwrap_or(default_colors::BACKGROUND),
             foreground_color: fg_color,
+            center: Point::new(w / 2, h / 2),
         }
     }
 
