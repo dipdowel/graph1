@@ -2,7 +2,8 @@ use std::f64::consts::PI;
 
 use crate::draw::polygons::closed_perimeter;
 use crate::core::context::GraphContext;
-use crate::primitives::primitives::{Pixel, Point};
+use crate::primitives::Pixel;
+use crate::primitives::point::Point;
 
 #[derive(Debug, Clone, Copy)]
 pub struct StarProperties {
@@ -33,7 +34,7 @@ pub struct StarProperties {
 /// * `props` - Properties of the star to render
 /// # Returns
 /// A vector of `Point`s representing the vertices of the star.
-pub fn render(ctx: &mut GraphContext, props: &StarProperties) -> Vec<Point> {
+pub fn star<UserData>(ctx: &mut GraphContext<UserData>, props: &StarProperties) -> Vec<Point> {
     // Too few rays, won't really render anything nice
     if props.num_rays < 2 {
         return Vec::new();
@@ -70,8 +71,8 @@ pub fn render(ctx: &mut GraphContext, props: &StarProperties) -> Vec<Point> {
 
     if !props.skip_rendering {
         // Draw lines between consecutive vertices
-        closed_perimeter::render(ctx, &vertices, props.center.color);
+        closed_perimeter::closed_perimeter(ctx, &vertices, Some(props.center.color));
     }
 
-    return vertices;
+    vertices
 }
