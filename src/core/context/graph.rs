@@ -1,6 +1,5 @@
 use crate::core::context::alpha::AlphaMethod;
 use crate::core::context::{AlphaContext, BezierContext, WindowContext};
-use crate::primitives::plane::Dimensions2d;
 
 /// Helps resize the window context
 fn resize_window(win: &mut WindowContext, w: u32, h: u32) {
@@ -10,7 +9,12 @@ fn resize_window(win: &mut WindowContext, w: u32, h: u32) {
     win.h_usize = h as usize;
     win.w_i32 = w as i32;
     win.h_i32 = h as i32;
-    win.dimensions = Dimensions2d { w, h };
+    win.dimensions.w = w;
+    win.dimensions.h = h;
+    win.rect_area.dimensions.w = w;
+    win.rect_area.dimensions.h = h;
+    win.center.x = w / 2;
+    win.center.y = w / 2;
 }
 
 #[derive(Debug)]
