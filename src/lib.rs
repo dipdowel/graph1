@@ -144,11 +144,10 @@ pub mod utils {
             mod rgba_operation;
             pub use rgba_operation::ColorOperation;
             pub use rgba_operation::rgba_operation;
-            pub mod gradient;
         }
 
         pub mod palettes;
-
+        pub mod gradient;
 
         /// Color properties calculations, color analysis
         pub mod desaturate {

@@ -7,7 +7,7 @@
 ///
 /// # Returns
 /// A vector of colors as `0xRR_GG_BB_AA` representing the gradient.
-pub fn simple(c1: u32, c2: u32, steps: usize) -> Vec<u32> {
+pub fn linear(c1: u32, c2: u32, steps: usize) -> Vec<u32> {
     assert!(steps > 1, "There must be at least two steps in the gradient.");
 
     // Extract the RGBA components from both of the colors
@@ -51,6 +51,7 @@ pub fn simple(c1: u32, c2: u32, steps: usize) -> Vec<u32> {
 
 
 /// Calculates and returns a specified step (color) in the gradient between two RGBA colors.
+/// The whole gradient is not calculated, so this function is faster than `linear()`.
 ///
 /// # Arguments
 /// * `c1` - The starting color (RGBA)
@@ -61,7 +62,7 @@ pub fn simple(c1: u32, c2: u32, steps: usize) -> Vec<u32> {
 /// # Returns
 /// Color of the specified step of the gradient, as `0xRR_GG_BB_AA`
 
-pub fn single_step(c1: u32, c2: u32, steps: usize, step: usize) -> u32 {
+pub fn linear_step(c1: u32, c2: u32, steps: usize, step: usize) -> u32 {
     assert!(steps > 1, "There must be at least two steps in the gradient.");
     assert!(step < steps, "Step must be within the range of steps.");
 
@@ -102,11 +103,11 @@ mod tests {
     fn test_simple_and_single_step() {
         let c1: u32 = 0x11_11_22_44;
         let c2: u32 = 0x11_44_88_FF;
-        let gradient = simple(c1, c2, 4);
+        let gradient = linear(c1, c2, 4);
         // println!(">>> c1: {:#010X}, c2: {:#010X}",c1,c2);
         // println!(">>> gradient: {:#010X?}",gradient);
         for i in 0..4 {
-            let color = single_step(c1, c2, 4, i);
+            let color = linear_step(c1, c2, 4, i);
             assert_eq!(color, gradient[i]);     
         }
 
@@ -117,7 +118,7 @@ mod tests {
     fn test_simple() {
         let c1: u32 = 0x11_ff_11_11;
         let c2: u32 = 0x22_ff_88_ff;
-        let gradient = simple(c1, c2, 4);
+        let gradient = linear(c1, c2, 4);
         println!(">>> c1: {:#010X}, c2: {:#010X}",c1,c2);
         println!(">>> gradient: {:#010X?}",gradient);
         assert_eq!(gradient[0], 0x11_FF_11_11);
