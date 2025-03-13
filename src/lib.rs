@@ -46,7 +46,6 @@ pub mod draw {
         pub use star::star;
         /// Properties for drawing a star
         pub use star::StarProperties;
-
     }
 
     /// Draw rectangles
@@ -116,19 +115,19 @@ pub mod utils {
     /// Utils for processing colors
     pub mod color {
         /// Color adapters for converting between different color models.
-        pub mod adapters{
-            mod rgba_to_0rgb;
+        pub mod adapters {
             mod adapter_statistics;
-            mod rgba_to_abgr_unsafe;
-            mod rgba_to_abgr;
+            mod rgba_to_0rgb;
             mod rgba_to_0rgb_unsafe;
+            mod rgba_to_abgr;
+            mod rgba_to_abgr_unsafe;
             mod single_pixel;
 
-            pub use rgba_to_0rgb::rgba_to_0rgb;
             pub use adapter_statistics::AdapterStatistics;
-            pub use rgba_to_abgr_unsafe::rgba_to_abgr_unsafe;
-            pub use rgba_to_abgr::rgba_to_abgr;
+            pub use rgba_to_0rgb::rgba_to_0rgb;
             pub use rgba_to_0rgb_unsafe::rgba_to_0rgb_unsafe;
+            pub use rgba_to_abgr::rgba_to_abgr;
+            pub use rgba_to_abgr_unsafe::rgba_to_abgr_unsafe;
             pub use single_pixel::rgba_color_to_0rgb;
             pub use single_pixel::rgba_color_to_abgr;
         }
@@ -142,12 +141,12 @@ pub mod utils {
 
             /// Addition and subtraction of RGBA colors
             mod rgba_operation;
-            pub use rgba_operation::ColorOperation;
             pub use rgba_operation::rgba_operation;
+            pub use rgba_operation::ColorOperation;
         }
 
-        pub mod palettes;
         pub mod gradient;
+        pub mod palettes;
 
         /// Color properties calculations, color analysis
         pub mod desaturate {
@@ -155,7 +154,16 @@ pub mod utils {
             pub mod luminance;
         }
     }
-    pub mod math;
+    pub mod math {
+        mod power;
+        pub use power::is_power_of_two;
+        pub use power::nearest_power_of_two_towards_zero;
+
+        pub mod oscillator {
+            mod sine;
+            pub use sine::sine;
+        }
+    }
     pub mod pixel_copy {
         pub mod image_data;
     }
