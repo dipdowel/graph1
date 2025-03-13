@@ -38,7 +38,13 @@ pub fn sine<C: Numeric, LB: Numeric, UB: Numeric>(
 ) -> f64 {
     let upper_bound = upper_bound.to_f64();
     let lower_bound = lower_bound.to_f64();
-    let angle = counter.to_f64() * frequency * 2.0 * PI; // Scale counter
+    let counter = counter.to_f64();
+
+    // The line below causes the oscillation to speed up. There's a potential usage for it!
+    // let angle = counter * frequency * 2.0 * PI;
+
+    let angle = (counter * frequency * 2.0 * PI) % (2.0 * PI); // Scale counter
+
     let amplitude = (upper_bound - lower_bound) / 2.0; // Half the range
     let midpoint = (upper_bound + lower_bound) / 2.0; // Center of the range
     let scaled = midpoint + (angle.sin() * amplitude); // Scale to [lower_bound, upper_bound]
