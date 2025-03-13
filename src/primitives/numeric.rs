@@ -30,6 +30,15 @@ impl Numeric for u32 {
      */
 }
 
+impl Numeric for usize {
+    fn to_f64(self) -> f64 {
+        self as f64
+    }
+    fn from_f64(value: f64) -> Self {
+        f64::round(value) as usize
+    }
+}
+
 impl Numeric for i32 {
     fn to_f64(self) -> f64 {
         self as f64
