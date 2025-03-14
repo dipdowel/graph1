@@ -69,6 +69,17 @@ pub mod draw {
 
 pub mod fx {
     pub mod scanline;
+    
+    // FIXME!
+    // FIXME!
+    // FIXME!
+    // FIXME!
+    // pub mod noise {
+    //     mod perlin;
+    //     pub use perlin::perlin;
+    //     pub use perlin::PerlinNoiseProps;
+    // }
+    
 }
 
 //-=[ P }=------------------------------------------------------------------------------------------
@@ -156,12 +167,24 @@ pub mod utils {
     }
     pub mod math {
         mod power;
+
         pub use power::is_power_of_two;
         pub use power::nearest_power_of_two_towards_zero;
 
         pub mod oscillator {
             mod sine;
             pub use sine::sine;
+        }
+
+        pub mod rng {
+            pub mod lcg;
+            
+            // FIXME!
+            // FIXME!
+            // FIXME!
+            // FIXME!
+            // mod normal_pseudo;
+            // pub use normal_pseudo::normal_pseudo;
         }
     }
     pub mod pixel_copy {
