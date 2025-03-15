@@ -88,6 +88,9 @@ pub mod fx {
 pub mod primitives {
     /// Aliases for complex or peculiar types
     pub mod helper_types;
+
+    /// Math-related primitives
+    pub mod math;
     /// `Numeric` - a convenience trait, simplifies conversions between numeric types.
     pub mod numeric;
     mod pixel;
