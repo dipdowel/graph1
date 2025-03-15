@@ -183,20 +183,13 @@ pub mod utils {
             pub(crate) mod helpers{
                 pub(crate)mod xor_shift_normalize_input;
             }
-            // pub mod color;
-            pub mod lcg;
 
-            // pub mod lcg_8bit;
+            // TODO: add random color generator!
+            // pub mod color;
 
             mod xor_shift;
             pub use xor_shift::XorShiftRng;
 
-            // FIXME!
-            // FIXME!
-            // FIXME!
-            // FIXME!
-            // mod normal_pseudo;
-            // pub use normal_pseudo::normal_pseudo;
         }
     }
 
