@@ -180,8 +180,17 @@ pub mod utils {
         }
 
         pub mod rng {
+            pub(crate) mod helpers{
+                pub(crate)mod xor_shift_normalize_input;
+            }
+            // pub mod color;
             pub mod lcg;
-            
+
+            // pub mod lcg_8bit;
+
+            mod xor_shift;
+            pub use xor_shift::XorShiftRng;
+
             // FIXME!
             // FIXME!
             // FIXME!
@@ -190,6 +199,7 @@ pub mod utils {
             // pub use normal_pseudo::normal_pseudo;
         }
     }
+
     pub mod pixel_copy {
         pub mod image_data;
     }
