@@ -181,7 +181,8 @@ pub mod utils {
 
         pub mod rng {
             pub(crate) mod helpers{
-                pub(crate)mod xor_shift_normalize_input;
+                pub(crate)mod normalize_xor_shift_input;
+                pub(crate)mod normalize_min_max;
             }
 
             // TODO: add random color generator!
