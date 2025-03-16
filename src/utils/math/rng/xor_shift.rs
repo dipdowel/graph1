@@ -122,6 +122,15 @@ impl XorShiftRng {
     pub fn get_f64(&mut self) -> f64 {
         self.get_vec_f64(1)[0]
     }
+    
+    pub fn set_seed_32(&mut self, seed: u32) {
+        self.state_32 = seed;
+    }
+    
+    pub fn set_seed_64(&mut self, seed: u64) {
+        self.state_64 = seed;
+    }
+    
 }
 
 #[cfg(test)]
