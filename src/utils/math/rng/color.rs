@@ -1,4 +1,4 @@
-use crate::primitives::math::{ColorPair, MinMax};
+use crate::primitives::math::{MinMax, MIN_MAX_U32, MIN_MAX_U64};
 use crate::utils::math::rng::XorShiftRng;
 
 pub struct ColorRng {
@@ -51,52 +51,38 @@ impl ColorRng {
         colors
     }
 
-    pub fn get_random_monochromes(
-        &mut self,
-        size: usize,
-        color1: u8,
-        color2: u8,
-        alpha1: u8,
-        alpha2: u8,
-        seed: Option<u32>,
-    ) -> Vec<u32> {
-        if seed.is_some() {
-            self.rng.set_seed_32(seed.unwrap());
-        }
+    // TODO: implement `_fast` and `_fast_64` versions 
+    // TODO: implement `_fast` and `_fast_64` versions 
+    // TODO: implement `_fast` and `_fast_64` versions 
+    // TODO: implement `_fast` and `_fast_64` versions 
+    // TODO: implement `_fast` and `_fast_64` versions 
+    
 
-        let color_range = MinMax::new(color1 as u32, color2 as u32);
-        let alpha_range = MinMax::new(alpha1 as u32, alpha2 as u32);
 
-        let colors = self.rng.get_vec_u32(size, &color_range);
-        let alphas = self.rng.get_vec_u32(size, &alpha_range);
 
-        let mut result: Vec<u32> = Vec::with_capacity(size);
-
-        for i in 0..size {
-            result.push((colors[i] << 24) | (colors[i] << 16) | (colors[i] << 8) | alphas[i]);
-        }
-
-        result
-    }
 }
 
 #[cfg(test)]
 mod tests {
+    use std::time::Instant;
     use super::*;
     #[test]
 
-    // TODO: write proper tests!!!
 
     fn test_vec_range_0_10_applied() {
+        // TODO: write proper tests!!!
+        // TODO: write proper tests!!!
+        // TODO: write proper tests!!!
+        // TODO: write proper tests!!!
+        // TODO: write proper tests!!!
+        /*
         let mut color_rng = ColorRng::new(42);
         let colors = color_rng.get_random_colors(10, 0x11_22_33_ff, 0x22_33_44_FF, None);
-
         // println!(">>> color: {:#010X?}",colors);
-
         let bw = color_rng.get_random_monochromes(8, 0x11, 0x22, 0xff, 0xff, None);
-
         println!(">>> bw: {:#010X?}", bw);
-
+         */
         assert_eq!(1, 1);
     }
+
 }

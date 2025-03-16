@@ -186,6 +186,7 @@ pub mod utils {
 
             // TODO: add random color generator!
             pub mod color;
+            pub mod gray;
 
             mod xor_shift;
             pub use xor_shift::XorShiftRng;
