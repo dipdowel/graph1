@@ -1,5 +1,6 @@
 use crate::primitives::math::MinMax;
 use crate::primitives::numeric::Numeric;
+use crate::utils::math::rng::helpers::normalize_min_max::normalize_min_max;
 
 pub(crate) struct NormalizedInput<T: Numeric> {
     pub(crate) range: MinMax<T>,
@@ -25,18 +26,10 @@ pub(crate) fn normalize_input<T: Numeric>(size: usize, range: &MinMax<T>) -> Nor
         };
     }
 
-    // Edge case: min > max. Swap min and max to ensure min <= max + prepare an empty vector.
-    if range.min > range.max {
-        return NormalizedInput {
-            range: MinMax::new(range.max, range.min),
-            vec: Vec::with_capacity(size),
-            is_constant: false,
-        };
-    }
+    let normalized_range = normalize_min_max(&range);
 
-    // Normal case: min <= max. Prepare an empty vector.
     NormalizedInput {
-        range: MinMax::new(range.min, range.max),
+        range: normalized_range,
         vec: Vec::with_capacity(size),
         is_constant: false,
     }

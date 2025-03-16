@@ -1,6 +1,6 @@
 use crate::primitives::math::{MinMax, MIN_MAX_U32, MIN_MAX_U64};
 use crate::primitives::numeric::Numeric;
-use crate::utils::math::rng::helpers::xor_shift_normalize_input::{
+use crate::utils::math::rng::helpers::normalize_xor_shift_input::{
     normalize_input, NormalizedInput,
 };
 
