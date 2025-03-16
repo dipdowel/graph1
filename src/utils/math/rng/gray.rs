@@ -12,6 +12,23 @@ impl GrayRng {
         }
     }
 
+    // TODO: 1. Leave only the `fast` methods for 32 and 64 bit
+    // TODO: 2. See what can be improved here to be more like `ColorRng`
+    // TODO: 3. Write some good documentation for all the methods!
+    // TODO: 4. Write proper tests! Use large and odd values as well!
+    // TODO:    - test the min>max case
+
+    // FIXME: Normalize the input range for the `XorShiftRng` in all the 3 functions below
+    // FIXME: Normalize the input range for the `XorShiftRng` in all the 3 functions below
+    // FIXME: Normalize the input range for the `XorShiftRng` in all the 3 functions below
+    // FIXME: Normalize the input range for the `XorShiftRng` in all the 3 functions below
+    // FIXME: Normalize the input range for the `XorShiftRng` in all the 3 functions below
+    // FIXME: Normalize the input range for the `XorShiftRng` in all the 3 functions below
+    // FIXME: Normalize the input range for the `XorShiftRng` in all the 3 functions below
+    // FIXME: Normalize the input range for the `XorShiftRng` in all the 3 functions below
+    // FIXME: Normalize the input range for the `XorShiftRng` in all the 3 functions below
+    // FIXME: Normalize the input range for the `XorShiftRng` in all the 3 functions below
+
     pub fn get_random_gray(
         &mut self,
         size: usize,
@@ -57,17 +74,20 @@ impl GrayRng {
         let color2 = color2 as u32;
         let alpha1 = alpha1 as u32;
         let alpha2 = alpha2 as u32;
-
-        let colors = self.rng.get_vec_u32(4 + size / 4, &MIN_MAX_U32);
-        let alphas = self.rng.get_vec_u32(4 + size / 4, &MIN_MAX_U32);
+        
+        
+        let adjusted_size:usize = 4 + size / 4;
+        
+        let colors = self.rng.get_vec_u32(adjusted_size, &MIN_MAX_U32);
+        let alphas = self.rng.get_vec_u32(adjusted_size, &MIN_MAX_U32);
 
         let mut result: Vec<u32> = Vec::with_capacity(size);
 
         let color_delta = color2 - color1;
         let alpha_delta = alpha2 - alpha1;
 
-        for i in 0..4 + size / 4 {
-            let mut c: (u32, u32, u32, u32);
+        for i in 0..adjusted_size {
+            let mut c = (color1, color1, color1, color1);
             if color_delta != 0 {
                 c = (
                     color1 + ((colors[i] >> 24) & 0xFF) % color_delta,
@@ -75,11 +95,9 @@ impl GrayRng {
                     color1 + ((colors[i] >> 8) & 0xFF) % color_delta,
                     color1 + (colors[i] & 0xFF) % color_delta,
                 );
-            } else {
-                c = (color1, color1, color1, color1);
             }
 
-            let mut a: (u32, u32, u32, u32);
+            let mut a = (alpha1, alpha1, alpha1, alpha1);
             if alpha_delta != 0 {
                 a = (
                     alpha1 + ((alphas[i] >> 24) & 0xFF) % alpha_delta,
@@ -87,10 +105,7 @@ impl GrayRng {
                     alpha1 + ((alphas[i] >> 8) & 0xFF) % alpha_delta,
                     alpha1 + (alphas[i] & 0xFF) % alpha_delta,
                 );
-            } else {
-                a = (alpha1, alpha1, alpha1, alpha1);
             }
-
             result.push((c.0 << 24) | (c.0 << 16) | (c.0 << 8) | a.0);
             result.push((c.1 << 24) | (c.1 << 16) | (c.1 << 8) | a.1);
             result.push((c.2 << 24) | (c.2 << 16) | (c.2 << 8) | a.2);
@@ -108,10 +123,10 @@ impl GrayRng {
         color2: u8,
         alpha1: u8,
         alpha2: u8,
-        seed: Option<u32>,
+        seed: Option<u64>,
     ) -> Vec<u32> {
         if seed.is_some() {
-            self.rng.set_seed_32(seed.unwrap());
+            self.rng.set_seed_64(seed.unwrap());
         }
 
         let color1 = color1 as u32;
@@ -119,16 +134,20 @@ impl GrayRng {
         let alpha1 = alpha1 as u32;
         let alpha2 = alpha2 as u32;
 
-        let colors = self.rng.get_vec_u64(16 + size / 8, &MIN_MAX_U64);
-        let alphas = self.rng.get_vec_u64(16 + size / 8, &MIN_MAX_U64);
+        let adjusted_size:usize = 8 + size / 8;
+
+        let colors = self.rng.get_vec_u64(adjusted_size, &MIN_MAX_U64);
+        let alphas = self.rng.get_vec_u64(adjusted_size, &MIN_MAX_U64);
 
         let mut result: Vec<u32> = Vec::with_capacity(size);
 
         let color_delta = (color2 - color1) as u64;
         let alpha_delta = (alpha2 - alpha1) as u64;
 
-        for i in 1..8 + size / 8 {
-            let mut c: (u32, u32, u32, u32, u32, u32, u32, u32);
+        
+        
+        for i in 1..adjusted_size {
+            let mut c = (color1, color1, color1, color1, color1, color1, color1, color1);
             if color_delta != 0 {
                 c = (
                     color1 + (((colors[i] >> 56) & 0xFF) % color_delta) as u32,
@@ -140,13 +159,9 @@ impl GrayRng {
                     color1 + (((colors[i] >> 8) & 0xFF) % color_delta) as u32,
                     color1 + ((colors[i] & 0xFF) % color_delta) as u32,
                 );
-            } else {
-                c = (
-                    color1, color1, color1, color1, color1, color1, color1, color1,
-                );
             }
 
-            let mut a: (u32, u32, u32, u32, u32, u32, u32, u32);
+            let mut a = (alpha1, alpha1, alpha1, alpha1, alpha1, alpha1, alpha1, alpha1);
             if alpha_delta != 0 {
                 a = (
                     alpha1 + (((alphas[i] >> 56) & 0xFF) % alpha_delta) as u32,
@@ -157,10 +172,6 @@ impl GrayRng {
                     alpha1 + (((alphas[i] >> 16) & 0xFF) % alpha_delta) as u32,
                     alpha1 + (((alphas[i] >> 8) & 0xFF) % alpha_delta) as u32,
                     alpha1 + ((alphas[i] & 0xFF) % alpha_delta) as u32,
-                );
-            } else {
-                a = (
-                    alpha1, alpha1, alpha1, alpha1, alpha1, alpha1, alpha1, alpha1,
                 );
             }
 
