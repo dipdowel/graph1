@@ -123,7 +123,7 @@ impl ColorRng {
         }
 
         // make sure the result has the expected size
-        result.resize(size, 0x00_00_00_ff);
+        result.resize(size, 0x00_00_00_00);
         result
     }
 
@@ -257,7 +257,7 @@ impl ColorRng {
 
         }
         // make sure the result has the expected size
-        result.resize(size, 0x00_00_00_ff);
+        result.resize(size, 0x00_00_00_00);
         result
     }
 
