@@ -74,11 +74,14 @@ pub mod fx {
     // FIXME!
     // FIXME!
     // FIXME!
-    // pub mod noise {
+    pub mod noise {
     //     mod perlin;
     //     pub use perlin::perlin;
     //     pub use perlin::PerlinNoiseProps;
-    // }
+        mod white_noise;
+        pub use white_noise::WhiteNoise;
+        pub use white_noise::WhiteNoiseProps;
+    }
     
 }
 
