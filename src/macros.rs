@@ -98,4 +98,40 @@ mod tests {
         // were all the initially generated values unique?
         assert_eq!(random_values.len(), filtered_values.len());
     }
+
+    // #[test]
+    // fn distribution_is_uniform_enough() {
+    //     use crate::hash_random_u32;
+    //     use std::collections::HashMap;
+    //
+    //     let mut counts = HashMap::new();
+    //     let min = 100;
+    //     let max = 500;
+    //
+    //     for i in 0..10_000 {
+    //         let val = hash_random_u32!(i as u32, min, max);
+    //         *counts.entry(val).or_insert(0) += 1;
+    //     }
+    //
+    //     // Make sure all values in the range [0, 10) occurred at least once
+    //     for expected in min..max {
+    //         assert!(counts.contains_key(&expected), "Missing value {}", expected);
+    //     }
+    //
+    //     // Optionally: check that none are wildly off
+    //     let avg = 10_000 / (max - min);
+    //     for (val, count) in &counts {
+    //         let delta = (*count - avg as i32).abs() as u32;
+    //
+    //         // Allow some wiggle room (50% deviation from average)
+    //         assert!(
+    //             delta < avg / 2,
+    //             "Value {} appears too often or too rarely: {} times",
+    //             val,
+    //             count
+    //         );
+    //     }
+    // }
+
+
 }
