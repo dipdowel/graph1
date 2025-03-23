@@ -1,8 +1,8 @@
 use crate::core::context::GraphContext;
 use crate::primitives::math::MinMax;
+use crate::primitives::plane::RectArea;
 use crate::utils::math::rng::XorShiftRng;
 use std::thread;
-use crate::primitives::plane::RectArea;
 
 pub struct HorizontalGlitchProps {
     /// horizontal shift strength
@@ -147,7 +147,7 @@ pub fn horizontal_glitch_region<UserData>(
     let shifts = rng.get_vec_u32(row_count, &max_shift);
     let chances = rng.get_vec_f64(row_count);
 
-    for i in 0..row_count  {
+    for i in 0..row_count {
         if chances[i] >= chance_threshold {
             continue;
         }
@@ -166,7 +166,6 @@ pub fn horizontal_glitch_region<UserData>(
         }
     }
 }
-
 
 /*
 // It's a working test, but it requires some human interaction for now.
