@@ -69,6 +69,7 @@ pub mod draw {
 
 pub mod fx {
     pub mod scanline;
+    pub mod glitch;
 
     // FIXME!
     // FIXME!
