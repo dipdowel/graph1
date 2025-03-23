@@ -1,26 +1,28 @@
 use crate::core::context::GraphContext;
-// use crate::utils::color::math::{rgba_operation, ColorOperation};
-
 use crate::primitives::math::MinMax;
 use crate::utils::math::rng::XorShiftRng;
 
-
-pub struct GlitchProps {
+pub struct HorizontalGlitchProps {
     /// horizontal shift strength
     pub strength: u32,
+
     /// The chance to apply the glitch effect 0 -- no chance, 255 -- always
     pub chance: u8,
 
+    /// The balance between left and right shifts.
+    /// 0 -- 100% of glitches gravitate to the left
+    /// 128 -- balanced
+    /// 255 -- 100% of glitches gravitate to the right
+    pub left_right_balance: u8,
 }
 
-/// Applies a glitch effect to the whole framebuffer (single-threaded).
-/// - Random horizontal shifts of pixel rows.
-/// - Occasional color channel artifacts.
-pub fn window<UserData>(ctx: &mut GraphContext<UserData>, props: &GlitchProps) {
-    let GlitchProps{
+/// Applies a simple glitch effect to the whole window (single-threaded).
+/// -
+pub fn horizontal_glitch<UserData>(ctx: &mut GraphContext<UserData>, props: &HorizontalGlitchProps) {
+    let HorizontalGlitchProps {
         strength,
         chance,
-
+        left_right_balance: horizontal_balance,
     } = *props;
 
     // These props as zeros render the rest of the effect logic useless
@@ -28,38 +30,51 @@ pub fn window<UserData>(ctx: &mut GraphContext<UserData>, props: &GlitchProps) {
         return;
     }
 
-    let height = ctx.frame_buf.len()  / ctx.win.w_usize;
+    let height = ctx.frame_buf.len() / ctx.win.w_usize;
     let mut rng = XorShiftRng::new(ctx.frame_count as u32, ctx.frame_count as u64);
     let max_shift = MinMax::new(1, strength.min(ctx.win.w));
-
-
     let shifts = rng.get_vec_u32(height, &max_shift);
-
     let chances = rng.get_vec_f64(height);
     let chance_threshold: f64 = chance as f64 / u8::MAX as f64;
 
+    let right_threshold = horizontal_balance as f64 / u8::MAX as f64;
+
     for y in 0..height {
-        // ~20% chance to glitch this row
+        //  chance to glitch this row
         if chances[y] < chance_threshold {
-            let y_start = (y * ctx.win.w_usize) as usize;
+            let y_start = y * ctx.win.w_usize;
             let row = &mut ctx.frame_buf[y_start..y_start + ctx.win.w_usize];
-
-            // let shift = rng.get_u32(&max_shift) as usize;
             let shift = shifts[y] as usize;
-            let right = rng.get_f64() < 0.5;
 
-            if right {
+            // Glitch to the left or to the right
+            if rng.get_f64() < right_threshold {
                 row.rotate_right(shift);
             } else {
                 row.rotate_left(shift);
             }
 
-            // // ~30% chance to apply color noise
-            // if rng.get_f64() < 0.3 {
-            //     for px in row.iter_mut() {
-            //         *px = rgba_operation(*px, 0x11223300, ColorOperation::Add, false);
-            //     }
-            // }
         }
     }
 }
+
+/*
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::core::context::WindowContext;
+
+    #[test]
+    fn test_glitch() {
+        let mut ctx: GraphContext =
+            GraphContext::new(WindowContext::default(), false, false, None, 1);
+        let props = GlitchProps {
+            strength: 10,
+            chance: 16,
+            horizontal_balance: 128,
+
+        };
+
+        window(&mut ctx, &props);
+    }
+}
+*/
