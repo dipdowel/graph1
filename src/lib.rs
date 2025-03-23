@@ -1,5 +1,9 @@
 //-=[ C }=------------------------------------------------------------------------------------------
 
+
+#[macro_use]
+mod macros; // <-- Graph1 provides macros!
+
 /// Core functionality for the library, e.g. contexts, default values, etc.
 pub mod core {
 
