@@ -4,20 +4,20 @@ use crate::primitives::plane::RectArea;
 use crate::utils::math::rng::XorShiftRng;
 use std::thread;
 
+/// Properties for horizontal glitch effect
 pub struct HorizontalGlitchProps {
-    /// horizontal shift strength
+    /// Maximum number of pixels a row can be shifted left or right
     pub strength: u32,
 
-    /// The chance to apply the glitch effect 0 -- no chance, 255 -- always
+    /// Probability of applying the glitch to a row (0 = never, 255 = always)
     pub chance: u8,
 
-    /// The balance between left and right shifts.
-    /// 0 -- 100% of glitches gravitate to the left
-    /// 128 -- balanced
-    /// 255 -- 100% of glitches gravitate to the right
+    /// Shift direction bias (0 = left, 255 = right, 128 = balanced)
     pub left_right_balance: u8,
 }
 
+/// Applies the glitch effect to a given slice of rows
+/// Each row is shifted left or right randomly, based on props
 fn horizontal_glitch_thread(
     rows_slice: &mut [u32],
     row_width: usize,
@@ -42,8 +42,8 @@ fn horizontal_glitch_thread(
     }
 }
 
-/// Applies a simple horizontal glitch effect to the whole window.
-
+/// Applies horizontal glitching across the entire frame buffer
+/// Automatically uses multithreading if ctx.num_threads > 1
 pub fn horizontal_glitch<UserData>(
     ctx: &mut GraphContext<UserData>,
     props: &HorizontalGlitchProps,
@@ -65,6 +65,7 @@ pub fn horizontal_glitch<UserData>(
     let chance_threshold = chance as f64 / u8::MAX as f64;
     let right_threshold: f64 = horizontal_balance as f64 / u8::MAX as f64;
 
+    // If only 1 thread is allowed, run glitch logic directly
     if ctx.num_threads == 1 {
         let rng = XorShiftRng::new(ctx.frame_count as u32, ctx.frame_count as u64);
         horizontal_glitch_thread(
@@ -88,6 +89,7 @@ pub fn horizontal_glitch<UserData>(
     let base_seed_u32 = ctx.frame_count as u32;
     let base_seed_u64 = ctx.frame_count as u64;
 
+    // Spawn one thread per chunk
     thread::scope(|s| {
         for (chunk_index, chunk) in chunks.iter_mut().enumerate() {
             let row_count = chunk.len() / row_width;
@@ -111,8 +113,7 @@ pub fn horizontal_glitch<UserData>(
     });
 }
 
-/// Applies a simple horizontal glitch effect to a region of the window.
-/// TODO: Implement a multi-threaded version of this function!
+/// Applies glitching only within a rectangular region (single-threaded)
 pub fn horizontal_glitch_region<UserData>(
     ctx: &mut GraphContext<UserData>,
     props: &HorizontalGlitchProps,
@@ -167,6 +168,7 @@ pub fn horizontal_glitch_region<UserData>(
     }
 }
 
+/// Threaded logic for applying horizontal glitching to a region
 fn horizontal_glitch_region_thread(
     slice: &mut [u32],
     row_width: usize,
@@ -194,6 +196,7 @@ fn horizontal_glitch_region_thread(
     }
 }
 
+/// Multithreaded version of region glitching
 pub fn horizontal_glitch_region_multi<UserData>(
     ctx: &mut GraphContext<UserData>,
     props: &HorizontalGlitchProps,
