@@ -16,106 +16,8 @@ pub struct HorizontalGlitchProps {
     pub left_right_balance: u8,
 }
 
-/// Applies the glitch effect to a given slice of rows
-/// Each row is shifted left or right randomly, based on props
+/// Glitch logic that processes a rectangular band of rows (either full-frame or a region)
 fn horizontal_glitch_thread(
-    rows_slice: &mut [u32],
-    row_width: usize,
-    row_count: usize,
-    max_shift: MinMax<u32>,
-    chance_threshold: f64,
-    right_threshold: f64,
-    mut rng: XorShiftRng,
-) {
-    let shifts = rng.get_vec_u32(row_count, &max_shift);
-    let chances = rng.get_vec_f64(row_count);
-
-    for (i, row) in rows_slice.chunks_mut(row_width).enumerate() {
-        if chances[i] < chance_threshold {
-            let shift = shifts[i] as usize;
-            if rng.get_f64() < right_threshold {
-                row.rotate_right(shift);
-            } else {
-                row.rotate_left(shift);
-            }
-        }
-    }
-}
-
-/// Applies horizontal glitching across the entire frame buffer
-/// Automatically uses multithreading if ctx.num_threads > 1
-pub fn horizontal_glitch<UserData>(
-    ctx: &mut GraphContext<UserData>,
-    props: &HorizontalGlitchProps,
-) {
-    let HorizontalGlitchProps {
-        strength,
-        chance,
-        left_right_balance: horizontal_balance,
-    } = *props;
-
-    // These props as zeros make the rest of the effect logic useless
-    if chance == 0 || strength == 0 || ctx.num_threads == 0 {
-        return;
-    }
-
-    let row_width = ctx.win.w_usize;
-    let height = ctx.frame_buf.len() / row_width;
-    let max_shift = MinMax::new(1, strength.min(ctx.win.w));
-    let chance_threshold = chance as f64 / u8::MAX as f64;
-    let right_threshold: f64 = horizontal_balance as f64 / u8::MAX as f64;
-
-    // If only 1 thread is allowed, run glitch logic directly
-    if ctx.num_threads == 1 {
-        let rng = XorShiftRng::new(ctx.frame_count as u32, ctx.frame_count as u64);
-        horizontal_glitch_thread(
-            &mut ctx.frame_buf,
-            row_width,
-            height,
-            max_shift,
-            chance_threshold,
-            right_threshold,
-            rng,
-        );
-        return;
-    }
-
-    // ==[ MULTI THREADS ]=========================================================================
-    let mut chunk_size = usize::div_ceil(ctx.frame_buf.len(), ctx.num_threads);
-    chunk_size = chunk_size / row_width * row_width; // align to full rows
-
-    let mut chunks: Vec<&mut [u32]> = ctx.frame_buf.chunks_mut(chunk_size).collect();
-
-    let base_seed_u32 = ctx.frame_count as u32;
-    let base_seed_u64 = ctx.frame_count as u64;
-
-    // Spawn one thread per chunk
-    thread::scope(|s| {
-        for (chunk_index, chunk) in chunks.iter_mut().enumerate() {
-            let row_count = chunk.len() / row_width;
-
-            s.spawn(move || {
-                let rng = XorShiftRng::new(
-                    base_seed_u32 + chunk_index as u32,
-                    base_seed_u64 + chunk_index as u64,
-                );
-                horizontal_glitch_thread(
-                    chunk,
-                    row_width,
-                    row_count,
-                    max_shift,
-                    chance_threshold,
-                    right_threshold,
-                    rng,
-                );
-            });
-        }
-    });
-}
-
-
-/// Threaded logic for applying horizontal glitching to a region
-fn horizontal_glitch_region_thread(
     slice: &mut [u32],
     row_width: usize,
     row_count: usize,
@@ -142,11 +44,28 @@ fn horizontal_glitch_region_thread(
     }
 }
 
-/// Applies glitching only within a rectangular region (multi-threaded)
-pub fn horizontal_glitch_region<UserData>(
+/// Applies a horizontal glitch to the full frame buffer or a just a region if `rect` is provided
+/// # Arguments
+/// * `ctx` - The graph context
+/// * `props` - The properties for the horizontal glitch effect
+/// * `region` - The rectangular region to apply the glitch to. If `None`, the full frame buffer gets glitched.
+/// **NB:** If `region` is relatively  small (e.g. 128*128), the best performance is achieved with `ctx.num_threads = 1`!
+/// **NB:** If `region` is larger, multiple threads noticeably improve performance.
+/// **NB:** See some test results below (CPU with 6 cores):
+///
+/// #### 1 Thread:
+/// - { w: 128, h: 128 } -- 23 microseconds
+/// - { w: 800, h: 600 } -- 1124 microseconds
+/// #### 4 Threads:
+/// - { w: 128, h: 128 } -- 124 microseconds
+/// - { w: 800, h: 600 } -- 720 microseconds
+/// #### 6 Threads:
+/// - { w: 128, h: 128 } -- 189 microseconds
+/// - { w: 800, h: 600 } -- 503 microseconds
+pub fn horizontal_glitch<UserData>(
     ctx: &mut GraphContext<UserData>,
     props: &HorizontalGlitchProps,
-    rect: &RectArea,
+    region: Option<&RectArea>,
 ) {
     let HorizontalGlitchProps {
         strength,
@@ -162,10 +81,17 @@ pub fn horizontal_glitch_region<UserData>(
     let chance_threshold = chance as f64 / u8::MAX as f64;
     let right_threshold = horizontal_balance as f64 / u8::MAX as f64;
 
-    let y_start = rect.top_left.y.min(ctx.win.h);
-    let y_end = (rect.top_left.y + rect.dimensions.h).min(ctx.win.h);
-    let x_start = rect.top_left.x.min(ctx.win.w) as usize;
-    let x_end = (rect.top_left.x + rect.dimensions.w).min(ctx.win.w) as usize;
+    // Define glitch bounds based on rect or full frame
+    let (y_start, y_end, x_start, x_end) = match region {
+        Some(r) => {
+            let y_start = r.top_left.y.min(ctx.win.h);
+            let y_end = (r.top_left.y + r.dimensions.h).min(ctx.win.h);
+            let x_start = r.top_left.x.min(ctx.win.w) as usize;
+            let x_end = (r.top_left.x + r.dimensions.w).min(ctx.win.w) as usize;
+            (y_start, y_end, x_start, x_end)
+        }
+        None => (0, ctx.win.h, 0, ctx.win.w_usize),
+    };
 
     if y_start >= y_end || x_start >= x_end {
         return;
@@ -181,7 +107,7 @@ pub fn horizontal_glitch_region<UserData>(
     // ==[ SINGLE THREAD ]=======================================================================
     if ctx.num_threads == 1 {
         let rng = XorShiftRng::new(ctx.frame_count as u32, ctx.frame_count as u64);
-        horizontal_glitch_region_thread(
+        horizontal_glitch_thread(
             region_slice,
             row_width,
             row_count,
@@ -196,8 +122,7 @@ pub fn horizontal_glitch_region<UserData>(
 
     // ==[ MULTI THREAD ]=======================================================================
     let mut chunk_size = usize::div_ceil(region_slice.len(), ctx.num_threads);
-    chunk_size = chunk_size / row_width * row_width; // ensure row alignment
-
+    chunk_size = chunk_size / row_width * row_width;
     let mut chunks: Vec<&mut [u32]> = region_slice.chunks_mut(chunk_size).collect();
 
     let base_seed_u32 = ctx.frame_count as u32;
@@ -212,7 +137,7 @@ pub fn horizontal_glitch_region<UserData>(
 
             s.spawn(move || {
                 let rng = XorShiftRng::new(seed_u32, seed_u64);
-                horizontal_glitch_region_thread(
+                horizontal_glitch_thread(
                     chunk,
                     row_width,
                     rows_in_chunk,
@@ -226,11 +151,12 @@ pub fn horizontal_glitch_region<UserData>(
         }
     });
 }
-/*
-// It's a working test, but it requires some human interaction for now.
 
+/* 
+// It's a working test suite, but it requires some human interaction for now.
 #[cfg(test)]
 mod tests {
+
     use super::*;
     use crate::core::context::WindowContext;
     use std::time::{Duration, Instant};
@@ -243,6 +169,7 @@ mod tests {
             iterations: usize,
             ctx: &mut GraphContext,
             props: &HorizontalGlitchProps,
+            rect: Option<&RectArea>,
         ) -> Duration {
             ctx.num_threads = num_threads;
             let mut duration_sum: Duration = Duration::new(0, 0);
@@ -250,15 +177,26 @@ mod tests {
             for _ in 0..iterations {
                 let start = Instant::now();
                 // horizontal_glitch(ctx, &props);
-                horizontal_glitch_region_multi(ctx, &props, &RectArea::new(0, 0, 800, 600, None));
+
+                horizontal_glitch(ctx, &props, rect);
+
                 duration_sum += start.elapsed();
                 // println!("duration_sum:  {:?}", duration_sum);
             }
 
             let average = duration_sum.div_f32(iterations as f32);
 
+            let mut rect_status: String = String::from("None");
+            if rect.is_some() {
+                rect_status = format!("{:?}", rect.unwrap().dimensions);
+            }
             if print {
-                println!("> THR: {}, DUR: {:?}", num_threads, average);
+                println!(
+                    "> THR: {:?}, rect: {:?}, DUR: {:?} microsec",
+                    num_threads,
+                    rect_status,
+                    average.as_micros()
+                );
             }
             average
         }
@@ -277,10 +215,31 @@ mod tests {
             left_right_balance: 128,
         };
 
-        let iterations: usize = 8_000;
+        let small_region = RectArea::new(128, 128, 128, 128, None);
+        let large_region = RectArea::new(128, 128, 800, 600, None);
+        let full_window_region = RectArea::new(0, 0, 1024, 768, None);
 
-        for num_threads in 0..8 {
-            measure(true, num_threads, iterations, &mut ctx, &props);
+        let iterations: usize = 5_000;
+
+        for num_threads in [1, 4, 6] {
+            // measure(true, num_threads, iterations, &mut ctx, &props, None);
+            measure(
+                true,
+                num_threads,
+                iterations,
+                &mut ctx,
+                &props,
+                Some(&small_region),
+            );
+            measure(
+                true,
+                num_threads,
+                iterations,
+                &mut ctx,
+                &props,
+                Some(&large_region),
+            );
+            // measure(true, num_threads, iterations, &mut ctx, &props, Some(&full_window_region));
         }
     }
 }
