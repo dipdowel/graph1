@@ -5,7 +5,7 @@ use crate::utils::math::rng::helpers::normalize_xor_shift_input::{
 };
 
 /// A Simple Random Number Generator (RNG) based on the XOR-Shift algorithm.
-/// 
+///
 /// **NB:** Do not use this for cryptographic purposes!
 pub struct XorShiftRng {
     state_32: u32,
@@ -14,11 +14,18 @@ pub struct XorShiftRng {
 
 impl XorShiftRng {
     pub fn new(seed_32: u32, seed_64: u64) -> Self {
-        Self {
+        let mut rng = Self {
             // Avoid zero state (XOR-Shift fails if state is 0)
             state_32: if seed_32 == 0 { u32::MAX - 1 } else { seed_32 },
             state_64: if seed_64 == 0 { u64::MAX - 1 } else { seed_64 },
-        }
+        };
+
+        // initialize the state and discard the first (potentially low quality) values
+        rng.get_f64();
+        rng.get_f64();
+        rng.get_u32(&MIN_MAX_U32);
+        rng.get_u32(&MIN_MAX_U32);
+        rng
     }
 
     /// Generates a vector of random `u64` values.
@@ -102,11 +109,6 @@ impl XorShiftRng {
     /// * Returns a vector of random `f64` values.
     ///
     pub fn get_vec_f64(&mut self, size: usize) -> Vec<f64> {
-        // The first iteration gives a value of greater than 1.0, hence it's discarded.
-        self.state_64 ^= self.state_64 << 13;
-        self.state_64 ^= self.state_64 >> 7;
-        self.state_64 ^= self.state_64 << 17;
-
         let mut vec: Vec<f64> = Vec::with_capacity(size);
         for _ in 0..size {
             self.state_64 ^= self.state_64 << 13;
@@ -120,17 +122,19 @@ impl XorShiftRng {
     /// Generates a random `f64` value.
     /// **NB:** If you need more than one value, use `get_vec_f64` instead, it's more efficient.
     pub fn get_f64(&mut self) -> f64 {
-        self.get_vec_f64(1)[0]
+        self.state_64 ^= self.state_64 << 13;
+        self.state_64 ^= self.state_64 >> 7;
+        self.state_64 ^= self.state_64 << 17;
+        (self.state_64 >> 11) as f64 / (1u64 << 53) as f64
     }
-    
+
     pub fn set_seed_32(&mut self, seed: u32) {
         self.state_32 = seed;
     }
-    
+
     pub fn set_seed_64(&mut self, seed: u64) {
         self.state_64 = seed;
     }
-    
 }
 
 #[cfg(test)]
@@ -218,10 +222,11 @@ mod tests {
 
     #[test]
     fn test_single_values() {
-        let mut rng = XorShiftRng::new(10, 10);
+        let mut rng = XorShiftRng::new(101, 101);
 
         for _ in 0..100 {
             let rand_u32 = rng.get_u32(&MinMax::new(0, 10));
+            // println!("rand_u32: {:?}", rand_u32);
             assert!(rand_u32 >= 0 && rand_u32 < 10);
 
             let rand_u64 = rng.get_u32(&MinMax::new(0, 10));
@@ -230,13 +235,26 @@ mod tests {
     }
 
     #[test]
-    fn test_f64() {
+    fn test_vec_f64() {
         let mut rng = XorShiftRng::new(3, 3);
 
         let random_f64 = rng.get_vec_f64(100_000);
+        // let random_f64 = rng.get_vec_f64(100);
+        // println!("vect random_f64: {:?}", random_f64);
         random_f64.iter().for_each(|&x| {
             assert!(x >= 0.0 && x < 1.0);
         });
+    }
+
+    #[test]
+    fn test_f64() {
+        let mut rng = XorShiftRng::new(3123, 3123);
+
+        for _ in 0..100 {
+            let random_f64 = rng.get_f64();
+            // println!("{}", random_f64);
+            assert!(random_f64 >= 0.0 && random_f64 < 1.0);
+        }
     }
 
     // TODO: Add statistical analysis tests
