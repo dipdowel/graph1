@@ -67,23 +67,27 @@ pub mod draw {
 
 //-=[ F }=------------------------------------------------------------------------------------------
 
+/// Filters and effects to apply to images, animation frames, etc.
 pub mod fx {
-    pub mod scanline;
+
+    /// Glitch effects to simulate various visual artifacts
     pub mod glitch;
+
+    /// Scanline effects to simulate CRT screens, old TVs, etc.
+    pub mod scanline;
 
     // FIXME!
     // FIXME!
     // FIXME!
     // FIXME!
     pub mod noise {
-    //     mod perlin;
-    //     pub use perlin::perlin;
-    //     pub use perlin::PerlinNoiseProps;
+        //     mod perlin;
+        //     pub use perlin::perlin;
+        //     pub use perlin::PerlinNoiseProps;
         mod white_noise;
         pub use white_noise::WhiteNoise;
         pub use white_noise::WhiteNoiseProps;
     }
-
 }
 
 //-=[ P }=------------------------------------------------------------------------------------------
@@ -163,8 +167,10 @@ pub mod utils {
             pub use rgba_operation::ColorOperation;
         }
 
+        /// Generators of color gradients
         pub mod gradient;
 
+        /// Built-in color palettes
         pub mod palettes {
             mod autumn_harvest;
             mod desert_dusk;
@@ -197,27 +203,41 @@ pub mod utils {
             pub mod luminance;
         }
     }
+    /// Various math utilities and constants
     pub mod math {
+
+        /// Magic numbers and constants for graphics
+        pub mod constants {
+            pub mod golden_ratio;
+            pub mod mersenne;
+            pub mod misc_math;
+        }
+        /// Power functions
         mod power;
 
         pub use power::is_power_of_two;
         pub use power::nearest_power_of_two_towards_zero;
 
+        /// Generators of periodic values
         pub mod oscillator {
             mod sine;
             pub use sine::sine;
         }
 
+        /// Random number generators
         pub mod rng {
             pub(crate) mod helpers {
                 pub(crate) mod normalize_min_max;
                 pub(crate) mod normalize_xor_shift_input;
             }
 
-            // TODO: add random color generator!
+
+            /// Generates random RGBA colors in given ranges
             pub mod color;
+            /// Generates random grayscale colors in a range (still an RGBA color)
             pub mod gray;
 
+            /// A XOR-Shift Random Number Generator
             mod xor_shift;
             pub use xor_shift::XorShiftRng;
         }
@@ -226,6 +246,7 @@ pub mod utils {
     pub mod pixel_copy {
         pub mod image_data;
     }
+    /// Various validations and checks for primitives and other data
     pub mod validators;
 }
 
