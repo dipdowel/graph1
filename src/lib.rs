@@ -69,6 +69,20 @@ pub mod draw {
 
 pub mod fx {
     pub mod scanline;
+    
+    // FIXME!
+    // FIXME!
+    // FIXME!
+    // FIXME!
+    pub mod noise {
+    //     mod perlin;
+    //     pub use perlin::perlin;
+    //     pub use perlin::PerlinNoiseProps;
+        mod white_noise;
+        pub use white_noise::WhiteNoise;
+        pub use white_noise::WhiteNoiseProps;
+    }
+    
 }
 
 //-=[ P }=------------------------------------------------------------------------------------------
@@ -77,6 +91,9 @@ pub mod fx {
 pub mod primitives {
     /// Aliases for complex or peculiar types
     pub mod helper_types;
+
+    /// Math-related primitives
+    pub mod math;
     /// `Numeric` - a convenience trait, simplifies conversions between numeric types.
     pub mod numeric;
     mod pixel;
@@ -156,6 +173,7 @@ pub mod utils {
     }
     pub mod math {
         mod power;
+
         pub use power::is_power_of_two;
         pub use power::nearest_power_of_two_towards_zero;
 
@@ -163,7 +181,23 @@ pub mod utils {
             mod sine;
             pub use sine::sine;
         }
+
+        pub mod rng {
+            pub(crate) mod helpers{
+                pub(crate)mod normalize_xor_shift_input;
+                pub(crate)mod normalize_min_max;
+            }
+
+            // TODO: add random color generator!
+            pub mod color;
+            pub mod gray;
+
+            mod xor_shift;
+            pub use xor_shift::XorShiftRng;
+
+        }
     }
+
     pub mod pixel_copy {
         pub mod image_data;
     }
