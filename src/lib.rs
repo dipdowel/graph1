@@ -69,7 +69,7 @@ pub mod draw {
 
 pub mod fx {
     pub mod scanline;
-    
+
     // FIXME!
     // FIXME!
     // FIXME!
@@ -82,7 +82,7 @@ pub mod fx {
         pub use white_noise::WhiteNoise;
         pub use white_noise::WhiteNoiseProps;
     }
-    
+
 }
 
 //-=[ P }=------------------------------------------------------------------------------------------
@@ -163,7 +163,32 @@ pub mod utils {
         }
 
         pub mod gradient;
-        pub mod palettes;
+
+        pub mod palettes {
+            mod autumn_harvest;
+            mod desert_dusk;
+            mod forest_mist;
+            mod grayscale;
+            mod ocean_breeze;
+            mod retro_neon;
+            mod sunset_glow;
+            mod tropical_paradise;
+            mod urban_concrete;
+            mod vintage_pastel;
+            mod winter_frost;
+
+            pub use autumn_harvest::AutumnHarvest;
+            pub use desert_dusk::DesertDusk;
+            pub use forest_mist::ForestMist;
+            pub use grayscale::Grayscale;
+            pub use ocean_breeze::OceanBreeze;
+            pub use retro_neon::RetroNeon;
+            pub use sunset_glow::SunsetGlow;
+            pub use tropical_paradise::TropicalParadise;
+            pub use urban_concrete::UrbanConcrete;
+            pub use vintage_pastel::VintagePastel;
+            pub use winter_frost::WinterFrost;
+        }
 
         /// Color properties calculations, color analysis
         pub mod desaturate {
@@ -183,9 +208,9 @@ pub mod utils {
         }
 
         pub mod rng {
-            pub(crate) mod helpers{
-                pub(crate)mod normalize_xor_shift_input;
-                pub(crate)mod normalize_min_max;
+            pub(crate) mod helpers {
+                pub(crate) mod normalize_min_max;
+                pub(crate) mod normalize_xor_shift_input;
             }
 
             // TODO: add random color generator!
@@ -194,7 +219,6 @@ pub mod utils {
 
             mod xor_shift;
             pub use xor_shift::XorShiftRng;
-
         }
     }
 
