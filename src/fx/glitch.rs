@@ -167,6 +167,116 @@ pub fn horizontal_glitch_region<UserData>(
     }
 }
 
+fn horizontal_glitch_region_thread(
+    slice: &mut [u32],
+    row_width: usize,
+    row_count: usize,
+    x_range: (usize, usize),
+    max_shift: MinMax<u32>,
+    chance_threshold: f64,
+    right_threshold: f64,
+    mut rng: XorShiftRng,
+) {
+    let shifts = rng.get_vec_u32(row_count, &max_shift);
+    let chances = rng.get_vec_f64(row_count);
+
+    for (i, row) in slice.chunks_mut(row_width).enumerate() {
+        if chances[i] < chance_threshold {
+            let shift = shifts[i] as usize;
+            let sub_row = &mut row[x_range.0..x_range.1];
+
+            if rng.get_f64() < right_threshold {
+                sub_row.rotate_right(shift);
+            } else {
+                sub_row.rotate_left(shift);
+            }
+        }
+    }
+}
+
+pub fn horizontal_glitch_region_multi<UserData>(
+    ctx: &mut GraphContext<UserData>,
+    props: &HorizontalGlitchProps,
+    rect: &RectArea,
+) {
+    let HorizontalGlitchProps {
+        strength,
+        chance,
+        left_right_balance: horizontal_balance,
+    } = *props;
+
+    if chance == 0 || strength == 0 || ctx.num_threads == 0 {
+        return;
+    }
+
+    let row_width = ctx.win.w_usize;
+    let chance_threshold = chance as f64 / u8::MAX as f64;
+    let right_threshold = horizontal_balance as f64 / u8::MAX as f64;
+
+    let y_start = rect.top_left.y.min(ctx.win.h);
+    let y_end = (rect.top_left.y + rect.dimensions.h).min(ctx.win.h);
+    let x_start = rect.top_left.x.min(ctx.win.w) as usize;
+    let x_end = (rect.top_left.x + rect.dimensions.w).min(ctx.win.w) as usize;
+
+    if y_start >= y_end || x_start >= x_end {
+        return;
+    }
+
+    let row_count = (y_end - y_start) as usize;
+    let max_shift = MinMax::new(1, strength.min((x_end - x_start) as u32));
+
+    let first_pixel = y_start as usize * row_width;
+    let last_pixel = y_end as usize * row_width;
+    let region_slice = &mut ctx.frame_buf[first_pixel..last_pixel];
+
+    // ==[ SINGLE THREAD ]=======================================================================
+    if ctx.num_threads == 1 {
+        let rng = XorShiftRng::new(ctx.frame_count as u32, ctx.frame_count as u64);
+        horizontal_glitch_region_thread(
+            region_slice,
+            row_width,
+            row_count,
+            (x_start, x_end),
+            max_shift,
+            chance_threshold,
+            right_threshold,
+            rng,
+        );
+        return;
+    }
+
+    // ==[ MULTI THREAD ]=======================================================================
+    let mut chunk_size = usize::div_ceil(region_slice.len(), ctx.num_threads);
+    chunk_size = chunk_size / row_width * row_width; // ensure row alignment
+
+    let mut chunks: Vec<&mut [u32]> = region_slice.chunks_mut(chunk_size).collect();
+
+    let base_seed_u32 = ctx.frame_count as u32;
+    let base_seed_u64 = ctx.frame_count as u64;
+
+    thread::scope(|s| {
+        for (chunk_index, chunk) in chunks.iter_mut().enumerate() {
+            let rows_in_chunk = chunk.len() / row_width;
+            let seed_u32 = base_seed_u32 + chunk_index as u32;
+            let seed_u64 = base_seed_u64 + chunk_index as u64;
+            let x_range = (x_start, x_end);
+
+            s.spawn(move || {
+                let rng = XorShiftRng::new(seed_u32, seed_u64);
+                horizontal_glitch_region_thread(
+                    chunk,
+                    row_width,
+                    rows_in_chunk,
+                    x_range,
+                    max_shift,
+                    chance_threshold,
+                    right_threshold,
+                    rng,
+                );
+            });
+        }
+    });
+}
 /*
 // It's a working test, but it requires some human interaction for now.
 
@@ -190,7 +300,8 @@ mod tests {
 
             for _ in 0..iterations {
                 let start = Instant::now();
-                horizontal_glitch(ctx, &props);
+                // horizontal_glitch(ctx, &props);
+                horizontal_glitch_region_multi(ctx, &props, &RectArea::new(0, 0, 800, 600, None));
                 duration_sum += start.elapsed();
                 // println!("duration_sum:  {:?}", duration_sum);
             }
@@ -212,14 +323,14 @@ mod tests {
         );
 
         let props = HorizontalGlitchProps {
-            strength: 200,
-            chance: 220,
+            strength: 500,
+            chance: 250,
             left_right_balance: 128,
         };
 
         let iterations: usize = 8_000;
 
-        for num_threads in 0..13 {
+        for num_threads in 0..8 {
             measure(true, num_threads, iterations, &mut ctx, &props);
         }
     }
