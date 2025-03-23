@@ -79,7 +79,6 @@ mod tests {
 
     #[test]
     fn returns_relatively_random() {
-        let val = hash_random_u32!(999, 5, 5);
         let mut random_values: Vec<u32> = Vec::with_capacity(4096);
         // Produce 4096 random values
         for i in 0..4096 {
