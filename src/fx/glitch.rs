@@ -113,60 +113,6 @@ pub fn horizontal_glitch<UserData>(
     });
 }
 
-/// Applies glitching only within a rectangular region (single-threaded)
-pub fn horizontal_glitch_region<UserData>(
-    ctx: &mut GraphContext<UserData>,
-    props: &HorizontalGlitchProps,
-    rect: &RectArea,
-) {
-    let HorizontalGlitchProps {
-        strength,
-        chance,
-        left_right_balance: horizontal_balance,
-    } = *props;
-
-    if chance == 0 || strength == 0 {
-        return;
-    }
-
-    let row_width = ctx.win.w_usize;
-    let chance_threshold = chance as f64 / u8::MAX as f64;
-    let right_threshold = horizontal_balance as f64 / u8::MAX as f64;
-    let max_shift = MinMax::new(1, strength.min(rect.dimensions.w));
-
-    let y_start = rect.top_left.y.min(ctx.win.h);
-    let y_end = (rect.top_left.y + rect.dimensions.h).min(ctx.win.h);
-    let x_start = rect.top_left.x.min(ctx.win.w);
-    let x_end = (rect.top_left.x + rect.dimensions.w).min(ctx.win.w);
-
-    if y_start >= y_end || x_start >= x_end {
-        return;
-    }
-
-    let mut rng = XorShiftRng::new(ctx.frame_count as u32, ctx.frame_count as u64);
-    let row_count = (y_end - y_start) as usize;
-    let shifts = rng.get_vec_u32(row_count, &max_shift);
-    let chances = rng.get_vec_f64(row_count);
-
-    for i in 0..row_count {
-        if chances[i] >= chance_threshold {
-            continue;
-        }
-
-        let y = y_start + i as u32;
-        let row_offset = y as usize * row_width;
-        let row = &mut ctx.frame_buf[row_offset..row_offset + row_width];
-
-        let sub_row = &mut row[x_start as usize..x_end as usize];
-        let shift = shifts[i] as usize;
-
-        if rng.get_f64() < right_threshold {
-            sub_row.rotate_right(shift);
-        } else {
-            sub_row.rotate_left(shift);
-        }
-    }
-}
 
 /// Threaded logic for applying horizontal glitching to a region
 fn horizontal_glitch_region_thread(
@@ -196,8 +142,8 @@ fn horizontal_glitch_region_thread(
     }
 }
 
-/// Multithreaded version of region glitching
-pub fn horizontal_glitch_region_multi<UserData>(
+/// Applies glitching only within a rectangular region (multi-threaded)
+pub fn horizontal_glitch_region<UserData>(
     ctx: &mut GraphContext<UserData>,
     props: &HorizontalGlitchProps,
     rect: &RectArea,
