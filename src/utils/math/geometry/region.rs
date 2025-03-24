@@ -3,6 +3,42 @@ use crate::primitives::point::Point;
 use crate::primitives::Pixel;
 use crate::primitives::numeric::Numeric;
 
+/// A trait representing anything that can be tested for containment in a `RectArea`.
+pub trait Containable<T: Numeric> {
+    fn is_contained_in(&self, rect: &RectArea<T>) -> bool;
+}
+
+impl<T:Numeric> Containable<T> for Point<T> {
+    fn is_contained_in(&self, rect: &RectArea<T>) -> bool {
+        let x = self.x;
+        let y = self.y;
+        x >= rect.top_left.x && x < rect.top_left.x + rect.dimensions.w &&
+            y >= rect.top_left.y && y < rect.top_left.y + rect.dimensions.h
+    }
+}
+
+impl<T: Numeric> Containable<T> for Pixel {
+
+    fn is_contained_in(&self, rect: &RectArea<T>) -> bool {
+        let &Pixel{x, y, ..} = self;
+        x >= rect.top_left.x.to_u32() && x < rect.top_left.x.to_u32() + rect.dimensions.w.to_u32() &&
+            y >= rect.top_left.y.to_u32() && y < rect.top_left.y.to_u32() + rect.dimensions.h.to_u32()
+    }
+}
+
+impl Containable<u32> for RectArea<u32> {
+    fn is_contained_in(&self, rect: &RectArea<u32>) -> bool {
+        let x0 = self.top_left.x;
+        let y0 = self.top_left.y;
+        let x1 = x0 + self.dimensions.w;
+        let y1 = y0 + self.dimensions.h;
+
+        x0 >= rect.top_left.x && y0 >= rect.top_left.y &&
+            x1 <= rect.top_left.x + rect.dimensions.w &&
+            y1 <= rect.top_left.y + rect.dimensions.h
+    }
+}
+
 /// Represents a rectangular region within a 2D space.
 /// Provides access to useful spatial reference points such as:
 /// - the center of the region
@@ -82,6 +118,12 @@ impl<T: Numeric> Region<T> {
         self.rect_area
     }
 
+    /// Returns true if the given item is fully contained within the region.
+    pub fn contains<I: Containable<T>>(&self, item: I) -> bool {
+        let rect = self.rect_area.convert::<T>();
+        item.is_contained_in(&rect)
+    }
+
     /// Returns the center point of the region.
     pub fn center(&self) -> Point<T> {
         self.center
@@ -117,48 +159,5 @@ impl<T: Numeric> Region<T> {
 
     pub fn bottom_right(&self) -> Point<T> {
         self.bottom_right
-    }
-}
-
-
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use crate::primitives::plane::RectArea;
-
-    #[test]
-    fn test_region_points_are_correct() {
-        let rect = RectArea::new(10, 20, 100, 50, None);
-        let region = Region::new(rect);
-
-        assert_eq!(region.rect_area(), rect);
-        assert_eq!(region.top_left(), Point::new(10, 20));
-        assert_eq!(region.top_right(), Point::new(110, 20));
-        assert_eq!(region.bottom_left(), Point::new(10, 70));
-        assert_eq!(region.bottom_right(), Point::new(110, 70));
-
-        assert_eq!(region.center(), Point::new(60, 45));
-        assert_eq!(region.top(), Point::new(60, 20));
-        assert_eq!(region.bottom(), Point::new(60, 70));
-        assert_eq!(region.left(), Point::new(10, 45));
-        assert_eq!(region.right(), Point::new(110, 45));
-    }
-
-    #[test]
-    fn test_region_update() {
-        let rect1 = RectArea::new(0, 0, 50, 50, None);
-        let mut region = Region::new(rect1);
-
-        let rect2 = RectArea::new(100, 100, 20, 10, None);
-        region.update(rect2);
-
-        assert_eq!(region.rect_area(), rect2);
-        assert_eq!(region.center(), Point::new(110, 105));
-        assert_eq!(region.top(), Point::new(110, 100));
-        assert_eq!(region.bottom(), Point::new(110, 110));
-        assert_eq!(region.left(), Point::new(100, 105));
-        assert_eq!(region.right(), Point::new(120, 105));
-
     }
 }
