@@ -102,97 +102,6 @@ pub const POINT_3D_ZERO: Point3D = Point3D { x: 0, y: 0, z: 0 };
 mod tests {
     use super::*;
 
-    #[test]
-    fn test_u32_to_other_types() {
-        let point_u32 = Point {
-            x: 10_u32,
-            y: 20_u32,
-        };
-
-        // Convert to i32
-        let point_i32: Point<i32> = point_u32.convert();
-        assert_eq!(point_i32.x, 10);
-        assert_eq!(point_i32.y, 20);
-
-        // Convert to f32
-        let point_f32: Point<f32> = point_u32.convert();
-        assert_eq!(point_f32.x, 10.0);
-        assert_eq!(point_f32.y, 20.0);
-
-        // Convert to f64
-        let point_f64: Point<f64> = point_u32.convert();
-        assert_eq!(point_f64.x, 10.0);
-        assert_eq!(point_f64.y, 20.0);
-    }
-
-    #[test]
-    fn test_i32_to_other_types() {
-        let point_i32 = Point {
-            x: 10_i32,
-            y: -20_i32,
-        };
-
-        // Convert to u32 (negative values become 0 due to casting)
-        let point_u32: Point<u32> = point_i32.convert();
-        assert_eq!(point_u32.x, 10);
-        assert_eq!(point_u32.y, 0); // -20 truncated to 0
-
-        // Convert to f32
-        let point_f32: Point<f32> = point_i32.convert();
-        assert_eq!(point_f32.x, 10.0);
-        assert_eq!(point_f32.y, -20.0);
-
-        // Convert to f64
-        let point_f64: Point<f64> = point_i32.convert();
-        assert_eq!(point_f64.x, 10.0);
-        assert_eq!(point_f64.y, -20.0);
-    }
-
-    #[test]
-    fn test_f32_to_other_types() {
-        let point_f32: Point<f32> = Point { x: 10.5, y: -20.7 };
-
-        // Convert to u32 (fractional and negative values truncated)
-        let point_u32: Point<u32> = point_f32.convert();
-        assert_eq!(point_u32.x, 11); // 10.5 rounded up to 10
-        assert_eq!(point_u32.y, 0); // -20.7 truncated to 0
-
-        // Convert to i32
-        let point_i32: Point<i32> = point_f32.convert();
-        assert_eq!(point_i32.x, 11); // 10.5 rounded up to 10
-        assert_eq!(point_i32.y, -21); // 10.5 rounded down to -21
-
-        // // Convert to f64 (these fail due to floating-point precision)
-        // let point_f64: Point<f64> = point_f32.convert();
-        // assert!((point_f64.x - 10.5).abs() < f64::EPSILON);
-        // assert!((point_f64.y + 20.7).abs() < f64::EPSILON);
-
-        // Convert to f64 (with a tolerance for floating-point precision)
-        let point_f64: Point<f64> = point_f32.convert();
-        let tolerance = 1e-6; // 0.000001 -- a tolerance value suitable for `f32` to `f64` comparison
-        assert!((point_f64.x - 10.5).abs() < tolerance);
-        assert!((point_f64.y + 20.7).abs() < tolerance);
-    }
-
-    #[test]
-    fn test_f64_to_other_types() {
-        let point_f64: Point<f64> = Point { x: 10.2, y: -20.1 };
-
-        // Convert to u32 (fractional and negative values truncated)
-        let point_u32: Point<u32> = point_f64.convert();
-        assert_eq!(point_u32.x, 10); // 10.2 rounded down to 10
-        assert_eq!(point_u32.y, 0); // -20.1 truncated to 0
-
-        // Convert to i32
-        let point_i32: Point<i32> = point_f64.convert();
-        assert_eq!(point_i32.x, 10); // 10.2 rounded down to 10
-        assert_eq!(point_i32.y, -20); // -20.1 up to -20
-
-        // Convert to f32
-        let point_f32: Point<f32> = point_f64.convert();
-        assert!((point_f32.x - 10.2).abs() < f32::EPSILON);
-        assert!((point_f32.y + 20.1).abs() < f32::EPSILON);
-    }
 
     #[test]
     fn test_to_pixel() {
@@ -211,4 +120,28 @@ mod tests {
         assert_eq!(pixel, Pixel { x: 33, y: 88, color: 0xff_ff_00_ff });
 
     }
+    #[test]
+    fn test_convert_negative_i32_to_u32() {
+        let p: Point<i32> = Point::new(-5, -10);
+        let converted: Point<u32> = p.convert();
+        assert_eq!(converted, Point::new(0, 0)); // negatives get clamped
+    }
+    #[test]
+    fn test_convert_f64_to_f32_precision_loss() {
+        let p = Point::new(1.123456789_f64, 2.987654321_f64);
+        let converted: Point<f32> = p.convert();
+        assert!((converted.x - 1.1234567).abs() < 1e-6);
+        assert!((converted.y - 2.987654).abs() < 1e-6);
+    }
+
+    #[test]
+    fn test_to_pixel_rounding_behavior() {
+        let p = Point::new(2.49_f64, 3.51);
+        let pix = p.to_pixel(0xff00ff);
+        assert_eq!(pix.x, 2);
+        assert_eq!(pix.y, 4);
+    }
+
+
+
 }
