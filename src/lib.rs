@@ -30,9 +30,11 @@ pub mod core {
 pub mod draw {
     /// Draw circles
     pub mod circle;
+    
     /// Draw lines
     pub mod line;
-
+    pub mod circle2;
+    
     /// Various closed shapes with multiple vertices
     pub mod polygons {
         mod closed_perimeter;
@@ -216,6 +218,11 @@ pub mod utils {
             pub mod mersenne;
             pub mod misc_math;
         }
+        
+        pub mod geometry{
+            pub mod region;
+        }
+        
         /// Power functions
         mod power;
 
