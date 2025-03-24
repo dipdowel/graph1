@@ -18,6 +18,9 @@ pub trait Numeric:
     fn to_f64(self) -> f64;
     fn from_f64(value: f64) -> Self;
 
+    fn to_u32(self) -> u32;
+    fn from_u32(value: u64) -> Self;
+
     fn to_u64(self) -> u64;
     fn from_u64(value: u64) -> Self;
 }
@@ -31,6 +34,15 @@ impl Numeric for u32 {
     fn from_f64(value: f64) -> Self {
         f64::round(value) as u32
     }
+
+    fn from_u32(value: u64) -> Self {
+        value as u32
+    }
+
+    fn to_u32(self) -> u32 {
+        self
+    }
+
     fn to_u64(self) -> u64 {
         self as u64
     }
@@ -46,6 +58,14 @@ impl Numeric for usize {
     fn from_f64(value: f64) -> Self {
         f64::round(value) as usize
     }
+
+    fn from_u32(value: u64) -> Self {
+        value as usize
+    }
+    fn to_u32(self) -> u32 {
+        self as u32
+    }
+
     fn to_u64(self) -> u64 {
         self as u64
     }
@@ -60,6 +80,17 @@ impl Numeric for i32 {
     }
     fn from_f64(value: f64) -> Self {
         f64::round(value) as i32
+    }
+
+    fn to_u32(self) -> u32 {
+        if self < 0 {
+            return 0;
+        }
+        self as u32
+    }
+
+    fn from_u32(value: u64) -> Self {
+        value as i32
     }
 
     /// NB: Negative values are truncated to 0.
@@ -82,6 +113,17 @@ impl Numeric for f32 {
         value as f32
     }
 
+    fn to_u32(self) -> u32 {
+        if self < 0.0 {
+            return 0;
+        }
+        self as u32
+    }
+    fn from_u32(value: u64) -> Self {
+        value as f32
+    }
+
+
     /// NB: Negative values are truncated to 0.
     fn to_u64(self) -> u64 {
         if self < 0.0 {
@@ -101,12 +143,23 @@ impl Numeric for f64 {
     fn from_f64(value: f64) -> Self {
         value
     }
+
+    fn to_u32(self) -> u32 {
+        if self < 0.0 {
+            return 0;
+        }
+        self as u32
+    }
+    fn from_u32(value: u64) -> Self {
+        value as f64
+    }
+
+
     /// NB: Negative values are truncated to 0.
     fn to_u64(self) -> u64 {
         if self < 0.0 {
             return 0;
         }
-
         self as u64
     }
     fn from_u64(value: u64) -> Self {
@@ -121,6 +174,16 @@ impl Numeric for u64 {
     fn from_f64(value: f64) -> Self {
         f64::round(value) as u64
     }
+
+    fn from_u32(value: u64) -> Self {
+        value
+    }
+    
+    fn to_u32(self) -> u32 {
+        self as u32
+    }
+    
+    
     fn to_u64(self) -> u64 {
         self
     }
