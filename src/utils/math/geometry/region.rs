@@ -1,43 +1,8 @@
-use crate::primitives::plane::{Dimensions2d, RectArea};
-use crate::primitives::point::Point;
-use crate::primitives::Pixel;
+use crate::primitives::containable::Containable;
 use crate::primitives::numeric::Numeric;
+use crate::primitives::plane::RectArea;
+use crate::primitives::point::Point;
 
-/// A trait representing anything that can be tested for containment in a `RectArea`.
-pub trait Containable<T: Numeric> {
-    fn is_contained_in(&self, rect: &RectArea<T>) -> bool;
-}
-
-impl<T:Numeric> Containable<T> for Point<T> {
-    fn is_contained_in(&self, rect: &RectArea<T>) -> bool {
-        let x = self.x;
-        let y = self.y;
-        x >= rect.top_left.x && x < rect.top_left.x + rect.dimensions.w &&
-            y >= rect.top_left.y && y < rect.top_left.y + rect.dimensions.h
-    }
-}
-
-impl<T: Numeric> Containable<T> for Pixel {
-
-    fn is_contained_in(&self, rect: &RectArea<T>) -> bool {
-        let &Pixel{x, y, ..} = self;
-        x >= rect.top_left.x.to_u32() && x < rect.top_left.x.to_u32() + rect.dimensions.w.to_u32() &&
-            y >= rect.top_left.y.to_u32() && y < rect.top_left.y.to_u32() + rect.dimensions.h.to_u32()
-    }
-}
-
-impl Containable<u32> for RectArea<u32> {
-    fn is_contained_in(&self, rect: &RectArea<u32>) -> bool {
-        let x0 = self.top_left.x;
-        let y0 = self.top_left.y;
-        let x1 = x0 + self.dimensions.w;
-        let y1 = y0 + self.dimensions.h;
-
-        x0 >= rect.top_left.x && y0 >= rect.top_left.y &&
-            x1 <= rect.top_left.x + rect.dimensions.w &&
-            y1 <= rect.top_left.y + rect.dimensions.h
-    }
-}
 
 /// Represents a rectangular region within a 2D space.
 /// Provides access to useful spatial reference points such as:
@@ -159,5 +124,109 @@ impl<T: Numeric> Region<T> {
 
     pub fn bottom_right(&self) -> Point<T> {
         self.bottom_right
+    }
+}
+
+
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::primitives::plane::{RectArea, Dimensions2d};
+    use crate::primitives::point::Point;
+    use crate::primitives::Pixel;
+
+    #[test]
+    fn test_region_creation_and_accessors() {
+        let area = RectArea {
+            top_left: Point::new(10, 20),
+            dimensions: Dimensions2d { w: 30, h: 40 },
+            color: Some(0xFF0000FF),
+        };
+
+        let region = Region::new(area);
+
+        assert_eq!(region.rect_area(), area);
+        assert_eq!(region.center(), Point::new(25, 40));
+        assert_eq!(region.top(), Point::new(25, 20));
+        assert_eq!(region.bottom(), Point::new(25, 60));
+        assert_eq!(region.left(), Point::new(10, 40));
+        assert_eq!(region.right(), Point::new(40, 40));
+        assert_eq!(region.top_left(), Point::new(10, 20));
+        assert_eq!(region.top_right(), Point::new(40, 20));
+        assert_eq!(region.bottom_left(), Point::new(10, 60));
+        assert_eq!(region.bottom_right(), Point::new(40, 60));
+    }
+
+    #[test]
+    fn test_region_update() {
+        let mut region = Region::new(RectArea {
+            top_left: Point::new(0, 0),
+            dimensions: Dimensions2d { w: 10, h: 10 },
+            color: Some(0xFF0000FF),
+        });
+
+        let new_area = RectArea {
+            top_left: Point::new(5, 5),
+            dimensions: Dimensions2d { w: 20, h: 20 },
+            color: Some(0xFF0000FF),
+        };
+
+        region.update(new_area);
+
+        assert_eq!(region.rect_area(), new_area);
+        assert_eq!(region.center(), Point::new(15, 15));
+        assert_eq!(region.bottom_right(), Point::new(25, 25));
+    }
+
+    #[test]
+    fn test_contains_point() {
+        let region = Region::new(RectArea {
+            top_left: Point::new(0, 0),
+            dimensions: Dimensions2d { w: 10, h: 10 },
+            color: Some(0xFF0000FF),
+        });
+
+        assert!(region.contains(Point::new(5, 5)));
+        assert!(!region.contains(Point::new(11, 5)));
+    }
+
+    #[test]
+    fn test_contains_pixel() {
+        let region = Region::new(RectArea {
+            top_left: Point::new(0, 0),
+            dimensions: Dimensions2d { w: 10, h: 10 },
+            color: Some(0xFF0000FF),
+        });
+
+        let inside = Pixel { x: 5, y: 5, color: 0xFF0000FF };
+        let outside = Pixel { x: 12, y: 8, color: 0xFF0000FF };
+
+        assert!(region.contains(inside));
+        assert!(!region.contains(outside));
+    }
+
+    #[test]
+    fn test_contains_rect_area() {
+        let region = Region::new(RectArea {
+            top_left: Point::new(0, 0),
+            dimensions: Dimensions2d { w: 20, h: 20 },
+            color: Some(0xFF0000FF),
+        });
+
+        let smaller_inside = RectArea {
+            top_left: Point::new(5, 5),
+            dimensions: Dimensions2d { w: 10, h: 10 },
+            color: Some(0xFF0000FF),
+        };
+
+        let partially_outside = RectArea {
+            top_left: Point::new(15, 15),
+            dimensions: Dimensions2d { w: 10, h: 10 },
+            color: Some(0xFF0000FF),
+        };
+
+        assert!(region.contains(smaller_inside));
+        assert!(!region.contains(partially_outside));
     }
 }

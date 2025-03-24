@@ -100,6 +100,9 @@ pub mod fx {
 
 /// Building blocks: essential structs, traits, types, constants, etc.
 pub mod primitives {
+    
+    pub mod containable;
+    
     /// Aliases for complex or peculiar types
     pub mod helper_types;
 
