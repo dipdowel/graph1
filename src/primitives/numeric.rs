@@ -2,7 +2,19 @@ use std::ops::{Add, Div, Mul, Rem, RemAssign, Sub};
 
 /// A custom trait that serves as a marker for allowed types.
 // pub trait Numeric: Clone + Copy + PartialOrd + PartialEq + Sub + Add + Mul + Div + Rem + RemAssign  {
-pub trait Numeric: PartialEq + PartialOrd + Clone + Copy {
+pub trait Numeric:
+    PartialEq
+    + PartialOrd
+    + Clone
+    + Copy
+    + Add<Output = Self>
+    + Sub<Output = Self>
+    + Mul<Output = Self>
+    + Div<Output = Self>
+    + Rem<Output = Self>
+    + RemAssign
+
+{
     fn to_f64(self) -> f64;
     fn from_f64(value: f64) -> Self;
 
