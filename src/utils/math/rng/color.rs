@@ -10,12 +10,11 @@ pub struct ColorRng {
 
 impl ColorRng {
     /// Create a new `ColorRng` from a 32-bit and 64-bit seed.
-    pub fn new(seed_32: u32, seed_64:u64) -> Self {
+    pub fn new(seed_32: u32, seed_64: u64) -> Self {
         Self {
             rng: XorShiftRng::new(seed_32, seed_64),
         }
     }
-
 
     /// Generate a vector of random `u32` RGBA colors using a 32-bit seed.
     /// - `size`: number of colors to generate
@@ -23,6 +22,7 @@ impl ColorRng {
     /// - `seed`: optional override for the current 32-bit seed of the RNG
     ///
     /// If `color1 > color2` for any channel, the method normalizes the range.
+    /// If `color1 == color2`, the method returns a vector of the same color.
     pub fn get_random_colors_32(
         &mut self,
         size: usize,
@@ -30,6 +30,10 @@ impl ColorRng {
         color2: u32,
         seed: Option<u32>,
     ) -> Vec<u32> {
+        if color1 == color2 {
+            return vec![color1; size];
+        }
+
         if seed.is_some() {
             self.rng.set_seed_32(seed.unwrap());
         }
@@ -72,11 +76,10 @@ impl ColorRng {
         // Adding 4 to guarantee we have enough random bytes to use
         let optimized_size: usize = 4 + size / 4 * num_channels;
 
-        let random_data_u32 = self.rng.get_vec_u32( 4 + optimized_size, &MIN_MAX_U32);
+        let random_data_u32 = self.rng.get_vec_u32(4 + optimized_size, &MIN_MAX_U32);
 
         // The resulting vector of RGBA values
         let mut result: Vec<u32> = Vec::with_capacity(size);
-
 
         for i in (0..optimized_size).step_by(num_channels) {
             let mut r_tuple = (r1, r1, r1, r1);
@@ -131,10 +134,15 @@ impl ColorRng {
         result
     }
 
-
-
     /// Generate a vector of random `u32` RGBA colors using a 64-bit RNG.
-    /// Can be a little faster than `get_random_colors_32` for large sizes.
+    /// /// Can be somewhat faster than `get_random_colors_32` for large sizes.
+    /// - `size`: number of colors to generate
+    /// - `color1`, `color2`: define the min/max ranges for each RGBA channel
+    /// - `seed`: optional override for the current 64-bit seed of the RNG
+    ///
+    /// If `color1 > color2` for any channel, the method normalizes the range.
+    /// If `color1 == color2`, the method returns a vector of the same color.
+
     pub fn get_random_colors_64(
         &mut self,
         size: usize,
@@ -142,6 +150,10 @@ impl ColorRng {
         color2: u32,
         seed: Option<u64>,
     ) -> Vec<u32> {
+        if color1 == color2 {
+            return vec![color1; size];
+        }
+
         if seed.is_some() {
             self.rng.set_seed_64(seed.unwrap());
         }
@@ -186,11 +198,10 @@ impl ColorRng {
         let optimized_size: usize = 16 + (size / 4 * num_channels) / 2;
 
         // Adding 16 to guarantee we have enough random bytes to use
-        let random_data_u64 = self.rng.get_vec_u64(16+optimized_size, &MIN_MAX_U64);
+        let random_data_u64 = self.rng.get_vec_u64(16 + optimized_size, &MIN_MAX_U64);
 
         // The resulting vector of RGBA values
         let mut result: Vec<u32> = Vec::with_capacity(size);
-
 
         for i in (0..optimized_size).step_by(num_channels) {
             let mut r_tuple = (r1, r1, r1, r1, r1, r1, r1, r1);
@@ -221,7 +232,7 @@ impl ColorRng {
                 );
             }
 
-            let mut b_tuple  = (b1, b1, b1, b1, b1, b1, b1, b1);
+            let mut b_tuple = (b1, b1, b1, b1, b1, b1, b1, b1);
             if b_compute {
                 b_tuple = (
                     b_range.min + ((random_data_u64[i] >> 56) & 0xFF) as u32 % b_delta,
@@ -259,16 +270,11 @@ impl ColorRng {
             result.push((r_tuple.5 << 24) | (g_tuple.2 << 16) | (b_tuple.7 << 8) | a_tuple.0);
             result.push((r_tuple.6 << 24) | (g_tuple.1 << 16) | (b_tuple.5 << 8) | a_tuple.4);
             result.push((r_tuple.1 << 24) | (g_tuple.0 << 16) | (b_tuple.6 << 8) | a_tuple.2);
-
-
         }
         // make sure the result has the expected size
         result.resize(size, 0x00_00_00_00);
         result
     }
-
-
-
 }
 
 #[cfg(test)]
@@ -276,34 +282,12 @@ mod tests {
     use super::*;
     use std::time::Instant;
 
- 
-
-    #[test]
-    fn test_random_colors_32() {
-        let mut color_rng = ColorRng::new(321, 321);
-        let start = Instant::now();
-        // let random_colors = color_rng.get_random_colors_32(115200, 0x00_11_00_ff, 0x00_ff_00_ff, None);
-        let random_colors = color_rng.get_random_colors_32(1, 0x00_11_00_ff, 0x00_ff_00_ff, None);
-        println!("[32] random_colors: {:#010X?}", random_colors);
-        assert_eq!(1, 1);
-    }
-
-    #[test]
-    fn test_random_colors_64() {
-        let mut color_rng = ColorRng::new(321, 321);
-        let start = Instant::now();
-        // let random_colors = color_rng.get_random_colors_64(115200, 0x00_11_00_ff, 0x00_ff_00_ff, None);
-        let random_colors = color_rng.get_random_colors_64(1, 0x00_11_00_ff, 0x00_ff_00_ff, None);
-        println!("[64] random_colors: {:#010X?}", random_colors);
-        assert_eq!(1, 1);
-    }
-
-
     #[test]
     fn test_random_colors_64_large() {
         let mut color_rng = ColorRng::new(321, 321);
         let start = Instant::now();
-        let random_colors = color_rng.get_random_colors_64(115200, 0x00_11_00_ff, 0x00_ff_00_ff, None);
+        let random_colors =
+            color_rng.get_random_colors_64(115200, 0x00_11_00_ff, 0x00_ff_00_ff, None);
         println!("[64] large random_colors len: {:?}", random_colors.len());
         assert_eq!(1, 1);
     }
@@ -313,12 +297,19 @@ mod tests {
         let mut color_rng = ColorRng::new(321, 321);
         let start = Instant::now();
         // let random_colors = color_rng.get_random_colors_32(115200, 0x00_11_00_ff, 0x00_ff_00_ff, None);
-        let random_colors = color_rng.get_random_colors_32(115200, 0x00_11_00_ff, 0x00_ff_00_ff, None);
+        let random_colors =
+            color_rng.get_random_colors_32(115200, 0x00_11_00_ff, 0x00_ff_00_ff, None);
         println!("[32] large random_colors len: {:?}", random_colors.len());
         assert_eq!(1, 1);
     }
 
-    fn channels_in_range(color: u32, r: (u32, u32), g: (u32, u32), b: (u32, u32), a: (u32, u32)) -> bool {
+    fn channels_in_range(
+        color: u32,
+        r: (u32, u32),
+        g: (u32, u32),
+        b: (u32, u32),
+        a: (u32, u32),
+    ) -> bool {
         let (r_val, g_val, b_val, a_val) = (
             (color >> 24) & 0xFF,
             (color >> 16) & 0xFF,
@@ -345,7 +336,13 @@ mod tests {
         let a_range = normalize_min_max(&MinMax::new(color1 & 0xFF, color2 & 0xFF));
 
         for c in result {
-            assert!(channels_in_range(c, (r_range.min, r_range.max), (g_range.min, g_range.max), (b_range.min, b_range.max), (a_range.min, a_range.max)));
+            assert!(channels_in_range(
+                c,
+                (r_range.min, r_range.max),
+                (g_range.min, g_range.max),
+                (b_range.min, b_range.max),
+                (a_range.min, a_range.max)
+            ));
         }
     }
 
@@ -382,5 +379,29 @@ mod tests {
         let b = rng2.get_random_colors_64(100, color1, color2, Some(0xAABBCCDDEEFF));
 
         assert_eq!(a, b, "Deterministic RNG failed for same 64-bit seed");
+    }
+
+    #[test]
+    fn test_zero_size_output() {
+        let mut rng = ColorRng::new(0, 0);
+        let result = rng.get_random_colors_32(0, 0xFF_FF_FF_FF, 0x00_00_00_00, None);
+        assert_eq!(result.len(), 0);
+    }
+
+    #[test]
+    fn test_min_greater_than_max() {
+        let mut rng = ColorRng::new(42, 42);
+        let result = rng.get_random_colors_32(10, 0x00_FF_FF_FF, 0xFF_00_00_FF, None);
+        assert_eq!(result.len(), 10);
+    }
+
+    #[test]
+    fn test_uniform_color_output() {
+        let mut rng = ColorRng::new(123, 123);
+        let color = 0x12_34_56_78;
+        let result_64 = rng.get_random_colors_64(20, color, color, None);
+        let result_32 = rng.get_random_colors_32(20, color, color, None);
+        assert!(result_64.iter().all(|&c| c == color));
+        assert!(result_32.iter().all(|&c| c == color));
     }
 }
