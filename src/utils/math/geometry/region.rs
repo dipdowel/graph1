@@ -1,8 +1,8 @@
 use crate::primitives::containable::Containable;
 use crate::primitives::numeric::Numeric;
-use crate::primitives::plane::RectArea;
+use crate::primitives::plane::{Dimensions2d, RectArea};
 use crate::primitives::point::Point;
-
+use crate::primitives::Pixel;
 
 /// Represents a rectangular region within a 2D space.
 /// Provides access to useful spatial reference points such as:
@@ -125,14 +125,107 @@ impl<T: Numeric> Region<T> {
     pub fn bottom_right(&self) -> Point<T> {
         self.bottom_right
     }
+
+    //----------------------------------------------------------------------------------------------
+
+    pub fn width(&self) -> T {
+        self.rect_area.dimensions.w
+    }
+
+    pub fn height(&self) -> T {
+        self.rect_area.dimensions.h
+    }
+
+    pub fn size(&self) -> Dimensions2d<T> {
+        self.rect_area.dimensions
+    }
+
+    pub fn area(&self) -> T {
+        self.width() * self.height()
+    }
+
+    /// Returns a random point inside the region using a deterministic hash-based generator.
+    pub fn random_point_inside(&self, seed: u32) -> Point<u32> {
+        let min_x = self.rect_area.top_left.x.to_u32();
+        let max_x = (self.rect_area.top_left.x + self.rect_area.dimensions.w).to_u32();
+        let x = hash_random_u32!(seed, min_x, max_x);
+
+        let min_y = self.rect_area.top_left.y.to_u32();
+        let max_y = (self.rect_area.top_left.y + self.rect_area.dimensions.h).to_u32();
+        let y = hash_random_u32!(seed.wrapping_add(1), min_y, max_y);
+
+        Point::new(x, y)
+    }
+
+    pub fn random_pixel_inside(&self, seed: u32, color: u32) -> Pixel {
+        self.random_point_inside(seed).to_pixel(color)
+    }
+
+    pub fn split_horizontal(&self) -> (Region<T>, Region<T>) {
+        let half = self.height() / T::from_u32(2);
+
+        let top = RectArea::new(
+            self.rect_area.top_left.x,
+            self.rect_area.top_left.y,
+            self.width(),
+            half,
+            self.rect_area.color,
+        );
+
+        let bottom = RectArea::new(
+            self.rect_area.top_left.x,
+            self.rect_area.top_left.y + half,
+            self.width(),
+            self.height() - half,
+            self.rect_area.color,
+        );
+
+        (Region::new(top), Region::new(bottom))
+    }
+
+    pub fn split_vertical(&self) -> (Region<T>, Region<T>) {
+        let half = self.width() / T::from_u32(2);
+
+        let left = RectArea::new(
+            self.rect_area.top_left.x,
+            self.rect_area.top_left.y,
+            half,
+            self.height(),
+            self.rect_area.color,
+        );
+
+        let right = RectArea::new(
+            self.rect_area.top_left.x + half,
+            self.rect_area.top_left.y,
+            self.width() - half,
+            self.height(),
+            self.rect_area.color,
+        );
+
+        (Region::new(left), Region::new(right))
+    }
+
+    pub fn jittered_center(&self, seed: u32, max_offset: u32) -> Point<u32> {
+        let dx = (hash_random_u32!(seed, 0, 2 * max_offset + 1) as i32) - max_offset as i32;
+        let dy = (hash_random_u32!(seed.wrapping_add(1), 0, 2 * max_offset + 1) as i32)
+            - max_offset as i32;
+
+        let x = (self.center.x.to_u32() as i32 + dx).to_u32();
+        let y = (self.center.y.to_u32() as i32 + dy).to_u32();
+
+        Point { x, y }
+    }
+
+    pub fn jittered_center_pixel(&self, seed: u32, max_offset: u32, color: u32) -> Pixel {
+        self.jittered_center(seed, max_offset).to_pixel(color)
+    }
+    
 }
-
-
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::primitives::plane::{RectArea, Dimensions2d};
+    use crate::primitives::plane::{Dimensions2d, RectArea};
     use crate::primitives::point::Point;
     use crate::primitives::Pixel;
 
@@ -199,8 +292,16 @@ mod tests {
             color: Some(0xFF0000FF),
         });
 
-        let inside = Pixel { x: 5, y: 5, color: 0xFF0000FF };
-        let outside = Pixel { x: 12, y: 8, color: 0xFF0000FF };
+        let inside = Pixel {
+            x: 5,
+            y: 5,
+            color: 0xFF0000FF,
+        };
+        let outside = Pixel {
+            x: 12,
+            y: 8,
+            color: 0xFF0000FF,
+        };
 
         assert!(region.contains(inside));
         assert!(!region.contains(outside));
