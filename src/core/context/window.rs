@@ -1,6 +1,16 @@
 use crate::core::default_colors;
 use crate::primitives::plane::{Dimensions2d, RectArea};
 use crate::primitives::point::Point;
+use crate::utils::math::geometry::region::Region;
+
+#[derive(Debug)]
+pub struct Quadrants {
+    pub top_left: Region<u32>,
+    pub top_right: Region<u32>,
+    pub bottom_left: Region<u32>,
+    pub bottom_right: Region<u32>,
+}
+
 
 #[derive(Debug)]
 /// A collection of window properties, such as width, height, and background color,
@@ -29,7 +39,10 @@ pub struct WindowContext {
     /// Foreground color of the window, RGBA
     pub foreground_color: u32,
     /// The central point of the window
-    pub center:Point<u32>
+    pub center:Point<u32>,
+    /// TODO: write the documentation
+    pub quadrants: Quadrants,
+
 }
 
 impl WindowContext {
@@ -41,6 +54,20 @@ impl WindowContext {
         foreground_color_rgba: Option<u32>,
     ) -> Self {
         let fg_color = foreground_color_rgba.unwrap_or(default_colors::FOREGROUND);
+
+        let full_region = Region::new(RectArea::new(0, 0, w, h, Some(fg_color)));
+
+        let (top, bottom) = full_region.split_horizontal();
+        let (top_left, top_right) = top.split_vertical();
+        let (bottom_left, bottom_right) = bottom.split_vertical();
+
+        let quadrants = Quadrants {
+            top_left,
+            top_right,
+            bottom_left,
+            bottom_right,
+        };
+
 
         Self {
             w,
@@ -55,6 +82,7 @@ impl WindowContext {
             background_color: background_color_rgba.unwrap_or(default_colors::BACKGROUND),
             foreground_color: fg_color,
             center: Point::new(w / 2, h / 2),
+            quadrants
         }
     }
 
