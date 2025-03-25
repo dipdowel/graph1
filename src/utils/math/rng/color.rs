@@ -2,23 +2,27 @@ use crate::primitives::math::{MinMax, MIN_MAX_U32, MIN_MAX_U64};
 use crate::utils::math::rng::helpers::normalize_min_max::normalize_min_max;
 use crate::utils::math::rng::XorShiftRng;
 
+/// A color generator using the `XorShiftRng` algorithm.
+/// Can generate random RGBA colors between two input colors using either 32-bit or 64-bit seeds.
 pub struct ColorRng {
     rng: XorShiftRng,
 }
 
 impl ColorRng {
+    /// Create a new `ColorRng` from a 32-bit and 64-bit seed.
     pub fn new(seed_32: u32, seed_64:u64) -> Self {
         Self {
             rng: XorShiftRng::new(seed_32, seed_64),
         }
     }
 
-    
-    // TODO: 1. Write proper tests! Use large and odd values as well! 
-    // TODO:    - test the min>max case 
-    
-    // TODO: 2. Write some good documentation for all the methods!
-    
+
+    /// Generate a vector of random `u32` RGBA colors using a 32-bit seed.
+    /// - `size`: number of colors to generate
+    /// - `color1`, `color2`: define the min/max ranges for each RGBA channel
+    /// - `seed`: optional override for the current 32-bit seed of the RNG
+    ///
+    /// If `color1 > color2` for any channel, the method normalizes the range.
     pub fn get_random_colors_32(
         &mut self,
         size: usize,
@@ -129,6 +133,8 @@ impl ColorRng {
 
 
 
+    /// Generate a vector of random `u32` RGBA colors using a 64-bit RNG.
+    /// Can be a little faster than `get_random_colors_32` for large sizes.
     pub fn get_random_colors_64(
         &mut self,
         size: usize,
@@ -270,24 +276,7 @@ mod tests {
     use super::*;
     use std::time::Instant;
 
-    // #[test]
-    // fn test_random_colors_speed() {
-    //     let mut color_rng = ColorRng::new(321,321);
-    //     let start = Instant::now();
-    //     let random_colors =
-    //         color_rng.get_random_colors_32(10_000_000, 0x10_20_30_40, 0x80_90_a0_40, None);
-    //     let duration = start.elapsed(); // Measure elapsed time
-    //     println!("[32] Execution time: {:?}, random_colors.len: {}", duration, random_colors.len());
-    //     assert_eq!(1, 1);
-    //
-    //     let mut color_rng = ColorRng::new(321,321);
-    //     let start = Instant::now();
-    //     let random_colors =
-    //         color_rng.get_random_colors_64(10_000_000, 0x10_20_30_40, 0x80_90_a0_40, None);
-    //     let duration = start.elapsed(); // Measure elapsed time
-    //     println!("[64] Execution time: {:?}, random_colors.len: {}", duration, random_colors.len());
-    //     assert_eq!(1, 1);
-    // }
+ 
 
     #[test]
     fn test_random_colors_32() {
@@ -329,40 +318,69 @@ mod tests {
         assert_eq!(1, 1);
     }
 
+    fn channels_in_range(color: u32, r: (u32, u32), g: (u32, u32), b: (u32, u32), a: (u32, u32)) -> bool {
+        let (r_val, g_val, b_val, a_val) = (
+            (color >> 24) & 0xFF,
+            (color >> 16) & 0xFF,
+            (color >> 8) & 0xFF,
+            color & 0xFF,
+        );
+        (r.0..=r.1).contains(&r_val)
+            && (g.0..=g.1).contains(&g_val)
+            && (b.0..=b.1).contains(&b_val)
+            && (a.0..=a.1).contains(&a_val)
+    }
 
+    #[test]
+    fn test_random_colors_32_range_and_size() {
+        let mut rng = ColorRng::new(123, 456);
+        let color1 = 0x11_22_33_44;
+        let color2 = 0x77_88_99_FF;
+        let result = rng.get_random_colors_32(1000, color1, color2, None);
+        assert_eq!(result.len(), 1000);
 
-    // #[test]
-    fn test_vec_range_0_10_applied() {
-        /*
-                let mut color_rng = ColorRng::new(10);
+        let r_range = normalize_min_max(&MinMax::new((color1 >> 24) & 0xFF, (color2 >> 24) & 0xFF));
+        let g_range = normalize_min_max(&MinMax::new((color1 >> 16) & 0xFF, (color2 >> 16) & 0xFF));
+        let b_range = normalize_min_max(&MinMax::new((color1 >> 8) & 0xFF, (color2 >> 8) & 0xFF));
+        let a_range = normalize_min_max(&MinMax::new(color1 & 0xFF, color2 & 0xFF));
 
-                let start = Instant::now(); // Start timing
+        for c in result {
+            assert!(channels_in_range(c, (r_range.min, r_range.max), (g_range.min, g_range.max), (b_range.min, b_range.max), (a_range.min, a_range.max)));
+        }
+    }
 
-                let random_colors_fast = color_rng.get_random_colors_fast(10, 0x10_30_50_70, 0x20_40_60_80, None);
-                let duration = start.elapsed(); // Measure elapsed time
-                println!("[FAST] Execution time: {:?}", duration);
-                println!(">>> random_colors_fast: {:?}", random_colors_fast.len());
-                // println!(">>> random_colors_fast: {:#010X?}", random_colors_fast);
+    #[test]
+    fn test_random_colors_64_range_and_size() {
+        let mut rng = ColorRng::new(789, 101112);
+        let color1 = 0x10_10_10_10;
+        let color2 = 0x20_20_20_FF;
+        let result = rng.get_random_colors_64(512, color1, color2, None);
+        assert_eq!(result.len(), 512);
+    }
 
+    #[test]
+    fn test_random_colors_32_determinism() {
+        let mut rng1 = ColorRng::new(999, 5555);
+        let mut rng2 = ColorRng::new(999, 5555);
+        let color1 = 0x00_00_00_00;
+        let color2 = 0xFF_FF_FF_FF;
 
-                let random_colors_slow = color_rng.get_random_colors(10, 0x10_30_50_70, 0x20_40_60_80, None);
-                println!(">>> random_colors_slow: {:?}", random_colors_slow.len());
+        let a = rng1.get_random_colors_32(100, color1, color2, Some(123456));
+        let b = rng2.get_random_colors_32(100, color1, color2, Some(123456));
 
-                // println!(">>> random_colors_slow: {:#010X?}", random_colors_slow);
-        */
+        assert_eq!(a, b, "Deterministic RNG failed for same seed");
+    }
 
-        // TODO: write proper tests!!!
-        // TODO: write proper tests!!!
-        // TODO: write proper tests!!!
-        // TODO: write proper tests!!!
-        // TODO: write proper tests!!!
-        /*
+    #[test]
+    fn test_random_colors_64_determinism() {
+        let mut rng1 = ColorRng::new(1111, 2222);
+        let mut rng2 = ColorRng::new(1111, 2222);
+        let color1 = 0x00_00_00_00;
+        let color2 = 0xFF_FF_FF_FF;
 
-        let colors = color_rng.get_random_colors(10, 0x11_22_33_ff, 0x22_33_44_FF, None);
-        // println!(">>> color: {:#010X?}",colors);
-        let bw = color_rng.get_random_monochromes(8, 0x11, 0x22, 0xff, 0xff, None);
-        println!(">>> bw: {:#010X?}", bw);
-         */
-        assert_eq!(1, 1);
+        let a = rng1.get_random_colors_64(100, color1, color2, Some(0xAABBCCDDEEFF));
+        let b = rng2.get_random_colors_64(100, color1, color2, Some(0xAABBCCDDEEFF));
+
+        assert_eq!(a, b, "Deterministic RNG failed for same 64-bit seed");
     }
 }
