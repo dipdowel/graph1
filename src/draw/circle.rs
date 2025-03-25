@@ -56,13 +56,9 @@ pub fn filled<UserData>(
     let radius_sq = (radius * radius) as i32;
     let skip_every = skip_every.max(1);
 
-    let color = center.color;
-    let center_x = center.x;
-    let center_y = center.y;
-
     // Bounding box
-    let top_y = center_y.saturating_sub(radius);
-    let bottom_y = (center_y + radius).min(ctx.win.h - 1);
+    let top_y = center.y.saturating_sub(radius);
+    let bottom_y = (center.y + radius).min(ctx.win.h - 1);
     let line_length = ctx.win.w_usize;
 
     let first_line_start = (top_y * ctx.win.w) as usize;
@@ -77,10 +73,10 @@ pub fn filled<UserData>(
             circle_slice,
             line_length,
             top_y,
-            center_x,
-            center_y,
+            center.x,
+            center.y,
             radius_sq,
-            color,
+            center.color,
             skip_every,
         );
         return;
@@ -101,10 +97,10 @@ pub fn filled<UserData>(
                     chunk,
                     line_length,
                     chunk_top_y,
-                    center_x,
-                    center_y,
+                    center.x,
+                    center.y,
                     radius_sq,
-                    color,
+                    center.color,
                     skip_every,
                 )
             });
