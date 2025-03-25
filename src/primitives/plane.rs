@@ -78,7 +78,7 @@ impl<T: Numeric + std::ops::Add<Output = T>> RectArea<T> {
         }
 
         /// Checks whether the given rectangle is fully contained within this rectangle.
-        pub fn contains_rect(&self, other: &RectArea<T>) -> bool {
+        pub fn contains(&self, other: &RectArea<T>) -> bool {
             other.top_left.x >= self.top_left.x &&
                 other.top_left.y >= self.top_left.y &&
                 other.top_left.x + other.dimensions.w <= self.top_left.x + self.dimensions.w &&
@@ -92,7 +92,7 @@ impl<T: Numeric + std::ops::Add<Output = T>> RectArea<T> {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
+     use super::*;
 
     #[test]
     fn test_convert_u32_to_i32() {
@@ -174,23 +174,71 @@ mod tests {
 
         // Fully inside
         let inner = RectArea::new(20, 20, 50, 50, None);
-        assert!(outer.contains_rect(&inner));
+        assert!(outer.contains(&inner));
 
         // Edges match
         let exact = RectArea::new(10, 10, 100, 100, None);
-        assert!(outer.contains_rect(&exact));
+        assert!(outer.contains(&exact));
 
         // Touches right edge
         let touching = RectArea::new(110, 10, 10, 10, None);
-        assert!(!outer.contains_rect(&touching));
+        assert!(!outer.contains(&touching));
 
         // Overflows bottom
         let outside = RectArea::new(50, 50, 60, 100, None);
-        assert!(!outer.contains_rect(&outside));
+        assert!(!outer.contains(&outside));
     }
 
 
 
-}
+
+
+        #[test]
+        fn test_rect_fits_rect_within_bounds() {
+            let rect_1 = RectArea::new(0, 0, 500, 500, None);
+            let rect_2 = RectArea::new(100, 100, 200, 200, None);
+            assert!(rect_1.contains(&rect_2));
+        }
+
+        #[test]
+        fn test_rect_fits_rect_out_of_bounds_x() {
+            let rect_1 = RectArea::new(0, 0, 500, 500, None);
+            let rect_2 = RectArea::new(400, 100, 200, 200, None);
+            assert!(!rect_1.contains(&rect_2));
+        }
+
+        #[test]
+        fn test_rect_fits_rect_out_of_bounds_y() {
+            let rect_1 = RectArea::new(0, 0, 500, 500, None);
+            let rect_2 = RectArea::new(100, 400, 200, 200, None);
+            assert!(!rect_1.contains(&rect_2));
+        }
+
+        #[test]
+        fn test_rect_fits_rect_too_wide() {
+            let rect_1 = RectArea::new(0, 0, 500, 500, None);
+            let rect_2 = RectArea::new(100, 100, 600, 200, None);
+            assert!(!rect_1.contains(&rect_2));
+        }
+
+        #[test]
+        fn test_rect_fits_rect_too_tall() {
+            let rect_1 = RectArea::new(0, 0, 500, 500, None);
+            let rect_2 = RectArea::new(100, 100, 200, 600, None);
+
+            assert!(!rect_1.contains(&rect_2));
+        }
+
+        #[test]
+        fn test_rect_fits_rect_exact_fit() {
+            let rect_1 = RectArea::new(0, 0, 500, 500, None);
+            let rect_2 = RectArea::new(0, 0, 500, 500, None);
+            assert!(rect_1.contains(&rect_2));
+        }
+    }
+
+
+
+
 
 

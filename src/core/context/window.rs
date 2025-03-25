@@ -3,7 +3,6 @@ use crate::core::default_colors;
 use crate::primitives::plane::{Dimensions2d, RectArea};
 use crate::primitives::point::Point;
 
-
 #[derive(Debug)]
 /// A collection of window properties, such as width, height, and background color,
 /// Width and height are exposed as `u32`, `usize`, and `i32` for convenience in calculations.
@@ -31,10 +30,9 @@ pub struct WindowContext {
     /// Foreground color of the window, RGBA
     pub foreground_color: u32,
     /// The central point of the window
-    pub center:Point<u32>,
+    pub center: Point<u32>,
     /// Four equally sized subregions representing the screen's quadrants (top-left, top-right, bottom-left, bottom-right)
     pub quadrants: Quadrants,
-
 }
 
 impl WindowContext {
@@ -49,7 +47,6 @@ impl WindowContext {
 
         let quadrants = Quadrants::from_dimensions(w, h);
 
-
         Self {
             w,
             h,
@@ -58,12 +55,15 @@ impl WindowContext {
             w_i32: w as i32,
             h_i32: h as i32,
             dimensions: Dimensions2d { w, h },
-            dimensions_usize: Dimensions2d { w: w as usize, h: h as usize },
+            dimensions_usize: Dimensions2d {
+                w: w as usize,
+                h: h as usize,
+            },
             rect_area: RectArea::new(0, 0, w, h, Some(fg_color)),
             background_color: background_color_rgba.unwrap_or(default_colors::BACKGROUND),
             foreground_color: fg_color,
             center: Point::new(w / 2, h / 2),
-            quadrants
+            quadrants,
         }
     }
 
@@ -82,7 +82,6 @@ impl WindowContext {
         self.w_usize * self.h_usize
     }
 
-
     /// Resizes the window context, recalculates all the related window properties
     pub fn resize(&mut self, w: u32, h: u32) {
         self.w = w;
@@ -100,14 +99,68 @@ impl WindowContext {
         self.update_quadrants();
     }
 
-
     fn update_quadrants(&mut self) {
         let q = Quadrants::from_dimensions(self.w, self.h);
         // This should avoid reallocation of the regions, hence any potential references should not break
         self.quadrants.top_left.update(q.top_left.rect_area());
         self.quadrants.top_right.update(q.top_right.rect_area());
         self.quadrants.bottom_left.update(q.bottom_left.rect_area());
-        self.quadrants.bottom_right.update(q.bottom_right.rect_area());
+        self.quadrants
+            .bottom_right
+            .update(q.bottom_right.rect_area());
     }
 
+    pub fn contains(&self, rect: &RectArea) -> bool {
+        self.rect_area.contains(rect)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::primitives::plane::RectArea;
+    use crate::test::mock_contexts::get_mock_graph_context;
+
+    //======== [ RECT FITS WINDOW ] ================================================================
+    #[test]
+    fn test_rect_fits_window_within_bounds() {
+        let rect = RectArea::new(100, 100, 200, 150, None);
+        let ctx = get_mock_graph_context(800, 600);
+        assert!(ctx.win.contains(&rect));
+    }
+
+    #[test]
+    fn test_rect_fits_window_out_of_bounds_x() {
+        let rect = RectArea::new(900, 100, 200, 150, None);
+        let ctx = get_mock_graph_context(800, 600);
+        assert!(!ctx.win.contains(&rect));
+    }
+
+    #[test]
+    fn test_rect_fits_window_out_of_bounds_y() {
+        let rect = RectArea::new(100, 900, 200, 150, None);
+        let ctx = get_mock_graph_context(800, 600);
+        assert!(!ctx.win.contains(&rect));
+    }
+
+    #[test]
+    fn test_rect_fits_window_too_wide() {
+        let rect = RectArea::new(10, 10, 1200, 150, None);
+        let ctx = get_mock_graph_context(800, 600);
+        assert!(!ctx.win.contains(&rect));
+    }
+
+    #[test]
+    fn test_rect_fits_window_too_tall() {
+        let rect = RectArea::new(10, 10, 120, 1500, None);
+        let ctx = get_mock_graph_context(800, 600);
+        assert!(!ctx.win.contains(&rect));
+    }
+
+    #[test]
+    fn test_rect_fits_window_exact_fit() {
+        let rect = RectArea::new(0, 0, 800, 600, None);
+        let ctx = get_mock_graph_context(800, 600);
+        assert!(ctx.win.contains(&rect));
+    }
 }

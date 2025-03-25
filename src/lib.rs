@@ -31,8 +31,10 @@ pub mod core {
 pub mod draw {
     /// Draw circles
     pub mod circle;
-    pub mod circle_legacy;
-    /// Draw lines
+    pub mod curves {
+        pub mod bezier;
+    }
+     /// Draw lines
     pub mod line;
 
 
@@ -74,6 +76,10 @@ pub mod draw {
 }
 
 //-=[ F }=------------------------------------------------------------------------------------------
+
+pub mod filters {
+
+}
 
 /// Filters and effects to apply to images, animation frames, etc.
 pub mod fx {
@@ -181,6 +187,8 @@ pub mod utils {
         /// Generators of color gradients
         pub mod gradient;
 
+        pub mod invert;
+
         /// Built-in color palettes
         pub mod palettes {
             mod autumn_harvest;
@@ -262,8 +270,7 @@ pub mod utils {
     pub mod pixel_copy {
         pub mod image_data;
     }
-    /// Various validations and checks for primitives and other data
-    pub mod validators;
+
 }
 
 // pub mod draw;
