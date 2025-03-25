@@ -30,11 +30,12 @@ pub mod core {
 pub mod draw {
     /// Draw circles
     pub mod circle;
-    
+    pub mod circle_legacy;
     /// Draw lines
     pub mod line;
-    pub mod circle2;
-    
+
+
+
     /// Various closed shapes with multiple vertices
     pub mod polygons {
         mod closed_perimeter;
@@ -100,9 +101,9 @@ pub mod fx {
 
 /// Building blocks: essential structs, traits, types, constants, etc.
 pub mod primitives {
-    
+
     pub mod containable;
-    
+
     /// Aliases for complex or peculiar types
     pub mod helper_types;
 
@@ -221,11 +222,11 @@ pub mod utils {
             pub mod mersenne;
             pub mod misc_math;
         }
-        
+
         pub mod geometry{
             pub mod region;
         }
-        
+
         /// Power functions
         mod power;
 

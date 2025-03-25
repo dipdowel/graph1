@@ -1,71 +1,113 @@
 use crate::core::context::GraphContext;
-use crate::draw;
 use crate::primitives::Pixel;
+use std::thread;
 
-/// Draws a filled circle with a specified center, radius, and color.
-/// The circle is drawn using an optimized scanline-based circle-drawing algorithm.
-///
-/// # Parameters
-/// - `ctx`: A mutable reference to the `GraphContext` which holds the drawing context.
-/// - `center`: A reference to a `Pixel` that specifies the center of the circle and its color.
-/// - `radius`: The radius of the circle in pixels.
-/// - `skip_every`: The number of lines to skip while drawing. This provides a less dense, stylised circle.
+/// Helper thread function to draw a portion of the circle on a frame buffer slice.
+fn draw_lines_of_circle_thread(
+    circle_slice: &mut [u32],
+    line_length: usize,
+    chunk_top_y: u32,
+    center_x: u32,
+    center_y: u32,
+    radius_sq: i32,
+    color: u32,
+    skip_every: u32,
+) {
+    for line in 0..(circle_slice.len() / line_length) {
+        let global_y = chunk_top_y + line as u32;
+        let delta_y = global_y as i32 - center_y as i32;
+
+        // Skip stylized lines
+        if skip_every > 1 && (line as u32) % skip_every != 0 {
+            continue;
+        }
+
+        let delta_y_sq = delta_y * delta_y;
+        if delta_y_sq > radius_sq {
+            continue;
+        }
+
+        let width_half = ((radius_sq - delta_y_sq) as f64).sqrt().round() as i32;
+
+        let start_x = center_x as i32 - width_half;
+        let end_x = center_x as i32 + width_half;
+
+        let start_x = start_x.max(0) as usize;
+        let end_x = end_x.min(line_length as i32 - 1) as usize;
+
+        let row_start = line * line_length;
+        for x in start_x..=end_x {
+            circle_slice[row_start + x] = color;
+        }
+    }
+}
+
+/// Draws a filled circle with multithreading support (like rectangle::filled).
 pub fn filled<UserData>(
     ctx: &mut GraphContext<UserData>,
     center: &Pixel,
     radius: u32,
     skip_every: u32,
 ) {
-    let radius_sq = radius.pow(2) as i32;
-
-    let mut skip_every = skip_every;
-    if skip_every == 0 {
-        skip_every = 1;
+    if ctx.num_threads == 0 {
+        return;
     }
 
-    let mut lines_count = 0;
+    let radius_sq = (radius * radius) as i32;
+    let skip_every = skip_every.max(1);
 
-    let mut pixel = Pixel {
-        x: 0, // needs to be initialised with at least something
-        y: 0, // needs to be initialised with at least something
-        color: center.color,
-    };
+    let color = center.color;
+    let center_x = center.x;
+    let center_y = center.y;
 
-    for delta_y in 0..=radius {
-        let delta_y_sq = (delta_y.pow(2)) as i32;
+    // Bounding box
+    let top_y = center_y.saturating_sub(radius);
+    let bottom_y = (center_y + radius).min(ctx.win.h - 1);
+    let line_length = ctx.win.w_usize;
 
-        // Calculate the horizontal displacement for the current slice of the circle
-        // from the center to one side.
-        let width_half = ((radius_sq - delta_y_sq) as f64).sqrt().round() as i32;
+    let first_line_start = (top_y * ctx.win.w) as usize;
+    let last_line_end = ((bottom_y + 1) * ctx.win.w) as usize;
 
-        // Calculate start and end points for the current line segment.
-        let start_x = center.x as i32 - width_half;
-        let end_x = center.x as i32 + width_half;
+    let mut chunk_size = usize::div_ceil(last_line_end - first_line_start, ctx.num_threads);
 
-        // Calculate the length of the line segment. Ensure that we handle cases where start_x could be negative.
-        let length = if start_x < 0 { end_x } else { end_x - start_x } as u32;
-
-        // Provides the "80s" effect of  skipping every `skip_every` lines while drawing the circle
-        let skip_line: bool = skip_every > 1 && lines_count % skip_every != 0;
-        lines_count += 1;
-
-        if skip_line {
-            continue;
-        }
-
-        // Adjust start_x for when it's negative.
-        pixel.x = if start_x < 0 { 0 } else { start_x } as u32;
-        pixel.y = center.y + delta_y; // `y` for the upper half-circle
-
-        // Draw the upper half of the circle.
-        draw::line::horizontal(ctx, &pixel, length);
-
-        if delta_y > 0 {
-            // Draw the lower half of the circle, avoiding the central line being drawn twice.
-            pixel.y = (center.y as i32 - delta_y as i32) as u32;
-            // NB: due to typecasting `pixel.y` can become really large, but it's okay
-            // NB: since `line::horizontal()` checks for `y` being greater than window's height
-            draw::line::horizontal(ctx, &pixel, length);
-        }
+    // Force single-threaded if chunk too small
+    if ctx.num_threads == 1 || chunk_size < line_length {
+        let circle_slice = &mut ctx.frame_buf[first_line_start..last_line_end];
+        draw_lines_of_circle_thread(
+            circle_slice,
+            line_length,
+            top_y,
+            center_x,
+            center_y,
+            radius_sq,
+            color,
+            skip_every,
+        );
+        return;
     }
+
+    // Align chunk size to full rows
+    chunk_size = chunk_size / line_length * line_length;
+
+    let circle_slice = &mut ctx.frame_buf[first_line_start..last_line_end];
+    let mut chunks: Vec<&mut [u32]> = circle_slice.chunks_mut(chunk_size).collect();
+
+    thread::scope(|s| {
+        for (i, chunk) in chunks.iter_mut().enumerate() {
+            let chunk_top_y = top_y + ((i * chunk_size) / line_length) as u32;
+
+            s.spawn(move || {
+                draw_lines_of_circle_thread(
+                    chunk,
+                    line_length,
+                    chunk_top_y,
+                    center_x,
+                    center_y,
+                    radius_sq,
+                    color,
+                    skip_every,
+                )
+            });
+        }
+    });
 }

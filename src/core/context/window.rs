@@ -100,4 +100,27 @@ impl WindowContext {
     pub fn get_num_pixels(&self) -> usize {
         self.w_usize * self.h_usize
     }
+
+    /// FIXME: Move to `Quadrants` struct!!!
+    /// FIXME: Move to `Quadrants` struct!!!
+    /// FIXME: Move to `Quadrants` struct!!!
+    /// FIXME: Move to `Quadrants` struct!!!
+    pub fn update_quadrants(&mut self) {
+
+        let full_region = Region::new(RectArea::new(0, 0, self.w, self.h, Some(self.foreground_color)));
+
+        let (top, bottom) = full_region.split_horizontal();
+        let (top_left, top_right) = top.split_vertical();
+        let (bottom_left, bottom_right) = bottom.split_vertical();
+
+        self.quadrants = Quadrants {
+            top_left,
+            top_right,
+            bottom_left,
+            bottom_right,
+        };
+
+
+    }
+
 }

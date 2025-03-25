@@ -106,7 +106,9 @@ impl<UserData: Default> GraphContext<UserData> {
         let num_pixels = self.win.get_num_pixels();
 
         self.frame_buf.resize(num_pixels, self.win.background_color);
-
+        
+        self.win.update_quadrants();
+        
         // resize the draft buffer if it's enabled
         if self.use_draft_buf {
             self.draft_buf.resize(num_pixels, self.win.background_color);
