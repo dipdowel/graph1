@@ -219,7 +219,7 @@ impl<T: Numeric> Region<T> {
     pub fn jittered_center_pixel(&self, seed: u32, max_offset: u32, color: u32) -> Pixel {
         self.jittered_center(seed, max_offset).to_pixel(color)
     }
-    
+
 }
 
 #[cfg(test)]
@@ -330,4 +330,88 @@ mod tests {
         assert!(region.contains(smaller_inside));
         assert!(!region.contains(partially_outside));
     }
+
+
+    #[test]
+    fn test_region_size_and_area() {
+        let region = Region::new(RectArea::new(10, 20, 30, 40, None));
+
+        assert_eq!(region.width(), 30);
+        assert_eq!(region.height(), 40);
+        assert_eq!(region.size(), Dimensions2d::new(30, 40));
+        assert_eq!(region.area(), 1200);
+    }
+
+    #[test]
+    fn test_random_point_inside_is_within_bounds() {
+        let region = Region::new(RectArea::new(100, 200, 50, 50, None));
+
+        let pt = region.random_point_inside(42);
+        assert!(pt.x >= 100 && pt.x < 150, "x out of bounds: {}", pt.x);
+        assert!(pt.y >= 200 && pt.y < 250, "y out of bounds: {}", pt.y);
+    }
+
+    #[test]
+    fn test_random_pixel_inside_color_and_bounds() {
+        let color = 0xDEADBEEF;
+        let region = Region::new(RectArea::new(0, 0, 10, 10, None));
+
+        let px = region.random_pixel_inside(123, color);
+
+        assert!(px.x < 10);
+        assert!(px.y < 10);
+        assert_eq!(px.color, color);
+    }
+
+    #[test]
+    fn test_split_horizontal() {
+        let region = Region::new(RectArea::new(0, 0, 10, 8, None));
+
+        let (top, bottom) = region.split_horizontal();
+
+        assert_eq!(top.rect_area().top_left, Point::new(0, 0));
+        assert_eq!(top.height(), 4);
+
+        assert_eq!(bottom.rect_area().top_left, Point::new(0, 4));
+        assert_eq!(bottom.height(), 4);
+    }
+
+    #[test]
+    fn test_split_vertical() {
+        let region = Region::new(RectArea::new(0, 0, 9, 5, None));
+
+        let (left, right) = region.split_vertical();
+
+        assert_eq!(left.rect_area().top_left, Point::new(0, 0));
+        assert_eq!(left.width(), 4);
+
+        assert_eq!(right.rect_area().top_left, Point::new(4, 0));
+        assert_eq!(right.width(), 5);
+    }
+
+    #[test]
+    fn test_jittered_center_stays_near_center() {
+        let region = Region::new(RectArea::new(100, 100, 20, 20, None));
+        let max_offset = 5;
+        let center = region.center().convert::<u32>();
+
+        for seed in 0..10 {
+            let jittered = region.jittered_center(seed, max_offset);
+            let dx = jittered.x as i32 - center.x as i32;
+            let dy = jittered.y as i32 - center.y as i32;
+
+            assert!(dx.abs() <= max_offset as i32, "dx too large: {}", dx);
+            assert!(dy.abs() <= max_offset as i32, "dy too large: {}", dy);
+        }
+    }
+
+    #[test]
+    fn test_jittered_center_pixel_correct_color() {
+        let region = Region::new(RectArea::new(0, 0, 10, 10, None));
+        let color = 0xABCDEF;
+        let px = region.jittered_center_pixel(99, 3, color);
+        assert_eq!(px.color, color);
+    }
+
+
 }
