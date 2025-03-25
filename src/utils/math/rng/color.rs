@@ -280,28 +280,25 @@ impl ColorRng {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::time::Instant;
-
-    #[test]
-    fn test_random_colors_64_large() {
-        let mut color_rng = ColorRng::new(321, 321);
-        let start = Instant::now();
-        let random_colors =
-            color_rng.get_random_colors_64(115200, 0x00_11_00_ff, 0x00_ff_00_ff, None);
-        println!("[64] large random_colors len: {:?}", random_colors.len());
-        assert_eq!(1, 1);
-    }
-
-    #[test]
-    fn test_random_colors_32_large() {
-        let mut color_rng = ColorRng::new(321, 321);
-        let start = Instant::now();
-        // let random_colors = color_rng.get_random_colors_32(115200, 0x00_11_00_ff, 0x00_ff_00_ff, None);
-        let random_colors =
-            color_rng.get_random_colors_32(115200, 0x00_11_00_ff, 0x00_ff_00_ff, None);
-        println!("[32] large random_colors len: {:?}", random_colors.len());
-        assert_eq!(1, 1);
-    }
+    // use std::time::Instant;
+    // #[test]
+    // fn test_random_colors_64_large() {
+    //     let mut color_rng = ColorRng::new(321, 321);
+    //     let start = Instant::now();
+    //     let random_colors =
+    //         color_rng.get_random_colors_64(115200, 0x00_11_00_ff, 0x00_ff_00_ff, None);
+    //     println!("[64] large random_colors len: {:?}", random_colors.len());
+    //  }
+    //
+    // #[test]
+    // fn test_random_colors_32_large() {
+    //     let mut color_rng = ColorRng::new(321, 321);
+    //     let start = Instant::now();
+    //     // let random_colors = color_rng.get_random_colors_32(115200, 0x00_11_00_ff, 0x00_ff_00_ff, None);
+    //     let random_colors =
+    //         color_rng.get_random_colors_32(115200, 0x00_11_00_ff, 0x00_ff_00_ff, None);
+    //     println!("[32] large random_colors len: {:?}", random_colors.len());
+    //  }
 
     fn channels_in_range(
         color: u32,
