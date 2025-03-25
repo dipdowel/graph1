@@ -7,7 +7,7 @@
 ///   - If `min > max`, they are swapped, i.e. the smaller value is always used as the lower bound.
 ///
 /// # Examples
-/// ```
+/// ```text
 /// let raw = hash_random_u32!(ctx.frame_count);
 /// let raw = hash_random_u32!(45);
 /// let ranged = hash_random_u32!(45, 10, 100);

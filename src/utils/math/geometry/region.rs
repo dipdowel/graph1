@@ -52,7 +52,7 @@ impl<T: Numeric> Region<T> {
         }
     }
 
-    /// Updates the region with a new `RectArea` and recalculates all derived points.
+    /// Updates the region with a new `RectArea` and recalculates all relevant points.
     pub fn update(&mut self, area: RectArea<T>) {
         self.rect_area = area;
 
@@ -67,15 +67,24 @@ impl<T: Numeric> Region<T> {
         let cx = (x0 + x1) / two;
         let cy = (y0 + y1) / two;
 
-        self.center = Point::new(cx, cy);
-        self.top = Point::new(cx, y0);
-        self.bottom = Point::new(cx, y1);
-        self.left = Point::new(x0, cy);
-        self.right = Point::new(x1, cy);
-        self.top_left = Point::new(x0, y0);
-        self.top_right = Point::new(x1, y0);
-        self.bottom_left = Point::new(x0, y1);
-        self.bottom_right = Point::new(x1, y1);
+        self.center.x= cx;
+        self.center.y= cy;
+        self.top.x = cx;
+        self.top.y = y0;
+        self.bottom.x = cx;
+        self.bottom.y = y1;
+        self.left.x = x0;
+        self.left.y = cy;
+        self.right.x = x1;
+        self.right.y = cy;
+        self.top_left.x = x0;
+        self.top_left.y = y0;
+        self.top_right.x = x1;
+        self.top_right.y = y0;
+        self.bottom_left.x = x0;
+        self.bottom_left.y = y1;
+        self.bottom_right.x = x1;
+        self.bottom_right.y = y1;
     }
 
     /// Returns the region's full area.

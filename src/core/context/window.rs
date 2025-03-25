@@ -1,15 +1,7 @@
+use crate::core::context::window_quadrants::Quadrants;
 use crate::core::default_colors;
 use crate::primitives::plane::{Dimensions2d, RectArea};
 use crate::primitives::point::Point;
-use crate::utils::math::geometry::region::Region;
-
-#[derive(Debug)]
-pub struct Quadrants {
-    pub top_left: Region<u32>,
-    pub top_right: Region<u32>,
-    pub bottom_left: Region<u32>,
-    pub bottom_right: Region<u32>,
-}
 
 
 #[derive(Debug)]
@@ -40,7 +32,7 @@ pub struct WindowContext {
     pub foreground_color: u32,
     /// The central point of the window
     pub center:Point<u32>,
-    /// TODO: write the documentation
+    /// Four equally sized subregions representing the screen's quadrants (top-left, top-right, bottom-left, bottom-right)
     pub quadrants: Quadrants,
 
 }
@@ -55,18 +47,7 @@ impl WindowContext {
     ) -> Self {
         let fg_color = foreground_color_rgba.unwrap_or(default_colors::FOREGROUND);
 
-        let full_region = Region::new(RectArea::new(0, 0, w, h, Some(fg_color)));
-
-        let (top, bottom) = full_region.split_horizontal();
-        let (top_left, top_right) = top.split_vertical();
-        let (bottom_left, bottom_right) = bottom.split_vertical();
-
-        let quadrants = Quadrants {
-            top_left,
-            top_right,
-            bottom_left,
-            bottom_right,
-        };
+        let quadrants = Quadrants::from_dimensions(w, h);
 
 
         Self {
@@ -101,26 +82,32 @@ impl WindowContext {
         self.w_usize * self.h_usize
     }
 
-    /// FIXME: Move to `Quadrants` struct!!!
-    /// FIXME: Move to `Quadrants` struct!!!
-    /// FIXME: Move to `Quadrants` struct!!!
-    /// FIXME: Move to `Quadrants` struct!!!
-    pub fn update_quadrants(&mut self) {
+    
+    /// Resizes the window context, recalculates all the related window properties
+    pub fn resize(&mut self, w: u32, h: u32) {
+        self.w = w;
+        self.h = h;
+        self.w_usize = w as usize;
+        self.h_usize = h as usize;
+        self.w_i32 = w as i32;
+        self.h_i32 = h as i32;
+        self.dimensions.w = w;
+        self.dimensions.h = h;
+        self.rect_area.dimensions.w = w;
+        self.rect_area.dimensions.h = h;
+        self.center.x = w / 2;
+        self.center.y = w / 2;
+        self.update_quadrants();
+    }
 
-        let full_region = Region::new(RectArea::new(0, 0, self.w, self.h, Some(self.foreground_color)));
 
-        let (top, bottom) = full_region.split_horizontal();
-        let (top_left, top_right) = top.split_vertical();
-        let (bottom_left, bottom_right) = bottom.split_vertical();
-
-        self.quadrants = Quadrants {
-            top_left,
-            top_right,
-            bottom_left,
-            bottom_right,
-        };
-
-
+    fn update_quadrants(&mut self) {
+        let q = Quadrants::from_dimensions(self.w, self.h);
+        // This should avoid reallocation of the regions, hence any potential references should not break
+        self.quadrants.top_left.update(q.top_left.rect_area());
+        self.quadrants.top_right.update(q.top_right.rect_area());
+        self.quadrants.bottom_left.update(q.bottom_left.rect_area());
+        self.quadrants.bottom_right.update(q.bottom_right.rect_area());
     }
 
 }

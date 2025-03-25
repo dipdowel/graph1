@@ -119,8 +119,8 @@ mod tests {
         let c1: u32 = 0x11_ff_11_11;
         let c2: u32 = 0x22_ff_88_ff;
         let gradient = linear(c1, c2, 4);
-        println!(">>> c1: {:#010X}, c2: {:#010X}",c1,c2);
-        println!(">>> gradient: {:#010X?}",gradient);
+        // println!(">>> c1: {:#010X}, c2: {:#010X}",c1,c2);
+        // println!(">>> gradient: {:#010X?}",gradient);
         assert_eq!(gradient[0], 0x11_FF_11_11);
         assert_eq!(gradient[1], 0x16_FF_38_60);
         assert_eq!(gradient[2], 0x1C_FF_60_AF);

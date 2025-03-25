@@ -1,21 +1,7 @@
 use crate::core::context::alpha::AlphaMethod;
 use crate::core::context::{AlphaContext, BezierContext, WindowContext};
 
-/// Helps resize the window context
-fn resize_window(win: &mut WindowContext, w: u32, h: u32) {
-    win.w = w;
-    win.h = h;
-    win.w_usize = w as usize;
-    win.h_usize = h as usize;
-    win.w_i32 = w as i32;
-    win.h_i32 = h as i32;
-    win.dimensions.w = w;
-    win.dimensions.h = h;
-    win.rect_area.dimensions.w = w;
-    win.rect_area.dimensions.h = h;
-    win.center.x = w / 2;
-    win.center.y = w / 2;
-}
+
 
 #[derive(Debug)]
 pub struct GraphContext<UserData = Vec<i32>> {
@@ -101,14 +87,14 @@ impl<UserData: Default> GraphContext<UserData> {
 
     /// Resizes the window context, the frame buffer, and the draft buffer (if `use_draft_buf == true`)
     pub fn resize(&mut self, w: u32, h: u32) {
-        // resize the window and the frame buffer
-        resize_window(&mut self.win, w, h);
+        
+        // resize the window (which also resizes the quadrants)
+        self.win.resize(w, h);
+        
+        // resize the frame buffer
         let num_pixels = self.win.get_num_pixels();
-
         self.frame_buf.resize(num_pixels, self.win.background_color);
-        
-        self.win.update_quadrants();
-        
+
         // resize the draft buffer if it's enabled
         if self.use_draft_buf {
             self.draft_buf.resize(num_pixels, self.win.background_color);

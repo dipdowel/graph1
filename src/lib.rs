@@ -13,6 +13,7 @@ pub mod core {
         mod bezier;
         mod graph;
         mod window;
+        mod window_quadrants;
 
         pub use alpha::AlphaContext;
         // pub use alpha::AlphaMethod;
