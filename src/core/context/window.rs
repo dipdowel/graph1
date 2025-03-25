@@ -82,7 +82,7 @@ impl WindowContext {
         self.w_usize * self.h_usize
     }
 
-    
+
     /// Resizes the window context, recalculates all the related window properties
     pub fn resize(&mut self, w: u32, h: u32) {
         self.w = w;
@@ -96,7 +96,7 @@ impl WindowContext {
         self.rect_area.dimensions.w = w;
         self.rect_area.dimensions.h = h;
         self.center.x = w / 2;
-        self.center.y = w / 2;
+        self.center.y = h / 2;
         self.update_quadrants();
     }
 
