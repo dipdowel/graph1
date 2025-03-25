@@ -144,7 +144,7 @@ impl<T: Numeric> Region<T> {
         self.width() * self.height()
     }
 
-    /// Returns a random point inside the region using a deterministic hash-based generator.
+    /// Returns a deterministic pseudorandom point inside the region, based on the given seed.
     pub fn random_point_inside(&self, seed: u32) -> Point<u32> {
         let min_x = self.rect_area.top_left.x.to_u32();
         let max_x = (self.rect_area.top_left.x + self.rect_area.dimensions.w).to_u32();
@@ -157,10 +157,12 @@ impl<T: Numeric> Region<T> {
         Point::new(x, y)
     }
 
+    /// Returns a deterministic pseudorandom pixel inside the region with the given color, based on the given seed.
     pub fn random_pixel_inside(&self, seed: u32, color: u32) -> Pixel {
         self.random_point_inside(seed).to_pixel(color)
     }
 
+    /// Splits the region horizontally into two equal-height subregions and returns them.
     pub fn split_horizontal(&self) -> (Region<T>, Region<T>) {
         let half = self.height() / T::from_u32(2);
 
@@ -183,6 +185,7 @@ impl<T: Numeric> Region<T> {
         (Region::new(top), Region::new(bottom))
     }
 
+    /// Splits the region vertically into two equal-width subregions and returns them.
     pub fn split_vertical(&self) -> (Region<T>, Region<T>) {
         let half = self.width() / T::from_u32(2);
 
@@ -205,6 +208,7 @@ impl<T: Numeric> Region<T> {
         (Region::new(left), Region::new(right))
     }
 
+    /// Returns a point near the center of the region, jittered by up to `max_offset` in each direction.
     pub fn jittered_center(&self, seed: u32, max_offset: u32) -> Point<u32> {
         let dx = (hash_random_u32!(seed, 0, 2 * max_offset + 1) as i32) - max_offset as i32;
         let dy = (hash_random_u32!(seed.wrapping_add(1), 0, 2 * max_offset + 1) as i32)
@@ -216,6 +220,7 @@ impl<T: Numeric> Region<T> {
         Point { x, y }
     }
 
+    /// Returns a pixel near the center of the region, jittered by up to `max_offset`, and colored with the given value.
     pub fn jittered_center_pixel(&self, seed: u32, max_offset: u32, color: u32) -> Pixel {
         self.jittered_center(seed, max_offset).to_pixel(color)
     }
