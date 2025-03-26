@@ -126,6 +126,11 @@ pub mod primitives {
     /// `Point` - a struct representing a position on a 2D-plane.
     /// Unlike `Pixel`, it can have negative and fractional coordinates.
     pub mod point;
+    
+     
+    /// `Ratio` - a representation of a ratio of two numbers and operations on it.
+    pub mod ratio;
+    
 }
 
 //-=[ T }=------------------------------------------------------------------------------------------
