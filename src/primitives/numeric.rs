@@ -1,7 +1,7 @@
 use std::fmt::{Debug, Display};
 use std::ops::{Add, Div, Mul, Rem, RemAssign, Sub};
 
-/// Enum representing concrete numeric types supported by the `Numeric` trait.
+/// Enum representing supported numeric types.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum NumericType {
     U32,
@@ -12,21 +12,20 @@ pub enum NumericType {
     Usize,
 }
 
-/// A custom trait that serves as a marker for allowed types.
-// pub trait Numeric: Clone + Copy + PartialOrd + PartialEq + Sub + Add + Mul + Div + Rem + RemAssign  {
+/// Trait used to unify numeric behavior across primitive scalar types.
 pub trait Numeric:
-    PartialEq
-    + PartialOrd
-    + Clone
-    + Copy
-    + Add<Output = Self>
-    + Sub<Output = Self>
-    + Mul<Output = Self>
-    + Div<Output = Self>
-    + Rem<Output = Self>
-    + RemAssign
-    + Debug
-    + Display
+PartialEq
++ PartialOrd
++ Clone
++ Copy
++ Debug
++ Display
++ Add<Output = Self>
++ Sub<Output = Self>
++ Mul<Output = Self>
++ Div<Output = Self>
++ Rem<Output = Self>
++ RemAssign
 {
     fn to_f64(self) -> f64;
     fn from_f64(value: f64) -> Self;
@@ -49,7 +48,6 @@ pub trait Numeric:
     }
 
     fn is_unsigned() -> bool;
-
     fn is_nan(&self) -> bool {
         false
     }
@@ -61,94 +59,133 @@ pub trait Numeric:
     fn get_type() -> NumericType;
 }
 
-// === Macro for simple, safe numeric types ===
+// === Implementations ===
 
-macro_rules! impl_numeric {
-    (
-        $t:ty, $variant:expr,
-        unsigned = $is_unsigned:expr,
-        nan = $is_nan_fn:expr,
-        is_integer = $is_integer_fn:expr
-    ) => {
-        impl Numeric for $t {
-            fn to_f64(self) -> f64 {
-                self as f64
-            }
+impl Numeric for u32 {
+    fn to_f64(self) -> f64 {
+        self as f64
+    }
 
-            fn from_f64(value: f64) -> Self {
-                f64::round(value).max(0.0) as Self
-            }
+    fn from_f64(value: f64) -> Self {
+        f64::round(value).max(0.0) as u32
+    }
 
-            fn from_u32(value: u64) -> Self {
-                value as Self
-            }
+    fn to_u32(self) -> u32 {
+        self
+    }
 
-            fn to_u32(self) -> u32 {
-                self as u32
-            }
+    fn from_u32(value: u64) -> Self {
+        value as u32
+    }
 
-            fn to_u64(self) -> u64 {
-                self as u64
-            }
+    fn to_u64(self) -> u64 {
+        self as u64
+    }
 
-            fn from_u64(value: u64) -> Self {
-                value as Self
-            }
+    fn from_u64(value: u64) -> Self {
+        value as u32
+    }
 
-            fn zero() -> Self {
-                0 as Self
-            }
+    fn zero() -> Self {
+        0
+    }
 
-            fn one() -> Self {
-                1 as Self
-            }
+    fn one() -> Self {
+        1
+    }
 
-            fn is_unsigned() -> bool {
-                $is_unsigned
-            }
+    fn is_unsigned() -> bool {
+        true
+    }
 
-            fn is_nan(&self) -> bool {
-                $is_nan_fn(*self)
-            }
-
-            fn is_integer(&self) -> bool {
-                $is_integer_fn(*self)
-            }
-
-            fn get_type() -> NumericType {
-                $variant
-            }
-        }
-    };
+    fn get_type() -> NumericType {
+        NumericType::U32
+    }
 }
 
-// === Implementations for safe types ===
+impl Numeric for u64 {
+    fn to_f64(self) -> f64 {
+        self as f64
+    }
 
-impl_numeric!(
-    u32,
-    NumericType::U32,
-    unsigned = true,
-    nan = |_| false,
-    is_integer = |_| true
-);
+    fn from_f64(value: f64) -> Self {
+        f64::round(value).max(0.0) as u64
+    }
 
-impl_numeric!(
-    u64,
-    NumericType::U64,
-    unsigned = true,
-    nan = |_| false,
-    is_integer = |_| true
-);
+    fn to_u32(self) -> u32 {
+        self as u32
+    }
 
-impl_numeric!(
-    usize,
-    NumericType::Usize,
-    unsigned = true,
-    nan = |_| false,
-    is_integer = |_| true
-);
+    fn from_u32(value: u64) -> Self {
+        value as u64
+    }
 
-// === Manual impls for types with edge-case logic ===
+    fn to_u64(self) -> u64 {
+        self
+    }
+
+    fn from_u64(value: u64) -> Self {
+        value
+    }
+
+    fn zero() -> Self {
+        0
+    }
+
+    fn one() -> Self {
+        1
+    }
+
+    fn is_unsigned() -> bool {
+        true
+    }
+
+    fn get_type() -> NumericType {
+        NumericType::U64
+    }
+}
+
+impl Numeric for usize {
+    fn to_f64(self) -> f64 {
+        self as f64
+    }
+
+    fn from_f64(value: f64) -> Self {
+        f64::round(value).max(0.0) as usize
+    }
+
+    fn to_u32(self) -> u32 {
+        self as u32
+    }
+
+    fn from_u32(value: u64) -> Self {
+        value as usize
+    }
+
+    fn to_u64(self) -> u64 {
+        self as u64
+    }
+
+    fn from_u64(value: u64) -> Self {
+        value as usize
+    }
+
+    fn zero() -> Self {
+        0
+    }
+
+    fn one() -> Self {
+        1
+    }
+
+    fn is_unsigned() -> bool {
+        true
+    }
+
+    fn get_type() -> NumericType {
+        NumericType::Usize
+    }
+}
 
 impl Numeric for i32 {
     fn to_f64(self) -> f64 {
@@ -159,6 +196,7 @@ impl Numeric for i32 {
         f64::round(value) as i32
     }
 
+    /// NB: Negative values are clamped to 0 to avoid underflow.
     fn to_u32(self) -> u32 {
         if self < 0 {
             0
@@ -171,6 +209,7 @@ impl Numeric for i32 {
         value as i32
     }
 
+    /// NB: Negative values are clamped to 0 to avoid underflow.
     fn to_u64(self) -> u64 {
         if self < 0 {
             0
@@ -209,6 +248,7 @@ impl Numeric for f32 {
         value as f32
     }
 
+    /// NB: Negative values are clamped to 0 to avoid invalid unsigned conversion.
     fn to_u32(self) -> u32 {
         if self < 0.0 {
             0
@@ -221,6 +261,7 @@ impl Numeric for f32 {
         value as f32
     }
 
+    /// NB: Negative values are clamped to 0 to avoid invalid unsigned conversion.
     fn to_u64(self) -> u64 {
         if self < 0.0 {
             0
@@ -245,10 +286,12 @@ impl Numeric for f32 {
         false
     }
 
+    /// Returns true if this value is NaN.
     fn is_nan(&self) -> bool {
         f32::is_nan(*self)
     }
 
+    /// Returns true if this float is a whole number (no fractional part).
     fn is_integer(&self) -> bool {
         self.fract() == 0.0
     }
@@ -267,6 +310,7 @@ impl Numeric for f64 {
         value
     }
 
+    /// NB: Negative values are clamped to 0 to avoid invalid unsigned conversion.
     fn to_u32(self) -> u32 {
         if self < 0.0 {
             0
@@ -279,6 +323,7 @@ impl Numeric for f64 {
         value as f64
     }
 
+    /// NB: Negative values are clamped to 0 to avoid invalid unsigned conversion.
     fn to_u64(self) -> u64 {
         if self < 0.0 {
             0
@@ -303,10 +348,12 @@ impl Numeric for f64 {
         false
     }
 
+    /// Returns true if this value is NaN.
     fn is_nan(&self) -> bool {
         f64::is_nan(*self)
     }
 
+    /// Returns true if this float is a whole number (no fractional part).
     fn is_integer(&self) -> bool {
         self.fract() == 0.0
     }
@@ -316,7 +363,6 @@ impl Numeric for f64 {
     }
 }
 
-// === Tests ===
 
 #[cfg(test)]
 mod tests {
