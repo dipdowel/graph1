@@ -215,4 +215,23 @@ mod tests {
         assert_eq!(buf[1], 0xaa_bb_cc_dd);
         assert_eq!(buf[2], 0xaa_bb_cc_dd);
     }
+
+    #[test]
+    fn test_invert_colors_parallel_matches_single() {
+        let mut buf_single = vec![0x11_22_33_ff; 100 * 100];
+        let mut buf_parallel = buf_single.clone();
+
+        let dimensions = Dimensions2d { w: 100, h: 100 };
+        let area = RectArea {
+            top_left: Point { x: 0, y: 0 },
+            dimensions,
+            color: None,
+        };
+
+        invert_colors_thread(&mut buf_single, &dimensions, &area);
+        invert_colors(&mut buf_parallel, &dimensions, &area, 4);
+
+        assert_eq!(buf_single, buf_parallel);
+    }
+
 }
