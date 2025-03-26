@@ -12,7 +12,16 @@ pub enum NumericType {
     Usize,
 }
 
-/// Trait used to unify numeric behavior across primitive scalar types.
+/// A trait for abstracting over some primitive numeric types (`u32`, `i32`, `f64`, etc.).
+///
+/// This trait provides:
+/// - Standard arithmetic operations
+/// - Identity values (`zero`, `one`)
+/// - Type classification (`is_unsigned`, `is_nan`, `is_integer`)
+/// - Type conversions to/from `f64`, `u32`, and `u64`
+///
+/// Implementors must define core behavior. Some methods (e.g., conversions from `f64`)
+/// have default implementations that panic and should be overridden where supported.
 pub trait Numeric:
 PartialEq
 + PartialOrd
@@ -27,35 +36,78 @@ PartialEq
 + Rem<Output = Self>
 + RemAssign
 {
+    /// Convert this value to `f64`.
     fn to_f64(self) -> f64;
-    fn from_f64(value: f64) -> Self;
 
+    /// Convert from an `f64` into this type.
+    ///
+    /// # Panics
+    /// The default implementation will panic. Override where supported.
+    fn from_f64(_value: f64) -> Self {
+        panic!("from_f64 not supported for this type")
+    }
+
+    /// Convert this value to `u32`, possibly clamping or saturating.
     fn to_u32(self) -> u32;
-    fn from_u32(value: u64) -> Self;
 
+    /// Convert from a `u64` into this type.
+    ///
+    /// # Panics
+    /// The default implementation will panic. Override where supported.
+    fn from_u32(_value: u64) -> Self {
+        panic!("from_u32 not supported for this type")
+    }
+
+    /// Convert this value to `u64`, possibly clamping or saturating.
     fn to_u64(self) -> u64;
-    fn from_u64(value: u64) -> Self;
 
+    /// Convert from a `u64` into this type.
+    ///
+    /// # Panics
+    /// The default implementation will panic. Override where supported.
+    fn from_u64(_value: u64) -> Self {
+        panic!("from_u64 not supported for this type")
+    }
+
+    /// Returns the additive identity (zero).<br />
+    /// 🤓 The additive identity is the element in a number system (or algebraic structure) that,
+    /// when added to any other element, leaves that element unchanged.
+    /// In most systems, this element is 0.
     fn zero() -> Self;
+
+    /// Returns the multiplicative identity (one).<br />
+    /// 🤓 The multiplicative identity is the element that, when multiplied by any other element,
+    /// does not change that element. In most systems, this element is 1.
     fn one() -> Self;
 
+    /// Returns `true` if the value is equal to zero.
     fn is_zero(&self) -> bool {
         *self == Self::zero()
     }
 
+    /// Returns `true` if the value is equal to one.
     fn is_one(&self) -> bool {
         *self == Self::one()
     }
 
+    /// Returns `true` if the type is unsigned.
     fn is_unsigned() -> bool;
+
+    /// Returns `true` if the value is NaN (not a number).
+    ///
+    /// Default implementation returns `false`.
     fn is_nan(&self) -> bool {
         false
     }
 
+    /// Returns `true` if the value represents an integer.
+    ///
+    /// Default implementation returns `true`.
     fn is_integer(&self) -> bool {
         true
     }
 
+    /// Returns the corresponding `NumericType` enum variant for the implementing type.
     fn get_type() -> NumericType;
 }
 
@@ -286,12 +338,10 @@ impl Numeric for f32 {
         false
     }
 
-    /// Returns true if this value is NaN.
     fn is_nan(&self) -> bool {
         f32::is_nan(*self)
     }
 
-    /// Returns true if this float is a whole number (no fractional part).
     fn is_integer(&self) -> bool {
         self.fract() == 0.0
     }
@@ -348,12 +398,10 @@ impl Numeric for f64 {
         false
     }
 
-    /// Returns true if this value is NaN.
     fn is_nan(&self) -> bool {
         f64::is_nan(*self)
     }
 
-    /// Returns true if this float is a whole number (no fractional part).
     fn is_integer(&self) -> bool {
         self.fract() == 0.0
     }
