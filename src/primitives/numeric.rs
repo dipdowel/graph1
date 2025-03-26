@@ -23,18 +23,18 @@ pub enum NumericType {
 /// Implementors must define core behavior. Some methods (e.g., conversions from `f64`)
 /// have default implementations that panic and should be overridden where supported.
 pub trait Numeric:
-PartialEq
-+ PartialOrd
-+ Clone
-+ Copy
-+ Debug
-+ Display
-+ Add<Output = Self>
-+ Sub<Output = Self>
-+ Mul<Output = Self>
-+ Div<Output = Self>
-+ Rem<Output = Self>
-+ RemAssign
+    PartialEq
+    + PartialOrd
+    + Clone
+    + Copy
+    + Debug
+    + Display
+    + Add<Output = Self>
+    + Sub<Output = Self>
+    + Mul<Output = Self>
+    + Div<Output = Self>
+    + Rem<Output = Self>
+    + RemAssign
 {
     /// Convert this value to `f64`.
     fn to_f64(self) -> f64;
@@ -54,7 +54,7 @@ PartialEq
     ///
     /// # Panics
     /// The default implementation will panic. Override where supported.
-    fn from_u32(_value: u64) -> Self {
+    fn from_u32(_value: u32) -> Self {
         panic!("from_u32 not supported for this type")
     }
 
@@ -111,7 +111,6 @@ PartialEq
     fn get_type() -> NumericType;
 }
 
-// === Implementations ===
 
 impl Numeric for u32 {
     fn to_f64(self) -> f64 {
@@ -126,7 +125,7 @@ impl Numeric for u32 {
         self
     }
 
-    fn from_u32(value: u64) -> Self {
+    fn from_u32(value: u32) -> Self {
         value as u32
     }
 
@@ -168,7 +167,7 @@ impl Numeric for u64 {
         self as u32
     }
 
-    fn from_u32(value: u64) -> Self {
+    fn from_u32(value: u32) -> Self {
         value as u64
     }
 
@@ -210,7 +209,7 @@ impl Numeric for usize {
         self as u32
     }
 
-    fn from_u32(value: u64) -> Self {
+    fn from_u32(value: u32) -> Self {
         value as usize
     }
 
@@ -257,8 +256,8 @@ impl Numeric for i32 {
         }
     }
 
-    fn from_u32(value: u64) -> Self {
-        value as i32
+    fn from_u32(value: u32) -> Self {
+        value.min(i32::MAX as u32) as i32
     }
 
     /// NB: Negative values are clamped to 0 to avoid underflow.
@@ -271,7 +270,8 @@ impl Numeric for i32 {
     }
 
     fn from_u64(value: u64) -> Self {
-        value as i32
+        value.min(i32::MAX as u64) as i32
+
     }
 
     fn zero() -> Self {
@@ -309,7 +309,7 @@ impl Numeric for f32 {
         }
     }
 
-    fn from_u32(value: u64) -> Self {
+    fn from_u32(value: u32) -> Self {
         value as f32
     }
 
@@ -369,7 +369,7 @@ impl Numeric for f64 {
         }
     }
 
-    fn from_u32(value: u64) -> Self {
+    fn from_u32(value: u32) -> Self {
         value as f64
     }
 
@@ -410,7 +410,6 @@ impl Numeric for f64 {
         NumericType::F64
     }
 }
-
 
 #[cfg(test)]
 mod tests {
@@ -551,4 +550,92 @@ mod tests {
         assert_eq!(b.to_u32(), 0);
         assert_eq!(b.to_u64(), 0);
     }
+
+    // === Tests for potential unsafe casts ===
+
+    #[test]
+    fn test_u32_from_overflows() {
+        let high_f64 = (u32::MAX as f64) + 1000.0;
+        let result = u32::from_f64(high_f64);
+        assert_eq!(result, u32::MAX);
+
+        let negative_f64 = -123.4;
+        let result = u32::from_f64(negative_f64);
+        assert_eq!(result, 0);
+
+        let large_u64 = u64::MAX;
+        let result = u32::from_u64(large_u64);
+        assert_eq!(result, u32::MAX);
+
+        let result = u32::from_u32(u32::MAX);
+        assert_eq!(result, u32::MAX);
+    }
+
+    #[test]
+    fn test_u64_from_overflows() {
+        let high_f64 = (u64::MAX as f64) * 2.0;
+        let result = u64::from_f64(high_f64);
+        assert_eq!(result, u64::MAX);
+
+        let negative_f64 = -9999.0;
+        let result = u64::from_f64(negative_f64);
+        assert_eq!(result, 0);
+
+        let result = u64::from_u32(u32::MAX);
+        assert_eq!(result, u32::MAX as u64);
+    }
+
+
+    #[test]
+    fn test_usize_from_overflows() {
+        let high_f64 = (usize::MAX as f64) * 2.0;
+        let result = usize::from_f64(high_f64);
+        assert_eq!(result, usize::MAX);
+
+        let negative = -1.0;
+        let result = usize::from_f64(negative);
+        assert_eq!(result, 0);
+
+        let large_u64 = u64::MAX;
+        let result = usize::from_u64(large_u64);
+        assert_eq!(result, usize::MAX);
+
+        let result = usize::from_u32(u32::MAX);
+        assert_eq!(result, u32::MAX as usize);
+    }
+
+    #[test]
+    fn test_i32_from_overflows() {
+        let high_f64 = (i32::MAX as f64) + 1000.0;
+        let result = i32::from_f64(high_f64);
+        assert_eq!(result, i32::MAX);
+
+        let low_f64 = (i32::MIN as f64) - 1000.0;
+        let result = i32::from_f64(low_f64);
+        assert_eq!(result, i32::MIN);
+
+        let large_u64 = u64::MAX;
+        let result = i32::from_u64(large_u64);
+        assert_eq!(result, i32::MAX);
+
+        let result = i32::from_u32(u32::MAX);
+        assert_eq!(result, i32::MAX);
+    }
+    #[test]
+    fn test_f32_from_u64_overflow() {
+        let large_u64 = u64::MAX;
+        let result = f32::from_u64(large_u64);
+        assert!(result.is_finite());
+        assert!(result <= f32::MAX);
+    }
+
+    #[test]
+    fn test_f64_from_u64_overflow() {
+        let large_u64 = u64::MAX;
+        let result = f64::from_u64(large_u64);
+        assert!(result.is_finite());
+        assert!(result <= f64::MAX);
+    }
+
+
 }
