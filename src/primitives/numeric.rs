@@ -665,5 +665,39 @@ mod tests {
     fn test_i32_from_u64_clamps() {
         assert_eq!(i32::from_u64(u64::MAX), i32::MAX);
     }
-    
+
+ ///////////////////////////
+ #[test]
+ fn test_u32_from_f64_fails_without_clamp() {
+     let result = <u32 as Numeric>::from_f64(f64::MAX);
+     assert_eq!(result, u32::MAX); // without clamp, this returns 0 or garbage
+ }
+
+    #[test]
+    fn test_u32_from_u64_fails_without_clamp() {
+        let result = <u32 as Numeric>::from_u64(u64::MAX);
+        assert_eq!(result, u32::MAX); // unchecked cast may wrap
+    }
+
+    #[test]
+    fn test_i32_from_f64_fails_without_clamp() {
+        let result = <i32 as Numeric>::from_f64(f64::MIN);
+        assert_eq!(result, i32::MIN); // without clamp, wraps or overflows
+    }
+
+    #[test]
+    fn test_usize_from_f64_fails_without_clamp() {
+        let result = <usize as Numeric>::from_f64(f64::MAX);
+        assert_eq!(result, usize::MAX); // may silently wrap
+    }
+
+    #[test]
+    fn test_i32_from_u64_fails_without_clamp() {
+        let result = <i32 as Numeric>::from_u64(u64::MAX);
+        assert_eq!(result, i32::MAX); // unchecked, might overflow
+    }
+
+
+
+
 }
