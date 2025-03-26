@@ -126,11 +126,11 @@ pub mod primitives {
     /// `Point` - a struct representing a position on a 2D-plane.
     /// Unlike `Pixel`, it can have negative and fractional coordinates.
     pub mod point;
-    
-     
+
+
     /// `Ratio` - a representation of a ratio of two numbers and operations on it.
     pub mod ratio;
-    
+
 }
 
 //-=[ T }=------------------------------------------------------------------------------------------
@@ -187,6 +187,7 @@ pub mod utils {
             mod rgba_operation;
             pub use rgba_operation::rgba_operation;
             pub use rgba_operation::ColorOperation;
+            
         }
 
         /// Generators of color gradients
@@ -236,7 +237,9 @@ pub mod utils {
             pub mod mersenne;
             pub mod misc_math;
         }
-
+        /// Greatest Common Divisor (GCD) [ TODO: and Least Common Multiple (LCM) calculations ] 
+        pub mod gcd;
+        
         pub mod geometry{
             pub mod region;
         }

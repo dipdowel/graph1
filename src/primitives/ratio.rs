@@ -1,5 +1,6 @@
-use std::any::Any;
 use crate::primitives::numeric::Numeric;
+use crate::utils::math::gcd::gcd;
+use std::fmt;
 
 /// A struct representing a simple ratio of two `Numeric` values.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -8,11 +9,14 @@ pub struct Ratio<T: Numeric> {
     pub denominator: T,
 }
 
-impl<T: Numeric > Ratio<T> {
+impl<T: Numeric> Ratio<T> {
     /// Creates a new `Ratio`, panicking if denominator is zero.
     pub fn new(numerator: T, denominator: T) -> Self {
         assert_ne!(denominator, T::zero(), "Denominator cannot be zero");
-        Self { numerator, denominator }
+        Self {
+            numerator,
+            denominator,
+        }
     }
 
     /// Returns the decimal representation of the ratio.
@@ -80,18 +84,19 @@ impl<T: Numeric > Ratio<T> {
         self.inverted()
     }
 
-    /// Formats the ratio as a "W:H" string.
-    pub fn to_string_colon(&self) -> String {        
-        format!("{}:{}", self.numerator, self.denominator)
+}
+
+impl<T: Numeric> fmt::Display for Ratio<T> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        if self.numerator.is_integer() {
+            return write!(f, "{}:{}", self.numerator, self.denominator);
+        }
+        write!(
+            f,
+            "{:.4}...:{:.4}...",
+            self.numerator.to_f64(),
+            self.denominator.to_f64()
+        )
     }
 }
 
-/// Returns the greatest common divisor of two `Numeric` values using Euclidean algorithm.
-fn gcd<T: Numeric>(mut a: T, mut b: T) -> T {
-    while b != T::zero() {
-        let r = a % b;
-        a = b;
-        b = r;
-    }
-    a
-}
