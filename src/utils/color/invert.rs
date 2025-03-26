@@ -1,17 +1,17 @@
 use crate::primitives::plane::{Dimensions2d, RectArea};
 use crate::primitives::point::Point;
 use std::cmp::min;
+use std::thread;
 
-
-
+/// Meant to be used as a thread, while parallelizing the drawing of a rectangle.
 /// # Arguments
-/// * `buf` - A mutable slice of u32 values representing the pixel buffer. Each pixel is a 0RGB value.
+/// * `buf_slice` - A mutable slice of u32 values representing the pixel buffer. Each pixel is a RGBA value.
 /// * `buf_dimensions` - The dimensions of the pixel buffer.
 /// * `area` - The region of the buffer to transform.
 
-pub fn invert_colors(buf: &mut [u32], buf_dimensions: &Dimensions2d, area: &RectArea) {
+pub fn invert_colors_thread(buf_slice: &mut [u32], buf_dimensions: &Dimensions2d, area: &RectArea) {
     let dst_point: Point = area.top_left;
-    
+
     //----------------------------------------------------------------------------------------------
     // ENSURE COORDINATES ARE WITHIN THE BOUNDS OF THE BUFFER
 
@@ -37,17 +37,16 @@ pub fn invert_colors(buf: &mut [u32], buf_dimensions: &Dimensions2d, area: &Rect
             let dst_index = (dst_y * buf_dimensions.w + dst_x) as usize;
 
             // Get the destination pixel value
-            let dst_pixel = buf[dst_index];
+            let dst_pixel = buf_slice[dst_index];
 
             // Inverse a pixel and write it back to the destination buffer
-            buf[dst_index] = invert_pixel(dst_pixel);
+            buf_slice[dst_index] = invert_pixel(dst_pixel);
         }
     }
 }
 
 /// Inverts the color of an RGBA pixel.
 #[inline(always)]
-
 pub fn invert_pixel(pixel: u32) -> u32 {
     // Color as channels
     let r = (pixel >> 24) & 0xFF;
@@ -57,7 +56,73 @@ pub fn invert_pixel(pixel: u32) -> u32 {
     ((0xFF - r) << 24) | ((0xFF - g) << 16) | ((0xFF - b) << 8) | a
 }
 
+/// Inverts the colors of the buffer in a specified area (multi-threaded).
+/// Each pixel is assumed to be in RGBA format (32-bit u32).
+pub fn invert_colors(
+    buf: &mut [u32],
+    buf_dimensions: &Dimensions2d,
+    area: &RectArea,
+    num_threads: usize,
+) {
+    if num_threads < 2 {
+        if num_threads == 0 {
+            return;
+        }
+        invert_colors_thread(buf, buf_dimensions, area);
+        return;
+    }
 
+    let dst_point: Point = area.top_left;
+
+    let dst_area_w = min(
+        area.dimensions.w,
+        buf_dimensions.w.saturating_sub(dst_point.x),
+    );
+    let dst_area_h = min(
+        area.dimensions.h,
+        buf_dimensions.h.saturating_sub(dst_point.y),
+    );
+
+    if dst_area_w == 0 || dst_area_h == 0 {
+        return;
+    }
+
+    let line_length = buf_dimensions.w as usize;
+    let total_lines = dst_area_h as usize;
+    let start_idx = (dst_point.y * buf_dimensions.w + dst_point.x) as usize;
+    let slice_height = total_lines * line_length;
+
+    // Get mutable slice of the region to process
+    let buf_slice = &mut buf[start_idx..start_idx + slice_height];
+
+    let mut chunk_size = usize::div_ceil(slice_height, num_threads);
+
+    if chunk_size < line_length {
+        // Not worth threading
+        invert_colors_thread(buf, buf_dimensions, area);
+        return;
+    }
+
+    // Ensure chunk size is line-aligned
+    chunk_size = (chunk_size / line_length) * line_length;
+
+    let mut chunks: Vec<&mut [u32]> = buf_slice.chunks_mut(chunk_size).collect();
+
+    thread::scope(|s| {
+        for chunk in chunks.iter_mut() {
+            s.spawn(move || {
+                let lines = chunk.len() / line_length;
+                for line in 0..lines {
+                    let base = line * line_length;
+                    for x in 0..dst_area_w as usize {
+                        let idx = base + x;
+                        chunk[idx] = invert_pixel(chunk[idx]);
+                    }
+                }
+            });
+        }
+    });
+}
 
 #[cfg(test)]
 mod tests {
@@ -75,10 +140,7 @@ mod tests {
 
     #[test]
     fn test_invert_colors_whole_buffer() {
-        let mut buf = vec![
-            0x11_22_33_ff, 0x44_55_66_ff,
-            0x77_88_99_ff, 0xaa_bb_cc_ff,
-        ];
+        let mut buf = vec![0x11_22_33_ff, 0x44_55_66_ff, 0x77_88_99_ff, 0xaa_bb_cc_ff];
 
         let dimensions = Dimensions2d { w: 2, h: 2 };
         let area = RectArea {
@@ -87,7 +149,7 @@ mod tests {
             color: None,
         };
 
-        invert_colors(&mut buf, &dimensions, &area);
+        invert_colors(&mut buf, &dimensions, &area, 1);
 
         let expected: Vec<u32> = vec![
             invert_pixel(0x11_22_33_ff),
@@ -102,9 +164,15 @@ mod tests {
     #[test]
     fn test_invert_colors_partial_area() {
         let mut buf = vec![
-            0x00_00_00_ff, 0x00_00_00_ff, 0x00_00_00_ff,
-            0x00_00_00_ff, 0x11_22_33_ff, 0x00_00_00_ff,
-            0x00_00_00_ff, 0x00_00_00_ff, 0x00_00_00_ff,
+            0x00_00_00_ff,
+            0x00_00_00_ff,
+            0x00_00_00_ff,
+            0x00_00_00_ff,
+            0x11_22_33_ff,
+            0x00_00_00_ff,
+            0x00_00_00_ff,
+            0x00_00_00_ff,
+            0x00_00_00_ff,
         ];
 
         let dimensions = Dimensions2d { w: 3, h: 3 };
@@ -114,7 +182,7 @@ mod tests {
             color: None,
         };
 
-        invert_colors(&mut buf, &dimensions, &area);
+        invert_colors(&mut buf, &dimensions, &area, 1);
 
         let expected_pixel = invert_pixel(0x11_22_33_ff);
         assert_eq!(buf[4], expected_pixel);
@@ -139,7 +207,7 @@ mod tests {
             color: None,
         };
 
-        invert_colors(&mut buf, &dimensions, &area);
+        invert_colors(&mut buf, &dimensions, &area, 1);
 
         // Only bottom-right pixel should be affected
         assert_eq!(buf[3], invert_pixel(0xaa_bb_cc_dd));

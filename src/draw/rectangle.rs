@@ -15,7 +15,7 @@ impl PartialEq for AlphaMethod {
     }
 }
 /// A lower-level function that draws a part of a rectangle in a slice of the frame buffer.
-/// Meant to be used in a thread, while parallelizing the drawing of a rectangle.
+/// Meant to be used as a thread, while parallelizing the drawing of a rectangle.
 ///
 /// # Arguments
 /// * `rectangle_slice` - A mutable slice of the frame buffer where a part of the rectangle will be drawn.
