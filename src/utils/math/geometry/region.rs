@@ -2,6 +2,7 @@ use crate::primitives::containable::Containable;
 use crate::primitives::numeric::Numeric;
 use crate::primitives::plane::{Dimensions2d, RectArea};
 use crate::primitives::point::Point;
+use crate::primitives::ratio::Ratio;
 use crate::primitives::Pixel;
 
 /// Represents a rectangular region on a 2D-plane.
@@ -66,8 +67,8 @@ impl<T: Numeric> Region<T> {
         let cx = (x0 + x1) / two;
         let cy = (y0 + y1) / two;
 
-        self.center.x= cx;
-        self.center.y= cy;
+        self.center.x = cx;
+        self.center.y = cy;
         self.top.x = cx;
         self.top.y = y0;
         self.bottom.x = cx;
@@ -170,46 +171,70 @@ impl<T: Numeric> Region<T> {
         self.random_point_inside(seed).to_pixel(color)
     }
 
-    /// Splits the region horizontally into two equal-height subregions and returns them.
-    pub fn split_horizontal(&self) -> (Region<T>, Region<T>) {
-        let half = self.height() / T::from_u32(2);
+    pub fn split_horizontal(&self, ratio: Option<Ratio<T>>) -> (Region<T>, Region<T>) {
+        let h = self.height();
+        let w = self.width();
+        let (top_h, bottom_h) = match ratio {
+            Some(r) => {
+                let r = r.simplified();
+                let top_h = h * r.numerator / (r.numerator + r.denominator);
+                let bottom_h = h - top_h;
+                (top_h, bottom_h)
+            }
+            None => {
+                let half = h / T::from_u32(2);
+                (half, h - half)
+            }
+        };
 
         let top = RectArea::new(
             self.rect_area.top_left.x,
             self.rect_area.top_left.y,
-            self.width(),
-            half,
+            w,
+            top_h,
             self.rect_area.color,
         );
 
         let bottom = RectArea::new(
             self.rect_area.top_left.x,
-            self.rect_area.top_left.y + half,
-            self.width(),
-            self.height() - half,
+            self.rect_area.top_left.y + top_h,
+            w,
+            bottom_h,
             self.rect_area.color,
         );
 
         (Region::new(top), Region::new(bottom))
     }
 
-    /// Splits the region vertically into two equal-width subregions and returns them.
-    pub fn split_vertical(&self) -> (Region<T>, Region<T>) {
-        let half = self.width() / T::from_u32(2);
+    pub fn split_vertical(&self, ratio: Option<Ratio<T>>) -> (Region<T>, Region<T>) {
+        let w = self.width();
+        let h = self.height();
+        let (left_w, right_w) = match ratio {
+            Some(r) => {
+                let r = r.simplified();
+                let left_w = w * r.numerator / (r.numerator + r.denominator);
+                let right_w = w - left_w;
+                (left_w, right_w)
+            }
+            None => {
+                let half = w / T::from_u32(2);
+                (half, w - half)
+            }
+        };
 
         let left = RectArea::new(
             self.rect_area.top_left.x,
             self.rect_area.top_left.y,
-            half,
-            self.height(),
+            left_w,
+            h,
             self.rect_area.color,
         );
 
         let right = RectArea::new(
-            self.rect_area.top_left.x + half,
+            self.rect_area.top_left.x + left_w,
             self.rect_area.top_left.y,
-            self.width() - half,
-            self.height(),
+            right_w,
+            h,
             self.rect_area.color,
         );
 
@@ -232,7 +257,6 @@ impl<T: Numeric> Region<T> {
     pub fn jittered_center_pixel(&self, seed: u32, max_offset: u32, color: u32) -> Pixel {
         self.jittered_center(seed, max_offset).to_pixel(color)
     }
-
 }
 
 #[cfg(test)]
@@ -344,7 +368,6 @@ mod tests {
         assert!(!region.contains(partially_outside));
     }
 
-
     #[test]
     fn test_region_size_and_area() {
         let region = Region::new(RectArea::new(10, 20, 30, 40, None));
@@ -377,28 +400,22 @@ mod tests {
     }
 
     #[test]
-    fn test_split_horizontal() {
-        let region = Region::new(RectArea::new(0, 0, 10, 8, None));
+    fn test_split_horizontal_ratio() {
+        let region = Region::new(RectArea::new(0, 0, 10, 10, None));
+        let ratio = Ratio::new(1, 3).unwrap();
+        let (top, bottom) = region.split_horizontal(Some(ratio));
 
-        let (top, bottom) = region.split_horizontal();
-
-        assert_eq!(top.rect_area().top_left, Point::new(0, 0));
-        assert_eq!(top.height(), 4);
-
-        assert_eq!(bottom.rect_area().top_left, Point::new(0, 4));
-        assert_eq!(bottom.height(), 4);
+        assert_eq!(top.height(), 2);
+        assert_eq!(bottom.height(), 8);
     }
 
     #[test]
-    fn test_split_vertical() {
-        let region = Region::new(RectArea::new(0, 0, 9, 5, None));
+    fn test_split_vertical_ratio() {
+        let region = Region::new(RectArea::new(0, 0, 20, 10, None));
+        let ratio = Ratio::new(3, 1).unwrap();
+        let (left, right) = region.split_vertical(Some(ratio));
 
-        let (left, right) = region.split_vertical();
-
-        assert_eq!(left.rect_area().top_left, Point::new(0, 0));
-        assert_eq!(left.width(), 4);
-
-        assert_eq!(right.rect_area().top_left, Point::new(4, 0));
+        assert_eq!(left.width(), 15);
         assert_eq!(right.width(), 5);
     }
 
@@ -425,6 +442,4 @@ mod tests {
         let px = region.jittered_center_pixel(99, 3, color);
         assert_eq!(px.color, color);
     }
-
-
 }

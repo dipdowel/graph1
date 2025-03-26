@@ -12,9 +12,9 @@ pub struct Quadrants {
 impl Quadrants {
     pub fn from_dimensions(w: u32, h: u32) -> Self {
         let full_region = Region::new(RectArea::new(0, 0, w, h, None));
-        let (top, bottom) = full_region.split_horizontal();
-        let (top_left, top_right) = top.split_vertical();
-        let (bottom_left, bottom_right) = bottom.split_vertical();
+        let (top, bottom) = full_region.split_horizontal(None);
+        let (top_left, top_right) = top.split_vertical(None);
+        let (bottom_left, bottom_right) = bottom.split_vertical(None);
 
         Self {
             top_left,
