@@ -14,9 +14,9 @@ impl PartialEq for AlphaMethod {
         }
     }
 }
-
 /// A lower-level function that draws a part of a rectangle in a slice of the frame buffer.
 /// Meant to be used in a thread, while parallelizing the drawing of a rectangle.
+///
 /// # Arguments
 /// * `rectangle_slice` - A mutable slice of the frame buffer where a part of the rectangle will be drawn.
 /// * `line_length` - The length of a horizontal line in the frame buffer (kind of like a scanline on a TV screen).
@@ -24,8 +24,7 @@ impl PartialEq for AlphaMethod {
 /// * `color_start` - The index of the first pixel to be colored in the 'scanline'
 /// * `color_end` - The index of the last pixel to be colored in the 'scanline'
 /// * `color` - The color to fill the rectangle with
-/// * `alpha_method` - The method of alpha blending to use
-
+/// * `alpha_method` - The method of alpha blending to use, or `None` for direct overwrite
 fn draw_lines_of_rectangle_thread(
     rectangle_slice: &mut [u32],
     line_length: usize,
@@ -35,36 +34,33 @@ fn draw_lines_of_rectangle_thread(
     color: u32,
     alpha_method: Option<AlphaMethod>,
 ) {
-    let mut index: usize;
-
-    // No alpha, just assign the provided color to the relevant pixels, as simple as that.
-    if alpha_method.is_none() {
-            for line in 0..total_lines {
-                for pixel in color_start..color_end {
-                    index = line * line_length + pixel;
-                    rectangle_slice[index] = color;
-                }
-            }
-        return;
-    }
-
-    let alpha_method = alpha_method.unwrap();
-
     match alpha_method {
-
-        AlphaMethod::Int => {
+        // No alpha blending — just overwrite pixels
+        None => {
             for line in 0..total_lines {
+                let base = line * line_length;
                 for pixel in color_start..color_end {
-                    index = line * line_length + pixel;
-                    rectangle_slice[index] = blend_pixel_int(rectangle_slice[index], color);
+                    rectangle_slice[base + pixel] = color;
                 }
             }
         }
-        AlphaMethod::Float => {
+        // Integer-based alpha blending
+        Some(AlphaMethod::Int) => {
             for line in 0..total_lines {
+                let base = line * line_length;
                 for pixel in color_start..color_end {
-                    index = line * line_length + pixel;
-                    rectangle_slice[index] = blend_pixel_f32(rectangle_slice[index], color);
+                    let idx = base + pixel;
+                    rectangle_slice[idx] = blend_pixel_int(rectangle_slice[idx], color);
+                }
+            }
+        }
+        // Float-based alpha blending
+        Some(AlphaMethod::Float) => {
+            for line in 0..total_lines {
+                let base = line * line_length;
+                for pixel in color_start..color_end {
+                    let idx = base + pixel;
+                    rectangle_slice[idx] = blend_pixel_f32(rectangle_slice[idx], color);
                 }
             }
         }
@@ -72,44 +68,42 @@ fn draw_lines_of_rectangle_thread(
 }
 
 /// Draws a rectangle with dimensions and filled with a color specified in the `RectArea` struct.
-/// Multithreaded.
+/// Multithreaded. Falls back to single-threaded rendering if threading is disabled or not feasible.
+///
 /// # Arguments
 /// * `ctx` - The graph context
 /// * `rect` - The rectangle to draw
 pub fn filled<UserData>(ctx: &mut GraphContext<UserData>, rect: &RectArea) {
-    // Do nothing...
+    // Do nothing if threading is not enabled
     if ctx.num_threads == 0 {
         return;
     }
 
+    // Determine color: fallback to foreground if not set
     let color = rect.color.unwrap_or(ctx.win.foreground_color);
 
-    let alpha_method = if ctx.alpha.enabled {
-        Some(ctx.alpha.method)
-    } else {
-        None
-    };
+    // Determine if alpha blending is enabled
+    let alpha_method = ctx.alpha.enabled.then_some(ctx.alpha.method);
 
-    // ==[ SINGLE THREAD ]==========================================================================
-
-    // index of the first pixel in the first horizontal line of the rectangle
-    let first_line_start: usize = (rect.top_left.y * ctx.win.w) as usize;
-    // index of the last pixel in the last horizontal line of the rectangle
-    let last_line_end: usize = ((rect.top_left.y + rect.dimensions.h) * ctx.win.w) as usize;
+    // Framebuffer and rectangle layout variables
     let line_length = ctx.win.w_usize;
+    let total_lines = rect.dimensions.h as usize;
+    let color_start = rect.top_left.x as usize;
+    let color_end = (rect.top_left.x + rect.dimensions.w) as usize;
 
-    let mut chunk_size = usize::div_ceil(last_line_end - first_line_start, ctx.num_threads);
+    // Slice start/end in framebuffer
+    let first_line_start = (rect.top_left.y * ctx.win.w) as usize;
+    let last_line_end = ((rect.top_left.y + rect.dimensions.h) * ctx.win.w) as usize;
 
-    // If chunk size is less than the line length, force single thread processing
-    let forced_single_thread = chunk_size < line_length;
+    let rectangle_slice = &mut ctx.frame_buf[first_line_start..last_line_end];
 
-    if ctx.num_threads == 1 || forced_single_thread {
-        let rectangle_slice = &mut ctx.frame_buf[first_line_start..last_line_end];
+    // Calculate how much work each thread should do
+    let chunk_len = rectangle_slice.len();
+    let mut chunk_size = usize::div_ceil(chunk_len, ctx.num_threads);
 
-        let total_lines = rect.dimensions.h as usize;
-        let color_start = rect.top_left.x as usize;
-        let color_end = (rect.top_left.x + rect.dimensions.w) as usize;
-
+    // If chunks are smaller than a full line, it’s not worth threading
+    let too_small_for_threads = chunk_size < line_length;
+    if ctx.num_threads == 1 || too_small_for_threads {
         draw_lines_of_rectangle_thread(
             rectangle_slice,
             line_length,
@@ -119,42 +113,29 @@ pub fn filled<UserData>(ctx: &mut GraphContext<UserData>, rect: &RectArea) {
             color,
             alpha_method,
         );
-
         return;
     }
 
-    // ==[ MULTIPLE THREADS ]=======================================================================
-
-    // index of the first pixel in the first horizontal line of the rectangle
-    let first_line_start: usize = (rect.top_left.y * ctx.win.w) as usize;
-    // index of the last pixel in the last horizontal line of the rectangle
-    let last_line_end: usize = ((rect.top_left.y + rect.dimensions.h) * ctx.win.w) as usize;
-
-    let rectangle_slice = &mut ctx.frame_buf[first_line_start..last_line_end];
-    let line_length = ctx.win.w_usize;
-    let color_start = rect.top_left.x as usize;
-    let color_end = (rect.top_left.x + rect.dimensions.w) as usize;
-    let mut chunk_size = usize::div_ceil(rectangle_slice.len(), ctx.num_threads);
-
-    // Make sure the chunk size is a multiple of the line length, otherwise the rectangle might break :/
-    chunk_size = chunk_size / line_length * line_length;
+    // Ensure chunk size is line-aligned so each thread gets whole scanlines
+    chunk_size = (chunk_size / line_length) * line_length;
 
     let mut chunks: Vec<&mut [u32]> = rectangle_slice.chunks_mut(chunk_size).collect();
 
+    // Use thread::scope to safely spawn threads
     thread::scope(|s| {
-        // Iterate over the chunks and process each in its own thread
         for chunk in chunks.iter_mut() {
+            let lines = chunk.len() / line_length;
 
             s.spawn(move || {
                 draw_lines_of_rectangle_thread(
                     chunk,
                     line_length,
-                    chunk.len() / line_length,
+                    lines,
                     color_start,
                     color_end,
                     color,
                     alpha_method,
-                )
+                );
             });
         }
     }); // The scope for the scoped threads ends here. All the threads are expected to be joined automagically at this point.
