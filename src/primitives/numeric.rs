@@ -636,6 +636,34 @@ mod tests {
         assert!(result.is_finite());
         assert!(result <= f64::MAX);
     }
+    // === Clamp tests ===
+    #[test]
+    fn test_u32_from_f64_clamps() {
+        assert_eq!(u32::from_f64(-10.0), 0);
+        assert_eq!(u32::from_f64(f64::MAX), u32::MAX);
+    }
 
+    #[test]
+    fn test_u64_from_f64_clamps() {
+        assert_eq!(u64::from_f64(-123.4), 0);
+        assert_eq!(u64::from_f64(f64::MAX), u64::MAX);
+    }
 
+    #[test]
+    fn test_usize_from_f64_clamps() {
+        assert_eq!(usize::from_f64(-9999.0), 0);
+        assert_eq!(usize::from_f64(f64::MAX), usize::MAX);
+    }
+
+    #[test]
+    fn test_i32_from_f64_clamps() {
+        assert_eq!(i32::from_f64(f64::MIN), i32::MIN);
+        assert_eq!(i32::from_f64(f64::MAX), i32::MAX);
+    }
+
+    #[test]
+    fn test_i32_from_u64_clamps() {
+        assert_eq!(i32::from_u64(u64::MAX), i32::MAX);
+    }
+    
 }
