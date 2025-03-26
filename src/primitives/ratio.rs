@@ -79,10 +79,6 @@ impl<T: Numeric> Ratio<T> {
         self.numerator == self.denominator
     }
 
-    /// Rotates the ratio by 90 degrees (flips width and height).
-    pub fn rotate_90(&self) -> Self {
-        self.inverted()
-    }
 
 }
 
