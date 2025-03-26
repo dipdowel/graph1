@@ -64,7 +64,7 @@ pub fn linear(c1: u32, c2: u32, steps: usize) -> Vec<u32> {
 
 pub fn linear_step(c1: u32, c2: u32, steps: usize, step: usize) -> u32 {
     assert!(steps > 1, "There must be at least two steps in the gradient.");
-    assert!(step < steps, "Step must be within the range of steps.");
+    let step = step.min(steps-1);
 
     // Extract the RGBA components from both of the colors
     let r1 = ((c1 >> 24) & 0xFF) as f32;
