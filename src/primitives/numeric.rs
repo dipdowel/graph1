@@ -25,6 +25,7 @@ pub enum NumericType {
 pub trait Numeric:
     PartialEq
     + PartialOrd
+    // + Ord  // TODO: Ord is not implemented! Implement it if needed.
     + Clone
     + Copy
     + Debug

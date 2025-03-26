@@ -1,5 +1,6 @@
 use crate::primitives::numeric::Numeric;
 use crate::utils::math::gcd::gcd;
+use std::cmp::Ord;
 use std::cmp::Ordering;
 use std::fmt;
 
@@ -19,7 +20,7 @@ pub enum RatioError {
     ZeroNumeratorInversion,
 }
 
-impl<T: Numeric + Eq + PartialEq> Ord for Ratio<T> {
+impl<T: Numeric + Eq> Ord for Ratio<T> {
     fn cmp(&self, other: &Self) -> Ordering {
         // NB: cross-multiplication comparison
         // We evaluate (a/b) ? (c/d) as (a * d) ? (c * b),
@@ -29,15 +30,15 @@ impl<T: Numeric + Eq + PartialEq> Ord for Ratio<T> {
         //    2 * 4 = 8
         //
         //    => 9 > 8 ⇒ 3/4 > 2/3
-        ///
+        //
         (self.numerator.to_u64() * other.denominator.to_u64())
             .cmp(&(other.numerator.to_u64() * self.denominator.to_u64()))
     }
 }
 
-impl<T: Numeric + PartialEq> PartialOrd for Ratio<T> {
+impl<T: Numeric + Eq> PartialOrd for Ratio<T> {
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
-        Some(self.cmp(other))
+        Some(Ord::cmp(self, other))
     }
 }
 
@@ -89,12 +90,6 @@ impl<T: Numeric> Ratio<T> {
             numerator: self.denominator,
             denominator: self.numerator,
         })
-    }
-
-    /// Compares this ratio to another.
-    pub fn cmp(&self, other: &Self) -> std::cmp::Ordering {
-        (self.numerator.to_u64() * other.denominator.to_u64())
-            .cmp(&(other.numerator.to_u64() * self.denominator.to_u64()))
     }
 
     /// Converts the ratio to a (width, height) pair based on a base denominator value.
