@@ -1,5 +1,6 @@
 use crate::primitives::numeric::Numeric;
 use crate::utils::math::gcd::gcd;
+use std::cmp::Ordering;
 use std::fmt;
 
 /// A struct representing a ratio of two `Numeric` values.
@@ -13,9 +14,31 @@ pub struct Ratio<T: Numeric> {
 pub enum RatioError {
     /// Denominator was zero during ratio creation.
     ZeroDenominator,
-    /// Tried to invert a ratio with zero numerator.
 
+    /// Tried to invert a ratio with zero numerator.
     ZeroNumeratorInversion,
+}
+
+impl<T: Numeric + Eq + PartialEq> Ord for Ratio<T> {
+    fn cmp(&self, other: &Self) -> Ordering {
+        // NB: cross-multiplication comparison
+        // We evaluate (a/b) ? (c/d) as (a * d) ? (c * b),
+        // which is equivalent but avoids floating-point imprecision and division by zero!
+        // E.g. compare 3/4 vs 2/3:
+        //    3 * 3 = 9
+        //    2 * 4 = 8
+        //
+        //    => 9 > 8 ⇒ 3/4 > 2/3
+        ///
+        (self.numerator.to_u64() * other.denominator.to_u64())
+            .cmp(&(other.numerator.to_u64() * self.denominator.to_u64()))
+    }
+}
+
+impl<T: Numeric + PartialEq> PartialOrd for Ratio<T> {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        Some(self.cmp(other))
+    }
 }
 
 impl<T: Numeric> Ratio<T> {
@@ -81,10 +104,10 @@ impl<T: Numeric> Ratio<T> {
     }
 
     /// Returns whether this ratio matches the given width and height.
-    pub fn matches_aspect(&self, width: T, height: T) -> bool {
+    pub fn has_same_aspect_as(&self, width: T, height: T) -> bool {
         let simplified = self.simplified();
         let other = match Self::new(width, height) {
-            Ok(r) => r.simplified(),
+            Ok(ratio) => ratio.simplified(),
             Err(_) => return false,
         };
         simplified == other
@@ -109,7 +132,6 @@ impl<T: Numeric> fmt::Display for Ratio<T> {
         )
     }
 }
-
 
 #[cfg(test)]
 mod tests {
@@ -182,10 +204,10 @@ mod tests {
     }
 
     #[test]
-    fn test_matches_aspect() {
+    fn test_has_same_aspect_as() {
         let r = Ratio::new(16_u32, 9_u32).unwrap();
-        assert!(r.matches_aspect(1920_u32, 1080_u32));
-        assert!(!r.matches_aspect(1920_u32, 1200_u32));
+        assert!(r.has_same_aspect_as(1920_u32, 1080_u32));
+        assert!(!r.has_same_aspect_as(1920_u32, 1200_u32));
     }
 
     #[test]
@@ -231,8 +253,8 @@ mod tests {
     fn test_matches_aspect_symmetry() {
         let r1 = Ratio::new(1280_u32, 720_u32).unwrap();
         let r2 = Ratio::new(1920_u32, 1080_u32).unwrap();
-        assert!(r1.matches_aspect(1920_u32, 1080_u32));
-        assert!(r2.matches_aspect(1280_u32, 720_u32));
+        assert!(r1.has_same_aspect_as(1920_u32, 1080_u32));
+        assert!(r2.has_same_aspect_as(1280_u32, 720_u32));
     }
 
     #[test]
@@ -250,5 +272,4 @@ mod tests {
         assert_eq!(r.as_percent(), 0.0_f64);
         assert_eq!(format!("{}", r), "Ratio 0:5");
     }
-
 }
