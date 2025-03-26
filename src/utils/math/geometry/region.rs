@@ -4,12 +4,12 @@ use crate::primitives::plane::{Dimensions2d, RectArea};
 use crate::primitives::point::Point;
 use crate::primitives::Pixel;
 
-/// Represents a rectangular region within a 2D space.
-/// Provides access to useful spatial reference points such as:
+/// Represents a rectangular region on a 2D-plane.
+/// Provides access to some spatial reference points such as:
 /// - the center of the region
 /// - midpoints of each edge (top, bottom, left, right)
 /// - corners (top-left, top-right, bottom-left, bottom-right)
-/// These are useful for layout, animation effects, transformations, and subdivision.
+/// These could be used in layout implementations, animation effects, transformations, and screen subdivisions.
 #[derive(Debug, Clone, Copy)]
 pub struct Region<T: Numeric = u32> {
     rect_area: RectArea<T>,
@@ -25,7 +25,7 @@ pub struct Region<T: Numeric = u32> {
 }
 
 impl<T: Numeric> Region<T> {
-    /// Creates a new `Region` from the given `RectArea`, calculating all relevant points.
+    /// Creates a new `Region` from the given `RectArea`, calculates all relevant points.
     pub fn new(area: RectArea<T>) -> Self {
         let x0 = area.top_left.x;
         let y0 = area.top_left.y;
@@ -33,7 +33,6 @@ impl<T: Numeric> Region<T> {
         let h = area.dimensions.h;
         let x1 = x0 + w;
         let y1 = y0 + h;
-
         let two = T::from_f64(2.0);
         let cx = (x0 + x1) / two;
         let cy = (y0 + y1) / two;
