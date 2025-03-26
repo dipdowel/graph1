@@ -1,3 +1,4 @@
+use crate::core::context::GraphContext;
 use crate::primitives::plane::{Dimensions2d, RectArea};
 use crate::primitives::point::Point;
 use std::cmp::min;
@@ -58,7 +59,7 @@ pub fn invert_pixel(pixel: u32) -> u32 {
 
 /// Inverts the colors of the buffer in a specified area (multi-threaded).
 /// Each pixel is assumed to be in RGBA format (32-bit u32).
-pub fn invert_colors(
+pub fn invert_colors_buf(
     buf: &mut [u32],
     buf_dimensions: &Dimensions2d,
     area: &RectArea,
@@ -124,6 +125,16 @@ pub fn invert_colors(
     });
 }
 
+/// Inverts the colors of the frame buffer in a specified area (multi-threaded)
+pub fn invert_colors<UserData>(ctx: &mut GraphContext<UserData>, area: &RectArea) {
+    invert_colors_buf(
+        &mut ctx.frame_buf,
+        &ctx.win.dimensions,
+        area,
+        ctx.num_threads,
+    );
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -149,7 +160,7 @@ mod tests {
             color: None,
         };
 
-        invert_colors(&mut buf, &dimensions, &area, 1);
+        invert_colors_buf(&mut buf, &dimensions, &area, 1);
 
         let expected: Vec<u32> = vec![
             invert_pixel(0x11_22_33_ff),
@@ -182,7 +193,7 @@ mod tests {
             color: None,
         };
 
-        invert_colors(&mut buf, &dimensions, &area, 1);
+        invert_colors_buf(&mut buf, &dimensions, &area, 1);
 
         let expected_pixel = invert_pixel(0x11_22_33_ff);
         assert_eq!(buf[4], expected_pixel);
@@ -207,7 +218,7 @@ mod tests {
             color: None,
         };
 
-        invert_colors(&mut buf, &dimensions, &area, 1);
+        invert_colors_buf(&mut buf, &dimensions, &area, 1);
 
         // Only bottom-right pixel should be affected
         assert_eq!(buf[3], invert_pixel(0xaa_bb_cc_dd));
@@ -229,9 +240,8 @@ mod tests {
         };
 
         invert_colors_thread(&mut buf_single, &dimensions, &area);
-        invert_colors(&mut buf_parallel, &dimensions, &area, 4);
+        invert_colors_buf(&mut buf_parallel, &dimensions, &area, 4);
 
         assert_eq!(buf_single, buf_parallel);
     }
-
 }
