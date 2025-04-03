@@ -161,6 +161,11 @@ pub mod utils {
     mod common;
     pub use common::clear_screen;
 
+
+    pub mod clip{
+        pub mod line;
+    }
+
     /// Utils for processing colors
     pub mod color {
         /// Color adapters for converting between different color models.
