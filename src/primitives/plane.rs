@@ -68,35 +68,47 @@ impl<T: Numeric + std::ops::Add<Output = T>> RectArea<T> {
         }
     }
 
+    /// Checks whether a given point lies within the bounds of this rectangle.
+    pub fn contains_point(&self, point: &Point<T>) -> bool {
+        point.x >= self.top_left.x
+            && point.x < self.top_left.x + self.dimensions.w
+            && point.y >= self.top_left.y
+            && point.y < self.top_left.y + self.dimensions.h
+    }
 
-        /// Checks whether a given point lies within the bounds of this rectangle.
-        pub fn contains_point(&self, point: &Point<T>) -> bool {
-            point.x >= self.top_left.x &&
-                point.x < self.top_left.x + self.dimensions.w &&
-                point.y >= self.top_left.y &&
-                point.y < self.top_left.y + self.dimensions.h
-        }
+    /// Checks whether the given rectangle is fully contained within this rectangle.
+    pub fn contains(&self, other: &RectArea<T>) -> bool {
+        other.top_left.x >= self.top_left.x
+            && other.top_left.y >= self.top_left.y
+            && other.top_left.x + other.dimensions.w <= self.top_left.x + self.dimensions.w
+            && other.top_left.y + other.dimensions.h <= self.top_left.y + self.dimensions.h
+    }
 
-        /// Checks whether the given rectangle is fully contained within this rectangle.
-        pub fn contains(&self, other: &RectArea<T>) -> bool {
-            other.top_left.x >= self.top_left.x &&
-                other.top_left.y >= self.top_left.y &&
-                other.top_left.x + other.dimensions.w <= self.top_left.x + self.dimensions.w &&
-                other.top_left.y + other.dimensions.h <= self.top_left.y + self.dimensions.h
-        }
+    /// Checks whether the given line segment is completely outside the RectArea and does not intersect it.
 
+    pub fn is_line_segment_outside(&self, start: &Point<i32>, end: &Point<i32>) -> bool {
+        let a: RectArea<i32> = self.convert();
 
+        let x_min = a.top_left.x;
+        let y_min = a.top_left.y;
+        let x_max = x_min + a.dimensions.w - 1;
+        let y_max = y_min + a.dimensions.h - 1;
 
+        // Line is completely left, right, above, or below the area
+        (start.x < x_min && end.x < x_min) || // left
+            (start.x > x_max && end.x > x_max) || // right
+            (start.y < y_min && end.y < y_min) || // above
+            (start.y > y_max && end.y > y_max) // below
+    }
 }
-
 
 #[cfg(test)]
 mod tests {
-     use super::*;
+    use super::*;
 
     #[test]
     fn test_convert_u32_to_i32() {
-        let rect_u32:RectArea<u32> = RectArea::new(10, 20, 30, 40, Some(0x0000ffff));
+        let rect_u32: RectArea<u32> = RectArea::new(10, 20, 30, 40, Some(0x0000ffff));
         let rect_i32: RectArea<i32> = rect_u32.convert();
 
         assert_eq!(rect_i32.top_left.x, 10);
@@ -142,7 +154,7 @@ mod tests {
 
     #[test]
     fn test_convert_f64_to_u32() {
-        let rect_f64:RectArea<f64> = RectArea::new(10.9, -20.1, 30.8, 40.2, Some(0x0000ffff));
+        let rect_f64: RectArea<f64> = RectArea::new(10.9, -20.1, 30.8, 40.2, Some(0x0000ffff));
         let rect_u32: RectArea<u32> = rect_f64.convert();
         assert_eq!(rect_u32.top_left.x, 11);
         assert_eq!(rect_u32.top_left.y, 0); // -20.1 truncated to 0
@@ -150,7 +162,6 @@ mod tests {
         assert_eq!(rect_u32.dimensions.h, 40); // 40.2 truncated to 40
         assert_eq!(rect_u32.color, Some(0x0000ffff));
     }
-
 
     #[test]
     fn test_contains_point() {
@@ -189,56 +200,46 @@ mod tests {
         assert!(!outer.contains(&outside));
     }
 
-
-
-
-
-        #[test]
-        fn test_rect_fits_rect_within_bounds() {
-            let rect_1 = RectArea::new(0, 0, 500, 500, None);
-            let rect_2 = RectArea::new(100, 100, 200, 200, None);
-            assert!(rect_1.contains(&rect_2));
-        }
-
-        #[test]
-        fn test_rect_fits_rect_out_of_bounds_x() {
-            let rect_1 = RectArea::new(0, 0, 500, 500, None);
-            let rect_2 = RectArea::new(400, 100, 200, 200, None);
-            assert!(!rect_1.contains(&rect_2));
-        }
-
-        #[test]
-        fn test_rect_fits_rect_out_of_bounds_y() {
-            let rect_1 = RectArea::new(0, 0, 500, 500, None);
-            let rect_2 = RectArea::new(100, 400, 200, 200, None);
-            assert!(!rect_1.contains(&rect_2));
-        }
-
-        #[test]
-        fn test_rect_fits_rect_too_wide() {
-            let rect_1 = RectArea::new(0, 0, 500, 500, None);
-            let rect_2 = RectArea::new(100, 100, 600, 200, None);
-            assert!(!rect_1.contains(&rect_2));
-        }
-
-        #[test]
-        fn test_rect_fits_rect_too_tall() {
-            let rect_1 = RectArea::new(0, 0, 500, 500, None);
-            let rect_2 = RectArea::new(100, 100, 200, 600, None);
-
-            assert!(!rect_1.contains(&rect_2));
-        }
-
-        #[test]
-        fn test_rect_fits_rect_exact_fit() {
-            let rect_1 = RectArea::new(0, 0, 500, 500, None);
-            let rect_2 = RectArea::new(0, 0, 500, 500, None);
-            assert!(rect_1.contains(&rect_2));
-        }
+    #[test]
+    fn test_rect_fits_rect_within_bounds() {
+        let rect_1 = RectArea::new(0, 0, 500, 500, None);
+        let rect_2 = RectArea::new(100, 100, 200, 200, None);
+        assert!(rect_1.contains(&rect_2));
     }
 
+    #[test]
+    fn test_rect_fits_rect_out_of_bounds_x() {
+        let rect_1 = RectArea::new(0, 0, 500, 500, None);
+        let rect_2 = RectArea::new(400, 100, 200, 200, None);
+        assert!(!rect_1.contains(&rect_2));
+    }
 
+    #[test]
+    fn test_rect_fits_rect_out_of_bounds_y() {
+        let rect_1 = RectArea::new(0, 0, 500, 500, None);
+        let rect_2 = RectArea::new(100, 400, 200, 200, None);
+        assert!(!rect_1.contains(&rect_2));
+    }
 
+    #[test]
+    fn test_rect_fits_rect_too_wide() {
+        let rect_1 = RectArea::new(0, 0, 500, 500, None);
+        let rect_2 = RectArea::new(100, 100, 600, 200, None);
+        assert!(!rect_1.contains(&rect_2));
+    }
 
+    #[test]
+    fn test_rect_fits_rect_too_tall() {
+        let rect_1 = RectArea::new(0, 0, 500, 500, None);
+        let rect_2 = RectArea::new(100, 100, 200, 600, None);
 
+        assert!(!rect_1.contains(&rect_2));
+    }
 
+    #[test]
+    fn test_rect_fits_rect_exact_fit() {
+        let rect_1 = RectArea::new(0, 0, 500, 500, None);
+        let rect_2 = RectArea::new(0, 0, 500, 500, None);
+        assert!(rect_1.contains(&rect_2));
+    }
+}
