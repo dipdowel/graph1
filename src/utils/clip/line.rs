@@ -1,6 +1,12 @@
 use crate::primitives::plane::RectArea;
 use crate::primitives::point::Point;
 
+/// Rejects lines that are completely outside the area.
+fn reject_line(start: &Point<i32>, end: &Point<i32>, area: &RectArea<u32>) -> bool {
+    let a: RectArea<i32> = area.convert();
+    !a.contains_point(&start) && !a.contains_point(&end)
+}
+
 //
 // -----------------------------------------------------------------------------
 // Clipping Helper: Elastic Slide
@@ -24,17 +30,18 @@ pub fn to_area_elastic_slide(
     end: &Point<i32>,
     area: &RectArea<u32>,
 ) -> Option<(Point<u32>, Point<u32>)> {
+
+    if reject_line(start, end, area) {
+        return None;
+    }
+
     let x_min = area.top_left.x as i32;
     let y_min = area.top_left.y as i32;
     let x_max = x_min + area.dimensions.w as i32 - 1;
     let y_max = y_min + area.dimensions.h as i32 - 1;
 
     Some((
-        Point::new(
-            start.x.clamp(x_min, x_max),
-            start.y.clamp(y_min, y_max),
-        )
-            .convert(),
+        Point::new(start.x.clamp(x_min, x_max), start.y.clamp(y_min, y_max)).convert(),
         Point::new(end.x.clamp(x_min, x_max), end.y.clamp(y_min, y_max)).convert(),
     ))
 }
@@ -157,6 +164,11 @@ pub fn to_area_liang_barsky(
     end: &Point<i32>,
     area: &RectArea<u32>,
 ) -> Option<(Point<u32>, Point<u32>)> {
+
+    if reject_line(start, end, area) {
+        return None;
+    }
+
     // Convert area bounds to f32 for parametric calculations
     let x_min = area.top_left.x as f32;
     let y_min = area.top_left.y as f32;
@@ -164,12 +176,7 @@ pub fn to_area_liang_barsky(
     let y_max = y_min + area.dimensions.h as f32 - 1.0;
 
     // Decompose line endpoints into floats
-    let (x0, y0, x1, y1) = (
-        start.x as f32,
-        start.y as f32,
-        end.x as f32,
-        end.y as f32,
-    );
+    let (x0, y0, x1, y1) = (start.x as f32, start.y as f32, end.x as f32, end.y as f32);
 
     // Direction vector of the line
     let dx = x1 - x0;
@@ -219,20 +226,13 @@ pub fn to_area_liang_barsky(
     if clip(-dx, x0 - x_min, &mut t0, &mut t1)    // Left
         && clip(dx, x_max - x0, &mut t0, &mut t1) // Right
         && clip(-dy, y0 - y_min, &mut t0, &mut t1) // Bottom
-        && clip(dy, y_max - y0, &mut t0, &mut t1)  // Top
+        && clip(dy, y_max - y0, &mut t0, &mut t1)
+    // Top
     {
         // Calculate new clipped endpoints using the [t0, t1] segment
-        let clipped_start = Point::new(
-            (x0 + dx * t0) as i32,
-            (y0 + dy * t0) as i32,
-        )
-            .convert();
+        let clipped_start = Point::new((x0 + dx * t0) as i32, (y0 + dy * t0) as i32).convert();
 
-        let clipped_end = Point::new(
-            (x0 + dx * t1) as i32,
-            (y0 + dy * t1) as i32,
-        )
-            .convert();
+        let clipped_end = Point::new((x0 + dx * t1) as i32, (y0 + dy * t1) as i32).convert();
 
         Some((clipped_start, clipped_end))
     } else {
