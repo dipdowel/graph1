@@ -31,7 +31,7 @@ impl<T: Numeric> Dimensions2d<T> {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
-/// A rectangle area with a top-left point, dimensions, and color.
+/// A rectangular area with a top-left point, dimensions, and color.
 /// It is used to represent a rectangle on the screen, so the coordinates can only be positive integers.
 pub struct RectArea<T: Numeric = u32> {
     pub top_left: Point<T>,
@@ -70,7 +70,7 @@ impl<T: Numeric + std::ops::Add<Output = T>> RectArea<T> {
 
 
         /// Checks whether a given point lies within the bounds of this rectangle.
-        pub fn contains_point(&self, point: Point<T>) -> bool {
+        pub fn contains_point(&self, point: &Point<T>) -> bool {
             point.x >= self.top_left.x &&
                 point.x < self.top_left.x + self.dimensions.w &&
                 point.y >= self.top_left.y &&
@@ -157,15 +157,15 @@ mod tests {
         let rect = RectArea::new(10, 20, 100, 50, None);
 
         // Inside
-        assert!(rect.contains_point(Point::new(10, 20))); // top-left corner
-        assert!(rect.contains_point(Point::new(109, 69))); // bottom-right edge (exclusive)
-        assert!(rect.contains_point(Point::new(50, 40))); // center area
+        assert!(rect.contains_point(&Point::new(10, 20))); // top-left corner
+        assert!(rect.contains_point(&Point::new(109, 69))); // bottom-right edge (exclusive)
+        assert!(rect.contains_point(&Point::new(50, 40))); // center area
 
         // Outside
-        assert!(!rect.contains_point(Point::new(9, 20))); // left
-        assert!(!rect.contains_point(Point::new(10, 70))); // bottom
-        assert!(!rect.contains_point(Point::new(110, 69))); // right
-        assert!(!rect.contains_point(Point::new(10, 100))); // below
+        assert!(!rect.contains_point(&Point::new(9, 20))); // left
+        assert!(!rect.contains_point(&Point::new(10, 70))); // bottom
+        assert!(!rect.contains_point(&Point::new(110, 69))); // right
+        assert!(!rect.contains_point(&Point::new(10, 100))); // below
     }
 
     #[test]

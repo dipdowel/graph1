@@ -34,7 +34,7 @@ pub struct StarProperties {
 /// * `props` - Properties of the star to render
 /// # Returns
 /// A vector of `Point`s representing the vertices of the star.
-pub fn star<UserData>(ctx: &mut GraphContext<UserData>, props: &StarProperties) -> Vec<Point> {
+pub fn star<UserData>(ctx: &mut GraphContext<UserData>, props: &StarProperties) -> Vec<Point<i32>> {
     // Too few rays, won't really render anything nice
     if props.num_rays < 2 {
         return Vec::new();
@@ -52,7 +52,7 @@ pub fn star<UserData>(ctx: &mut GraphContext<UserData>, props: &StarProperties) 
     // ************************************************************************
     // Calculate all the vertex positions
     // ************************************************************************
-    let mut vertices = Vec::with_capacity(num_vertices);
+    let mut vertices:Vec<Point<i32>> = Vec::with_capacity(num_vertices);
     vertices.resize(num_vertices, Point { x: 0, y: 0 });
 
     for i in 0..num_vertices  {
@@ -65,8 +65,8 @@ pub fn star<UserData>(ctx: &mut GraphContext<UserData>, props: &StarProperties) 
         let angle = i as f64 * angle_step + rotation_radians; // Current angle adjusted for rotation
 
         // Calculate vertex position and write directly to the vector (let's skip some extra local vars)
-        vertices[i].x = (props.center.x as f64 + radius as f64 * angle.cos()) as u32;
-        vertices[i].y = (props.center.y as f64 + radius as f64 * angle.sin()) as u32;
+        vertices[i].x = (props.center.x as f64 + radius as f64 * angle.cos()) as i32;
+        vertices[i].y = (props.center.y as f64 + radius as f64 * angle.sin()) as i32;
     }
 
     if !props.skip_rendering {

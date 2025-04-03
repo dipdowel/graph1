@@ -29,7 +29,7 @@ pub struct PolygonProperties {
 /// * `props` - Properties of the polygon to render
 /// # Returns
 /// A vector of `Point`s representing the vertices of the polygon.
-pub fn polygon<UserData>(ctx: &mut GraphContext<UserData>, props: &PolygonProperties) -> Vec<Point> {
+pub fn polygon<UserData>(ctx: &mut GraphContext<UserData>, props: &PolygonProperties) -> Vec<Point<i32>> {
     // Do nothing if it's not at least a triangle
     if props.num_sides < 3 {
         return Vec::new();
@@ -48,7 +48,7 @@ pub fn polygon<UserData>(ctx: &mut GraphContext<UserData>, props: &PolygonProper
     // ************************************************************************
     let num_sides_usize = num_sides as usize;
 
-    let mut vertices = Vec::with_capacity(num_sides_usize);
+    let mut vertices:Vec<Point<i32>> = Vec::with_capacity(num_sides_usize);
     vertices.resize(num_sides_usize, Point { x: 0, y: 0 });
 
 
@@ -56,8 +56,8 @@ pub fn polygon<UserData>(ctx: &mut GraphContext<UserData>, props: &PolygonProper
         let angle = i as f64 * angle_step + rotation_radians; // Current angle adjusted for rotation
 
         // Calculate vertex position
-        vertices[i].x = (props.center.x as f64 + props.radius as f64 * angle.cos()) as u32;
-        vertices[i].y = (props.center.y as f64 + props.radius as f64 * angle.sin()) as u32;
+        vertices[i].x = (props.center.x as f64 + props.radius as f64 * angle.cos()) as i32;
+        vertices[i].y = (props.center.y as f64 + props.radius as f64 * angle.sin()) as i32;
     }
 
     if !props.skip_rendering {

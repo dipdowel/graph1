@@ -9,6 +9,7 @@ pub mod core {
 
     /// Heart of the library: `GraphContext` and its sub-contexts
     pub mod context {
+
         pub mod alpha;
         mod bezier;
         mod graph;
@@ -22,6 +23,10 @@ pub mod core {
         pub use window::WindowContext;
     }
 
+    pub mod misc {
+        pub mod line_clipping_style;
+    }
+    
     /// Default colors used in the library if no custom colors specified
     pub mod default_colors;
 }

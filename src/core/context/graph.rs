@@ -1,7 +1,6 @@
 use crate::core::context::alpha::AlphaMethod;
 use crate::core::context::{AlphaContext, BezierContext, WindowContext};
-
-
+use crate::core::misc::line_clipping_style::LineClippingStyle;
 
 #[derive(Debug)]
 pub struct GraphContext<UserData = Vec<i32>> {
@@ -27,6 +26,9 @@ pub struct GraphContext<UserData = Vec<i32>> {
     /// If `1`, Graph1 will perform calculations only on the main thread.
     /// If `0`, Graph1 will not perform those operations, that support multithreading. Not recommended for usage.
     pub num_threads: usize,
+    /// Defines how lines that go off-screen are clipped / handled
+    pub line_clipping: LineClippingStyle,
+
     /*
     // TODO: Consider implementing the following feature:
     /// Autodetect when it's cheaper to perform an operation on just one thread (e.g. due to a small buffer size)
@@ -82,6 +84,7 @@ impl<UserData: Default> GraphContext<UserData> {
                 method: AlphaMethod::Int,
             },
             num_threads,
+            line_clipping: LineClippingStyle::LiangBarsky,
         }
     }
 
