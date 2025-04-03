@@ -1,8 +1,9 @@
+use crate::core::context::alpha::AlphaMethod;
 use crate::core::context::GraphContext;
 use crate::core::misc::line_clipping_style::LineClippingStyle;
 use crate::primitives::point::Point;
 use crate::utils::clip;
-
+use crate::utils::color::alpha::{blend_pixel_f32, blend_pixel_int};
 
 /// Draws a horizontal line starting from a signed point.
 /// Clips the line manually against the window boundaries.
@@ -17,6 +18,7 @@ pub fn horizontal<UserData>(
     }
 
     let color = color.unwrap_or_else(|| ctx.win.foreground_color);
+    let alpha_method = ctx.alpha.enabled.then_some(ctx.alpha.method);
 
     // Reject line if it's vertically off-screen
     if start.y < 0 || start.y >= ctx.win.h as i32 {
@@ -41,11 +43,14 @@ pub fn horizontal<UserData>(
 
     let mut buf_index = (start.y as u32 * ctx.win.w + x0 as u32) as usize;
     for _ in x0..x1 {
-        ctx.frame_buf[buf_index] = color;
+        ctx.frame_buf[buf_index] = match alpha_method {
+            None => color,
+            Some(AlphaMethod::Int) => blend_pixel_int(ctx.frame_buf[buf_index], color),
+            Some(AlphaMethod::Float) => blend_pixel_f32(ctx.frame_buf[buf_index], color),
+        };
         buf_index += 1;
     }
 }
-
 
 /// Draws a vertical line starting from a signed point.
 /// Clips the line manually against the window boundaries.
@@ -59,6 +64,7 @@ pub fn vertical<UserData>(
         return;
     }
     let color = color.unwrap_or_else(|| ctx.win.foreground_color);
+    let alpha_method = ctx.alpha.enabled.then_some(ctx.alpha.method);
 
     // Reject line if it's horizontally off-screen
     if start.x < 0 || start.x >= ctx.win.w as i32 {
@@ -83,11 +89,14 @@ pub fn vertical<UserData>(
 
     let mut buf_index = (y0 as u32 * ctx.win.w + start.x as u32) as usize;
     for _ in y0..y1 {
-        ctx.frame_buf[buf_index] = color;
+        ctx.frame_buf[buf_index] = match alpha_method {
+            None => color,
+            Some(AlphaMethod::Int) => blend_pixel_int(ctx.frame_buf[buf_index], color),
+            Some(AlphaMethod::Float) => blend_pixel_f32(ctx.frame_buf[buf_index], color),
+        };
         buf_index += ctx.win.w_usize;
     }
 }
-
 
 /// Draws a line between two signed points with optional color and full clipping.
 pub fn between_two_points<UserData>(
@@ -126,6 +135,8 @@ fn draw_line_bresenham<UserData>(
     y1: u32,
     color: u32,
 ) {
+    let alpha_method = ctx.alpha.enabled.then_some(ctx.alpha.method);
+
     let mut x = x0 as i32;
     let mut y = y0 as i32;
     let x1 = x1 as i32;
@@ -139,7 +150,11 @@ fn draw_line_bresenham<UserData>(
 
     while x != x1 || y != y1 {
         let idx = (y as u32 * ctx.win.w + x as u32) as usize;
-        ctx.frame_buf[idx] = color;
+        ctx.frame_buf[idx] = match alpha_method {
+            None => color,
+            Some(AlphaMethod::Int) => blend_pixel_int(ctx.frame_buf[idx], color),
+            Some(AlphaMethod::Float) => blend_pixel_f32(ctx.frame_buf[idx], color),
+        };
 
         let e2 = 2 * err;
         if e2 >= dy {
@@ -154,5 +169,9 @@ fn draw_line_bresenham<UserData>(
 
     // Draw final point
     let idx = (y as u32 * ctx.win.w + x as u32) as usize;
-    ctx.frame_buf[idx] = color;
+    ctx.frame_buf[idx] = match alpha_method {
+        None => color,
+        Some(AlphaMethod::Int) => blend_pixel_int(ctx.frame_buf[idx], color),
+        Some(AlphaMethod::Float) => blend_pixel_f32(ctx.frame_buf[idx], color),
+    };
 }
