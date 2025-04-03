@@ -5,6 +5,17 @@ use crate::primitives::point::Point;
 use crate::utils::clip;
 use crate::utils::color::alpha::{blend_pixel_f32, blend_pixel_int};
 
+
+#[inline(always)]
+fn write_pixel_with_blending(dst: &mut u32, src: u32, method: Option<AlphaMethod>) {
+    *dst = match method {
+        None => src,
+        Some(AlphaMethod::Int) => blend_pixel_int(*dst, src),
+        Some(AlphaMethod::Float) => blend_pixel_f32(*dst, src),
+    };
+}
+
+
 /// Draws a horizontal line starting from a signed point.
 /// Clips the line manually against the window boundaries.
 pub fn horizontal<UserData>(
@@ -43,11 +54,8 @@ pub fn horizontal<UserData>(
 
     let mut buf_index = (start.y as u32 * ctx.win.w + x0 as u32) as usize;
     for _ in x0..x1 {
-        ctx.frame_buf[buf_index] = match alpha_method {
-            None => color,
-            Some(AlphaMethod::Int) => blend_pixel_int(ctx.frame_buf[buf_index], color),
-            Some(AlphaMethod::Float) => blend_pixel_f32(ctx.frame_buf[buf_index], color),
-        };
+
+        write_pixel_with_blending(&mut ctx.frame_buf[buf_index], color, alpha_method);
         buf_index += 1;
     }
 }
@@ -89,11 +97,7 @@ pub fn vertical<UserData>(
 
     let mut buf_index = (y0 as u32 * ctx.win.w + start.x as u32) as usize;
     for _ in y0..y1 {
-        ctx.frame_buf[buf_index] = match alpha_method {
-            None => color,
-            Some(AlphaMethod::Int) => blend_pixel_int(ctx.frame_buf[buf_index], color),
-            Some(AlphaMethod::Float) => blend_pixel_f32(ctx.frame_buf[buf_index], color),
-        };
+        write_pixel_with_blending(&mut ctx.frame_buf[buf_index], color, alpha_method);
         buf_index += ctx.win.w_usize;
     }
 }
@@ -150,11 +154,8 @@ fn draw_line_bresenham<UserData>(
 
     while x != x1 || y != y1 {
         let idx = (y as u32 * ctx.win.w + x as u32) as usize;
-        ctx.frame_buf[idx] = match alpha_method {
-            None => color,
-            Some(AlphaMethod::Int) => blend_pixel_int(ctx.frame_buf[idx], color),
-            Some(AlphaMethod::Float) => blend_pixel_f32(ctx.frame_buf[idx], color),
-        };
+
+        write_pixel_with_blending(&mut ctx.frame_buf[idx], color, alpha_method);
 
         let e2 = 2 * err;
         if e2 >= dy {
@@ -169,9 +170,5 @@ fn draw_line_bresenham<UserData>(
 
     // Draw final point
     let idx = (y as u32 * ctx.win.w + x as u32) as usize;
-    ctx.frame_buf[idx] = match alpha_method {
-        None => color,
-        Some(AlphaMethod::Int) => blend_pixel_int(ctx.frame_buf[idx], color),
-        Some(AlphaMethod::Float) => blend_pixel_f32(ctx.frame_buf[idx], color),
-    };
+    write_pixel_with_blending(&mut ctx.frame_buf[idx], color, alpha_method);
 }
