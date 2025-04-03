@@ -28,6 +28,12 @@ pub struct GraphContext<UserData = Vec<i32>> {
     pub num_threads: usize,
     /// Defines how lines that go off-screen are clipped / handled
     pub line_clipping: LineClippingStyle,
+    
+    /// The width of the stroke (line) in the drawing operations (where applicable)
+    pub stroke_width:u8,
+    
+    /// Should the drawing operations be anti-aliased (where applicable)
+    pub anti_aliasing: bool
 
     /*
     // TODO: Consider implementing the following feature:
@@ -85,6 +91,8 @@ impl<UserData: Default> GraphContext<UserData> {
             },
             num_threads,
             line_clipping: LineClippingStyle::LiangBarsky,
+            stroke_width: 1,
+            anti_aliasing: false,
         }
     }
 
