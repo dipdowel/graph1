@@ -1,12 +1,6 @@
 use crate::primitives::plane::RectArea;
 use crate::primitives::point::Point;
 
-/// Rejects lines that are completely outside the area.
-fn reject_line(start: &Point<i32>, end: &Point<i32>, area: &RectArea<u32>) -> bool {
-    let a: RectArea<i32> = area.convert();
-    !a.contains_point(&start) && !a.contains_point(&end)
-}
-
 //
 // -----------------------------------------------------------------------------
 // Clipping Helper: Elastic Slide
@@ -30,11 +24,6 @@ pub fn to_area_elastic_slide(
     end: &Point<i32>,
     area: &RectArea<u32>,
 ) -> Option<(Point<u32>, Point<u32>)> {
-
-    if reject_line(start, end, area) {
-        return None;
-    }
-
     let x_min = area.top_left.x as i32;
     let y_min = area.top_left.y as i32;
     let x_max = x_min + area.dimensions.w as i32 - 1;
@@ -164,11 +153,6 @@ pub fn to_area_liang_barsky(
     end: &Point<i32>,
     area: &RectArea<u32>,
 ) -> Option<(Point<u32>, Point<u32>)> {
-
-    if reject_line(start, end, area) {
-        return None;
-    }
-
     // Convert area bounds to f32 for parametric calculations
     let x_min = area.top_left.x as f32;
     let y_min = area.top_left.y as f32;
@@ -237,5 +221,74 @@ pub fn to_area_liang_barsky(
         Some((clipped_start, clipped_end))
     } else {
         None // Rejected: line lies completely outside the clipping area
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::primitives::plane::RectArea;
+    use crate::primitives::point::Point;
+
+    #[test]
+    fn elastic_slide_inside_line() {
+        let area = RectArea::new(5, 5, 10, 10, None);
+        let start = Point::new(6, 6);
+        let end = Point::new(10, 10);
+
+        let clipped = to_area_elastic_slide(&start, &end, &area).unwrap();
+        assert_eq!(clipped.0, start.convert());
+        assert_eq!(clipped.1, end.convert());
+    }
+
+    #[test]
+    fn elastic_slide_crossing_line() {
+        let area = RectArea::new(5, 5, 10, 10, None);
+        let start = Point::new(0, 0);
+        let end = Point::new(20, 20);
+
+        let clipped = to_area_elastic_slide(&start, &end, &area).unwrap();
+        assert_eq!(clipped.0, Point::new(5, 5));
+        assert_eq!(clipped.1, Point::new(14, 14));
+    }
+
+    #[test]
+    fn cohen_sutherland_partial_clip() {
+        let area = RectArea::new(5, 5, 10, 10, None);
+        let start = Point::new(0, 0);
+        let end = Point::new(20, 20);
+
+        let clipped = to_area_cohen_sutherland(&start, &end, &area).unwrap();
+        assert_eq!(clipped.0, Point::new(5, 5));
+        assert_eq!(clipped.1, Point::new(14, 14));
+    }
+
+    #[test]
+    fn cohen_sutherland_reject_outside() {
+        let area = RectArea::new(5, 5, 10, 10, None);
+        let start = Point::new(0, 0);
+        let end = Point::new(3, 3);
+
+        assert!(to_area_cohen_sutherland(&start, &end, &area).is_none());
+    }
+
+    #[test]
+    fn liang_barsky_partial_clip() {
+        let area = RectArea::new(5, 5, 10, 10, None);
+        let start = Point::new(0, 0);
+        let end = Point::new(10, 10);
+
+        let clipped = to_area_liang_barsky(&start, &end, &area).unwrap();
+        assert_eq!(clipped.0, Point::new(5, 5));
+        assert_eq!(clipped.1, Point::new(10, 10));
+    }
+
+    #[test]
+    fn liang_barsky_fully_outside() {
+        let area = RectArea::new(5, 5, 10, 10, None);
+        let start = Point::new(-10, -10);
+        let end = Point::new(-5, -5);
+
+        assert!(to_area_liang_barsky(&start, &end, &area).is_none());
     }
 }
