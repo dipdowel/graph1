@@ -84,11 +84,22 @@ impl<T: Numeric + std::ops::Add<Output = T>> RectArea<T> {
             && other.top_left.y + other.dimensions.h <= self.top_left.y + self.dimensions.h
     }
 
-    /// Checks whether the given line segment is completely outside the RectArea and does not intersect it.
-
+    /// Checks whether a given line segment is completely outside this `RectArea`.
+    ///
+    /// This method performs a fast rejection test based on the axis-aligned bounding box (AABB)
+    /// of the rectangle. It assumes that the segment does not intersect the rectangle if both endpoints
+    /// are completely to one side (left, right, above, or below).
+    ///
+    /// # Parameters
+    /// - `start`: The starting point of the line segment.
+    /// - `end`: The ending point of the line segment.
+    ///
+    /// # Returns
+    /// - `true` if the segment is entirely outside the rectangle and does not intersect it.
+    /// - `false` if the segment intersects or lies inside the rectangle.
     pub fn is_line_segment_outside(&self, start: &Point<i32>, end: &Point<i32>) -> bool {
+        
         let a: RectArea<i32> = self.convert();
-
         let x_min = a.top_left.x;
         let y_min = a.top_left.y;
         let x_max = x_min + a.dimensions.w - 1;
@@ -242,4 +253,72 @@ mod tests {
         let rect_2 = RectArea::new(0, 0, 500, 500, None);
         assert!(rect_1.contains(&rect_2));
     }
+
+    // === tests for a line being outside the rectangle ===
+    #[test]
+    fn test_line_segment_completely_outside_left() {
+        let rect = RectArea::new(10, 10, 100, 100, None);
+        let start = Point::new(0, 50);
+        let end = Point::new(5, 70);
+        assert!(rect.is_line_segment_outside(&start, &end));
+    }
+
+    #[test]
+    fn test_line_segment_completely_outside_right() {
+        let rect = RectArea::new(10, 10, 100, 100, None);
+        let start = Point::new(120, 20);
+        let end = Point::new(130, 30);
+        assert!(rect.is_line_segment_outside(&start, &end));
+    }
+
+    #[test]
+    fn test_line_segment_completely_outside_above() {
+        let rect = RectArea::new(10, 10, 100, 100, None);
+        let start = Point::new(50, 0);
+        let end = Point::new(60, 5);
+        assert!(rect.is_line_segment_outside(&start, &end));
+    }
+
+    #[test]
+    fn test_line_segment_completely_outside_below() {
+        let rect = RectArea::new(10, 10, 100, 100, None);
+        let start = Point::new(30, 120);
+        let end = Point::new(40, 130);
+        assert!(rect.is_line_segment_outside(&start, &end));
+    }
+
+    #[test]
+    fn test_line_segment_inside_rect() {
+        let rect = RectArea::new(10, 10, 100, 100, None);
+        let start = Point::new(20, 20);
+        let end = Point::new(90, 90);
+        assert!(!rect.is_line_segment_outside(&start, &end));
+    }
+
+    #[test]
+    fn test_line_segment_intersecting_left_to_inside() {
+        let rect = RectArea::new(10, 10, 100, 100, None);
+        let start = Point::new(0, 50);
+        let end = Point::new(20, 50);
+        assert!(!rect.is_line_segment_outside(&start, &end));
+    }
+
+    #[test]
+    fn test_line_segment_intersecting_diagonally() {
+        let rect = RectArea::new(10, 10, 100, 100, None);
+        let start = Point::new(0, 0);
+        let end = Point::new(120, 120);
+        assert!(!rect.is_line_segment_outside(&start, &end));
+    }
+
+    #[test]
+    fn test_line_segment_touching_border_not_outside() {
+        let rect = RectArea::new(10, 10, 100, 100, None);
+        let start = Point::new(10, 10); // top-left corner
+        let end = Point::new(10, 110); // vertical edge
+        assert!(!rect.is_line_segment_outside(&start, &end));
+    }
+
+
+
 }
