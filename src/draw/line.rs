@@ -4,10 +4,11 @@ use crate::draw::helpers::write_pixel::{write_pixel, write_pixel_f32, write_pixe
 use crate::primitives::point::Point;
 use crate::utils::clip;
 
-/// Blends a color into the framebuffer at (x, y) with integer-based alpha (0..=255).
-#[inline(always)]
 
-/// Fallback: Fast, integer-only line drawing without thickness or anti-aliasing.
+
+
+/// Fast, integer-only line drawing without thickness or anti-aliasing.
+#[inline(always)]
 fn draw_line_bresenham<UserData>(
     ctx: &mut GraphContext<UserData>,
     x0: i32,
@@ -84,9 +85,17 @@ pub fn between_two_points<UserData>(
             clip::line::to_area_liang_barsky(start, end, &ctx.win.rect_area)
         }
     };
+
+    // This is an `let-else` statement, stabilised in Rust 1.65.
+    // It does the same as
+    // let (p0, p1) = match clipped {
+    //     Some(pair) => pair,
+    //     None => return,
+    // };
     let Some((p0, p1)) = clipped else {
         return;
     };
+
     let p0 = p0.convert::<i32>();
     let p1 = p1.convert::<i32>();
 
