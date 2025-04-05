@@ -33,8 +33,10 @@ pub struct GraphContext<UserData = Vec<i32>> {
     pub stroke_width:u8,
     
     /// Should the drawing operations be anti-aliased (where applicable)
-    pub anti_aliasing: bool
+    pub anti_aliasing: bool,
 
+    pub use_float_aa:bool,
+    pub use_float_rasterization:bool,
     /*
     // TODO: Consider implementing the following feature:
     /// Autodetect when it's cheaper to perform an operation on just one thread (e.g. due to a small buffer size)
@@ -93,6 +95,8 @@ impl<UserData: Default> GraphContext<UserData> {
             line_clipping: LineClippingStyle::LiangBarsky,
             stroke_width: 1,
             anti_aliasing: false,
+            use_float_aa: false,
+            use_float_rasterization: false,
         }
     }
 
