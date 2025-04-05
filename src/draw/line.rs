@@ -20,7 +20,6 @@ fn write_pixel(ctx: &mut GraphContext<impl Sized>, x: i32, y: i32, color: u32, a
     };
 }
 
-
 /// Blends a color into the framebuffer using a floating-point alpha [0.0..=1.0].
 #[inline(always)]
 fn write_pixel_f32(ctx: &mut GraphContext<impl Sized>, x: i32, y: i32, color: u32, alpha: f32) {
@@ -34,7 +33,6 @@ fn write_pixel_f32(ctx: &mut GraphContext<impl Sized>, x: i32, y: i32, color: u3
     let color_with_alpha = (color & 0xFFFFFF00) | (a as u32);
     *dst = blend_pixel_f32(*dst, color_with_alpha);
 }
-
 
 /// Applies floating-point alpha [0.0..=1.0] to a 32-bit RGBA color.
 #[inline(always)]
@@ -61,6 +59,18 @@ fn draw_line_bresenham<UserData>(
     y1: i32,
     color: u32,
 ) {
+    // TODO: Detect vertical lines and draw them using a more optimised approach
+    // if x0 == x1 && y0 != y1 {
+    //     vertical(... parameters ...);
+    //     return;
+    // }
+
+    // TODO: Detect horizontal lines and draw them using a more optimised approach
+    // if y0 == y1 && x0 != x1 {
+    //     horizontal( ... parameters ...);
+    //     return;
+    // }
+
     let mut x = x0;
     let mut y = y0;
     let dx = (x1 - x0).abs();
@@ -71,7 +81,9 @@ fn draw_line_bresenham<UserData>(
 
     loop {
         write_pixel(ctx, x, y, color, 255);
-        if x == x1 && y == y1 { break; }
+        if x == x1 && y == y1 {
+            break;
+        }
         let e2 = 2 * err;
         if e2 >= dy {
             err += dy;
@@ -92,9 +104,7 @@ pub fn between_two_points<UserData>(
     end: &Point<i32>,
     color: Option<u32>,
 ) {
-
     let line = &ctx.line;
-
 
     // Check if lines are configured to be drawn and return if not
     let no_int_defined = line.rasterization.is_int() && line.stroke_width_int < 1;
@@ -117,7 +127,9 @@ pub fn between_two_points<UserData>(
             clip::line::to_area_liang_barsky(start, end, &ctx.win.rect_area)
         }
     };
-    let Some((p0, p1)) = clipped else { return; };
+    let Some((p0, p1)) = clipped else {
+        return;
+    };
     let p0 = p0.convert::<i32>();
     let p1 = p1.convert::<i32>();
 
@@ -138,14 +150,22 @@ pub fn between_two_points<UserData>(
 
         let (nx, ny) = (-dy / len, dx / len);
         let is_thin = line.stroke_width_float <= 1.0;
-        let half_thick = if is_thin { 0.0 } else { line.stroke_width_float / 2.0 };
+        let half_thick = if is_thin {
+            0.0
+        } else {
+            line.stroke_width_float / 2.0
+        };
 
         for i in 0..=len.ceil() as i32 {
             let t = i as f32 / len;
             let x = p0.x as f32 + t * dx;
             let y = p0.y as f32 + t * dy;
 
-            for w in if is_thin { 0..=0 } else { -half_thick.ceil() as i32..=half_thick.ceil() as i32 } {
+            for w in if is_thin {
+                0..=0
+            } else {
+                -half_thick.ceil() as i32..=half_thick.ceil() as i32
+            } {
                 let ox = x + w as f32 * nx;
                 let oy = y + w as f32 * ny;
                 let ix = ox.round() as i32;
@@ -175,7 +195,7 @@ pub fn between_two_points<UserData>(
     let scale = 256;
     let nx = (-dy * scale) / len;
     let ny = (dx * scale) / len;
-    let half_thick_px = ( line.stroke_width_int.max(1)  / 2) as i32;
+    let half_thick_px = (line.stroke_width_int.max(1) / 2) as i32;
 
     for i in 0..=len {
         let t = (i * 256) / len;
@@ -199,5 +219,79 @@ pub fn between_two_points<UserData>(
                 write_pixel(ctx, ix, iy, color, 255);
             }
         }
+    }
+}
+
+/// TODO: Add proper documentation to the function!
+/// Blends a color into the framebuffer at (x, y) with integer-based alpha (0..=255).
+#[inline(always)]
+fn write_pixel_with_blending(dst: &mut u32, src: u32, method: Option<AlphaMethod>) {
+    *dst = match method {
+        None => src,
+        Some(AlphaMethod::Int) => blend_pixel_int(*dst, src),
+        Some(AlphaMethod::Float) => blend_pixel_f32(*dst, src),
+    };
+}
+
+/// TODO: Add proper documentation to the function!
+pub fn horizontal<UserData>(
+    ctx: &mut GraphContext<UserData>,
+    start: &Point<i32>,
+    length: u32,
+    color: Option<u32>,
+) {
+    if length == 0 {
+        return;
+    }
+    let color = color.unwrap_or_else(|| ctx.win.foreground_color);
+    let alpha_method = ctx.alpha.enabled.then_some(ctx.alpha.method);
+    if start.y < 0 || start.y >= ctx.win.h as i32 {
+        return;
+    }
+    let mut x0 = start.x;
+    let mut x1 = start.x + length as i32;
+    if x1 <= 0 || x0 >= ctx.win.w as i32 {
+        return;
+    }
+    x0 = x0.max(0);
+    x1 = x1.min(ctx.win.w as i32);
+    if x1 <= x0 {
+        return;
+    }
+    let mut buf_index = (start.y as u32 * ctx.win.w + x0 as u32) as usize;
+    for _ in x0..x1 {
+        write_pixel_with_blending(&mut ctx.frame_buf[buf_index], color, alpha_method);
+        buf_index += 1;
+    }
+}
+/// TODO: Add proper documentation to the function!
+pub fn vertical<UserData>(
+    ctx: &mut GraphContext<UserData>,
+    start: &Point<i32>,
+    length: u32,
+    color: Option<u32>,
+) {
+    if length == 0 {
+        return;
+    }
+    let color = color.unwrap_or_else(|| ctx.win.foreground_color);
+    let alpha_method = ctx.alpha.enabled.then_some(ctx.alpha.method);
+    if start.x < 0 || start.x >= ctx.win.w as i32 {
+        return;
+    }
+    let mut y0 = start.y;
+    let mut y1 = start.y + length as i32;
+    if y1 <= 0 || y0 >= ctx.win.h as i32 {
+        return;
+    }
+    y0 = y0.max(0);
+    y1 = y1.min(ctx.win.h as i32);
+    if y1 <= y0 {
+        return;
+    }
+    let mut buf_index = (y0 as u32 * ctx.win.w + start.x as u32) as usize;
+    for _ in y0..y1 {
+        write_pixel_with_blending(&mut ctx.frame_buf[buf_index], color, alpha_method);
+        buf_index += ctx.win.w_usize;
     }
 }
