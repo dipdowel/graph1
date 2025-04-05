@@ -42,12 +42,16 @@ pub mod core {
 
 /// Drawing tools and operations
 pub mod draw {
+
+    pub(crate) mod helpers{
+        pub(crate) mod write_pixel;
+    }
     /// Draw circles
     pub mod circle;
     pub mod curves {
         pub mod bezier;
     }
-     /// Draw lines
+    /// Draw lines
     pub mod line;
 
 

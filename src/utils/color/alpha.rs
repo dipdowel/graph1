@@ -1,6 +1,7 @@
 /// Blends foreground and background colors with integer alpha for the foreground
 /// - `bg` is the background color in RGBA format as u32
 /// - `fg` is the foreground color in RGBA format as u32 (alpha included in the last 8 bits)
+#[inline(always)]
 pub fn blend_pixel_int(bg: u32, fg: u32) -> u32 {
     // Extract alpha from the foreground color
     let alpha = (fg & 0xff) as u8;
@@ -36,6 +37,7 @@ pub fn blend_pixel_int(bg: u32, fg: u32) -> u32 {
 /// - `bg` is the background color in RGBA format as `u32`
 /// - `fg` is the foreground color in RGBA format as `u32` (alpha included in the last 8 bits)
 /// Returns a `u32` representing the blended color.
+#[inline(always)]
 pub fn blend_pixel_f32(bg: u32, fg: u32) -> u32 {
     // Extract the alpha from the foreground color and normalize it to a range of 0.0 - 1.0
     let alpha = ((fg & 0xff) as f32) / 255.0;
