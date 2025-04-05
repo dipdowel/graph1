@@ -50,7 +50,7 @@ impl LineContext {
             clipping,
             stroke_width_float,
             stroke_width_int,
-            anti_aliasing : AntiAliasingConfig {
+            anti_aliasing: AntiAliasingConfig {
                 enabled: anti_aliasing_enabled,
                 method: anti_aliasing_method,
             },
@@ -61,23 +61,22 @@ impl LineContext {
     // pub fn is_float_rasterization(&self) -> bool {
     //     self.rasterization == RasterizationMethod::Float
     // }
-    // 
+    //
     // pub fn is_int_rasterization(&self) -> bool {
     //     self.rasterization == RasterizationMethod::Integer
     // }
-    
+
     pub fn is_anti_aliasing(&self) -> bool {
         self.anti_aliasing.enabled
     }
-    
+
     pub fn is_integer_aa(&self) -> bool {
         self.anti_aliasing.method == AntiAliasingMethod::Int
     }
-    
+
     pub fn is_float_aa(&self) -> bool {
         self.anti_aliasing.method == AntiAliasingMethod::Float
     }
-
 }
 
 impl Default for LineContext {
@@ -93,7 +92,7 @@ impl Default for LineContext {
 }
 
 #[derive(Debug, Clone)]
-pub struct  AntiAliasingConfig {
+pub struct AntiAliasingConfig {
     /// Whether anti-aliasing is enabled for lines.
     /// This enables smooth transitions at the edges of lines using the method below.
     pub enabled: bool,
