@@ -1,4 +1,5 @@
 use crate::core::context::alpha::AlphaMethod;
+use crate::core::context::line_context::LineContext;
 use crate::core::context::{AlphaContext, BezierContext, WindowContext};
 use crate::core::misc::line_clipping_style::LineClippingStyle;
 
@@ -26,17 +27,10 @@ pub struct GraphContext<UserData = Vec<i32>> {
     /// If `1`, Graph1 will perform calculations only on the main thread.
     /// If `0`, Graph1 will not perform those operations, that support multithreading. Not recommended for usage.
     pub num_threads: usize,
-    /// Defines how lines that go off-screen are clipped / handled
-    pub line_clipping: LineClippingStyle,
-    
-    /// The width of the stroke (line) in the drawing operations (where applicable)
-    pub stroke_width:u8,
-    
-    /// Should the drawing operations be anti-aliased (where applicable)
-    pub anti_aliasing: bool,
 
-    pub use_float_aa:bool,
-    pub use_float_rasterization:bool,
+    /// Settings for line drawing
+    pub line: LineContext,
+    
     /*
     // TODO: Consider implementing the following feature:
     /// Autodetect when it's cheaper to perform an operation on just one thread (e.g. due to a small buffer size)
@@ -58,6 +52,7 @@ impl<UserData: Default> GraphContext<UserData> {
     ///     * `0` - skip operations that support multithreading (rather should not be used).
     ///     * `1` - use main thread only.
     ///     * `2` - and more - use that many threads.
+    /// * `line` - Optional line context. If `None` given, default settings will be used.
     /// # Returns
     /// A new `GraphContext` instance
     pub fn new(
@@ -66,6 +61,7 @@ impl<UserData: Default> GraphContext<UserData> {
         use_draft_buf: bool,
         user_data: Option<UserData>,
         num_threads: usize,
+        line: Option<LineContext>,
     ) -> GraphContext<UserData> {
         // How many pixels are in the frame buffer
         let num_pixels = win.get_num_pixels();
@@ -92,20 +88,16 @@ impl<UserData: Default> GraphContext<UserData> {
                 method: AlphaMethod::Int,
             },
             num_threads,
-            line_clipping: LineClippingStyle::LiangBarsky,
-            stroke_width: 1,
-            anti_aliasing: false,
-            use_float_aa: false,
-            use_float_rasterization: false,
+
+            line: line.unwrap_or_default(),
         }
     }
 
     /// Resizes the window context, the frame buffer, and the draft buffer (if `use_draft_buf == true`)
     pub fn resize(&mut self, w: u32, h: u32) {
-        
         // resize the window (which also resizes the quadrants)
         self.win.resize(w, h);
-        
+
         // resize the frame buffer
         let num_pixels = self.win.get_num_pixels();
         self.frame_buf.resize(num_pixels, self.win.background_color);

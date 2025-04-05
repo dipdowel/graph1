@@ -20,10 +20,31 @@ fn write_pixel(ctx: &mut GraphContext<impl Sized>, x: i32, y: i32, color: u32, a
     };
 }
 
+
+/// Blends a color into the framebuffer using a floating-point alpha [0.0..=1.0].
+#[inline(always)]
+fn write_pixel_f32(ctx: &mut GraphContext<impl Sized>, x: i32, y: i32, color: u32, alpha: f32) {
+    if x < 0 || y < 0 || x >= ctx.win.w as i32 || y >= ctx.win.h as i32 {
+        return;
+    }
+    let idx = (y as u32 * ctx.win.w + x as u32) as usize;
+    let dst = &mut ctx.frame_buf[idx];
+    // Do NOT pre-multiply alpha — blend_pixel_f32 expects RGBA with alpha in A channel
+    let a = (alpha.clamp(0.0, 1.0) * 255.0).round() as u8;
+    let color_with_alpha = (color & 0xFFFFFF00) | (a as u32);
+    *dst = blend_pixel_f32(*dst, color_with_alpha);
+}
+
+
+/// Applies floating-point alpha [0.0..=1.0] to a 32-bit RGBA color.
+#[inline(always)]
+fn apply_alpha_f32(color: u32, alpha: f32) -> u32 {
+    unreachable!("apply_alpha_f32() is no longer used; see write_pixel_f32")
+}
+
 /// Applies integer alpha (0..=255) to a 32-bit RGBA color.
 #[inline(always)]
 fn apply_alpha_u8(color: u32, alpha: u8) -> u32 {
-    // Framebuffer is RGBA format: scale R, G, B, A components by alpha
     let a = ((color >> 0) & 0xFF) * alpha as u32 / 255;
     let b = ((color >> 8) & 0xFF) * alpha as u32 / 255;
     let g = ((color >> 16) & 0xFF) * alpha as u32 / 255;
@@ -71,10 +92,21 @@ pub fn between_two_points<UserData>(
     end: &Point<i32>,
     color: Option<u32>,
 ) {
+
+    let line = &ctx.line;
+
+
+    // Check if lines are configured to be drawn and return if not
+    let no_int_defined = line.rasterization.is_int() && line.stroke_width_int < 1;
+    let no_float_defined = line.rasterization.is_float() && line.stroke_width_float == 0.0;
+    if no_int_defined && no_float_defined {
+        return;
+    }
+
     let color = color.unwrap_or_else(|| ctx.win.foreground_color);
 
     // First, apply line clipping based on the selected strategy
-    let clipped = match ctx.line_clipping {
+    let clipped = match ctx.line.clipping {
         LineClippingStyle::ElasticSlide => {
             clip::line::to_area_elastic_slide(start, end, &ctx.win.rect_area)
         }
@@ -90,42 +122,73 @@ pub fn between_two_points<UserData>(
     let p1 = p1.convert::<i32>();
 
     // Fast path: use Bresenham if stroke is 1px and anti-aliasing is disabled
-    if ctx.stroke_width <= 1 && !ctx.anti_aliasing {
+    if ctx.line.stroke_width_int == 1 && !ctx.line.anti_aliasing.enabled {
         draw_line_bresenham(ctx, p0.x, p0.y, p1.x, p1.y, color);
         return;
     }
 
-    // Integer delta between endpoints
+    // Float-based rendering
+    if ctx.line.rasterization.is_float() {
+        let dx = p1.x as f32 - p0.x as f32;
+        let dy = p1.y as f32 - p0.y as f32;
+        let len = (dx * dx + dy * dy).sqrt();
+        if len == 0.0 {
+            return;
+        }
+
+        let (nx, ny) = (-dy / len, dx / len);
+        let is_thin = line.stroke_width_float <= 1.0;
+        let half_thick = if is_thin { 0.0 } else { line.stroke_width_float / 2.0 };
+
+        for i in 0..=len.ceil() as i32 {
+            let t = i as f32 / len;
+            let x = p0.x as f32 + t * dx;
+            let y = p0.y as f32 + t * dy;
+
+            for w in if is_thin { 0..=0 } else { -half_thick.ceil() as i32..=half_thick.ceil() as i32 } {
+                let ox = x + w as f32 * nx;
+                let oy = y + w as f32 * ny;
+                let ix = ox.round() as i32;
+                let iy = oy.round() as i32;
+
+                if ctx.line.anti_aliasing.enabled && ctx.line.anti_aliasing.method.is_float() {
+                    let dx = ox - ix as f32;
+                    let dy = oy - iy as f32;
+                    let dist2 = dx * dx + dy * dy;
+                    let alpha = (1.0 - dist2.sqrt()).clamp(0.0, 1.0);
+                    write_pixel_f32(ctx, ix, iy, color, alpha);
+                } else {
+                    write_pixel(ctx, ix, iy, color, 255);
+                }
+            }
+        }
+        return;
+    }
+
+    // Integer-based rendering (fixed-point)
     let dx = p1.x - p0.x;
     let dy = p1.y - p0.y;
     let len = (((dx * dx + dy * dy) as f64).sqrt()) as i32;
     if len == 0 {
         return;
     }
-
-    // Perpendicular unit vector scaled by 256 (fixed-point math)
     let scale = 256;
     let nx = (-dy * scale) / len;
     let ny = (dx * scale) / len;
-
-    // Number of pixels to draw perpendicular to the line for thickness
-    let half_thick_px = (ctx.stroke_width.max(1) / 2) as i32;
+    let half_thick_px = ( line.stroke_width_int.max(1)  / 2) as i32;
 
     for i in 0..=len {
-        // Linear interpolation along the line in fixed-point
         let t = (i * 256) / len;
         let x = p0.x * 256 + t * dx;
         let y = p0.y * 256 + t * dy;
 
-        // Sweep across the line thickness
         for w in -half_thick_px..=half_thick_px {
             let ox = x + w * nx;
             let oy = y + w * ny;
             let ix = ((ox + 128) / 256) as i32;
             let iy = ((oy + 128) / 256) as i32;
 
-            if ctx.anti_aliasing {
-                // Compute subpixel distance to adjust alpha (optional quality cost)
+            if ctx.line.anti_aliasing.enabled && ctx.line.anti_aliasing.method.is_int() {
                 let dx = ox - ix * 256;
                 let dy = oy - iy * 256;
                 let dist2 = dx * dx + dy * dy;

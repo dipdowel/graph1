@@ -13,6 +13,7 @@ pub mod core {
         pub mod alpha;
         mod bezier;
         mod graph;
+        mod line_context;
         mod window;
         mod window_quadrants;
 
@@ -21,6 +22,13 @@ pub mod core {
         pub use bezier::BezierContext;
         pub use graph::GraphContext;
         pub use window::WindowContext;
+        pub use line_context::AntiAliasingConfig;
+        pub use line_context::AntiAliasingMethod;
+        pub use line_context::LineContext;
+        pub use line_context::RasterizationMethod;
+
+
+
     }
 
     pub mod misc {

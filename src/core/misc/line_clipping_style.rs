@@ -3,7 +3,8 @@
 /// These styles determine how line segments are clipped when they intersect
 /// or fall outside of the clipping area (`RectArea`). Each style has different
 /// performance characteristics and geometric behavior.
-#[derive(Debug)]
+
+#[derive(Debug, Clone)]
 pub enum LineClippingStyle {
     /// Clips the line segment using the Liang–Barsky algorithm.
     ///
