@@ -107,8 +107,8 @@ pub fn between_two_points<UserData>(
 
     // Float-based rendering
     if ctx.line.rasterization.is_float() {
-        let dx = p1.x as f32 - p0.x as f32;
-        let dy = p1.y as f32 - p0.y as f32;
+        let dx = (p1.x - p0.x) as f32;
+        let dy = (p1.y - p0.y) as f32;
         let len = (dx * dx + dy * dy).sqrt();
         if len == 0.0 {
             return;
