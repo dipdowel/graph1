@@ -51,6 +51,13 @@ impl<T: Numeric> Point<T> {
     pub fn new(x: T, y: T) -> Self {
         Self { x, y }
     }
+
+    /// Calculates the Euclidian distance to another point.
+    pub fn distance_to(&self, other: &Point<T>) -> f64 {
+        let dx = self.x.to_f64() - other.x.to_f64();
+        let dy = self.y.to_f64() - other.y.to_f64();
+        (dx * dx + dy * dy).sqrt()
+    }
 }
 
 /// An often-used constant for a point at the origin (0, 0).
