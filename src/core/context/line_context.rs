@@ -40,8 +40,8 @@ impl LineContext {
     /// Configures the context to draw without anti-aliasing using integer rasterization.
     ///
     /// - `width`: line width in whole pixels (used with integer rasterization)
-    pub fn set_int_no_aa(&mut self, width: u16) {
-        self.width_int = width;
+    pub fn set_int_no_aa(&mut self, width: Option<u16>) {
+        self.width_int = width.unwrap_or(self.width_int);
         self.anti_aliasing.enabled = false;
         self.rasterization = RasterizationMethod::Int;
     }
@@ -49,8 +49,8 @@ impl LineContext {
     /// Configures the context to draw without anti-aliasing using float rasterization.
     ///
     /// - `width`: subpixel-precise line width (used with float rasterization)
-    pub fn set_float_no_aa(&mut self, width: f32) {
-        self.width_float = width;
+    pub fn set_float_no_aa(&mut self, width: Option<f32>) {
+        self.width_float = width.unwrap_or(self.width_float);
         self.anti_aliasing.enabled = false;
         self.rasterization = RasterizationMethod::Float;
     }
@@ -58,8 +58,8 @@ impl LineContext {
     /// Configures the context to draw with integer anti-aliasing and integer rasterization.
     ///
     /// - `width`: line width in whole pixels (used with integer rasterization)
-    pub fn set_int_aa_int(&mut self, width: u16) {
-        self.width_int = width;
+    pub fn set_int_aa_int(&mut self, width: Option<u16>) {
+        self.width_int = width.unwrap_or(self.width_int);
         self.anti_aliasing.enabled = true;
         self.anti_aliasing.method = AntiAliasingMethod::Int;
         self.rasterization = RasterizationMethod::Int;
@@ -68,8 +68,8 @@ impl LineContext {
     /// Configures the context to draw with integer anti-aliasing and float rasterization.
     ///
     /// - `width`: line width in whole pixels (used with integer AA)
-    pub fn set_float_aa_int(&mut self, width: u16) {
-        self.width_int = width;
+    pub fn set_float_aa_int(&mut self, width: Option<u16>) {
+        self.width_int = width.unwrap_or(self.width_int);
         self.anti_aliasing.enabled = true;
         self.anti_aliasing.method = AntiAliasingMethod::Int;
         self.rasterization = RasterizationMethod::Float;
@@ -78,8 +78,8 @@ impl LineContext {
     /// Configures the context to draw with float anti-aliasing and integer rasterization.
     ///
     /// - `width`: line width in whole pixels (used with integer rasterization)
-    pub fn set_int_aa_float(&mut self, width: u16) {
-        self.width_int = width;
+    pub fn set_int_aa_float(&mut self, width: Option<u16>) {
+        self.width_int = width.unwrap_or(self.width_int);
         self.anti_aliasing.enabled = true;
         self.anti_aliasing.method = AntiAliasingMethod::Float;
         self.rasterization = RasterizationMethod::Int;
@@ -88,8 +88,8 @@ impl LineContext {
     /// Configures the context to draw with float anti-aliasing and float rasterization.
     ///
     /// - `width`: subpixel-precise line width (used with float AA and rasterization)
-    pub fn set_float_aa_float(&mut self, width: f32) {
-        self.width_float = width;
+    pub fn set_float_aa_float(&mut self, width: Option<f32>) {
+        self.width_float = width.unwrap_or(self.width_float);
         self.anti_aliasing.enabled = true;
         self.anti_aliasing.method = AntiAliasingMethod::Float;
         self.rasterization = RasterizationMethod::Float;
@@ -195,6 +195,7 @@ pub enum RasterizationMethod {
 }
 
 impl RasterizationMethod {
+
     pub fn is_int(&self) -> bool {
         *self == RasterizationMethod::Int
     }
