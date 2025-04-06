@@ -134,6 +134,7 @@ fn get_line_widths(font: &PixelFont, text: &[&str]) -> Vec<usize> {
 /// - `font`: A font to be used for rendering the text.
 /// - `color_props`: Defines the color(s) of the printed text
 /// - `text`: The lines of text to be rendered. Each element in the array is printer on a new line.
+/// - `alignment`: The alignment of the text. Can be `Align::Left`, `Align::Right`, or `Align::Center`.
 ///
 /// # Returns
 /// Dimensions of the printed line of text, in pixels
