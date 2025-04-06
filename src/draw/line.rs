@@ -154,17 +154,28 @@ fn draw_integer_line<UserData>(
 
     let dx = p1.x - p0.x;
     let dy = p1.y - p0.y;
-    let len = (((dx * dx + dy * dy) as f64).sqrt()) as i32;
+    let len = p1.distance_to(p0) as i32;
+
     if len == 0 {
         return;
     }
+
+
 
     let stroke = ctx.line.stroke_width_int.max(1);
     let radius = stroke as f32 / 2.0;
     let ceil_radius = radius.ceil() as i32;
     let max_dist2 = radius * radius;
 
+    // Used for limiting the length of the line to prevent protrusions due to the stroke width
+    let dst_len = len-(ctx.line.stroke_width_int as i32/2);
+
     for i in 0..=len {
+
+        if i == dst_len {
+            break;
+        }
+
         let t = i as f32 / len as f32;
         let x = p0.x as f32 + t * dx as f32;
         let y = p0.y as f32 + t * dy as f32;
@@ -203,16 +214,27 @@ fn draw_float_line<UserData>(
 
     let dx = (p1.x - p0.x) as f32;
     let dy = (p1.y - p0.y) as f32;
-    let len = (dx * dx + dy * dy).sqrt();
+    let len = p1.distance_to(p0) as f32;
+
     if len == 0.0 {
         return;
     }
+
 
     let radius = ctx.line.stroke_width_float.max(1.0) / 2.0;
     let ceil_radius = radius.ceil() as i32;
     let max_dist2 = radius * radius;
 
+    // Used for limiting the length of the line to prevent protrusions due to the stroke width
+    let dst_len = ( len - ctx.line.stroke_width_int as f32 / 2.0) as i32;
+
     for i in 0..=len.ceil() as i32 {
+
+        if i == dst_len {
+            break;
+        }
+
+
         let t = i as f32 / len;
         let x = p0.x as f32 + t * dx;
         let y = p0.y as f32 + t * dy;
