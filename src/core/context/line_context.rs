@@ -37,7 +37,7 @@ pub struct LineContext {
 }
 
 impl LineContext {
-    // TODO: implement proper `new()`
+
     pub fn new(
         clipping: LineClippingStyle,
         stroke_width_float: f32,
