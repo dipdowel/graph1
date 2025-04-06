@@ -1,5 +1,5 @@
 use crate::core::context::GraphContext;
-use crate::core::misc::line_clipping_style::LineClippingStyle;
+use crate::core::context_utils::line_clipping_style::LineClippingStyle;
 use crate::draw::helpers::write_pixel::{write_pixel, write_pixel_f32, write_pixel_with_blending};
 use crate::primitives::point::Point;
 use crate::utils::clip;
@@ -97,10 +97,12 @@ fn is_line_visible<UserData>(ctx: &GraphContext<UserData>) -> bool {
     !(no_int && no_float)
 }
 
+#[inline(always)]
 fn should_use_bresenham<UserData>(ctx: &GraphContext<UserData>) -> bool {
-    ctx.line.width_int == 1 && !ctx.line.anti_aliasing.enabled
+    ctx.line.width_int == 1 && !ctx.line.anti_aliasing.enabled && ctx.line.rasterization.is_int()
 }
 
+#[inline(always)]
 fn clip_line<UserData>(
     ctx: &GraphContext<UserData>,
     start: &Point<i32>,
@@ -142,6 +144,7 @@ fn draw_along_axis<UserData>(
     false
 }
 
+#[inline(always)]
 fn draw_integer_line<UserData>(
     ctx: &mut GraphContext<UserData>,
     p0: &Point<i32>,
@@ -202,6 +205,8 @@ fn draw_integer_line<UserData>(
         }
     }
 }
+
+#[inline(always)]
 fn draw_float_line<UserData>(
     ctx: &mut GraphContext<UserData>,
     p0: &Point<i32>,
@@ -226,7 +231,7 @@ fn draw_float_line<UserData>(
     let max_dist2 = radius * radius;
 
     // Used for limiting the length of the line to prevent protrusions due to the line width
-    let dst_len = ( len - ctx.line.width_int as f32 / 2.0) as i32;
+    let dst_len = ( len - ctx.line.width_float / 2.0) as i32;
 
     for i in 0..=len.ceil() as i32 {
 

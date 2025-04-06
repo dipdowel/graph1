@@ -15,7 +15,7 @@ pub mod core {
         mod graph;
         mod line_context;
         mod window;
-        mod window_quadrants;
+        
 
         pub use alpha::AlphaContext;
         // pub use alpha::AlphaMethod;
@@ -31,8 +31,9 @@ pub mod core {
 
     }
 
-    pub mod misc {
+    pub mod context_utils {
         pub mod line_clipping_style;
+        pub(crate) mod window_quadrants;
     }
     
     /// Default colors used in the library if no custom colors specified

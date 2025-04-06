@@ -1,4 +1,4 @@
-use crate::core::misc::line_clipping_style::LineClippingStyle;
+use crate::core::context_utils::line_clipping_style::LineClippingStyle;
 
 /// Defines the rendering style for lines drawn in the framebuffer.
 ///

@@ -1,4 +1,5 @@
-use crate::core::context::window_quadrants::Quadrants;
+
+use crate::core::context_utils::window_quadrants::Quadrants;
 use crate::core::default_colors;
 use crate::primitives::plane::{Dimensions2d, RectArea};
 use crate::primitives::point::Point;

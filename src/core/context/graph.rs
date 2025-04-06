@@ -1,7 +1,7 @@
 use crate::core::context::alpha::AlphaMethod;
 use crate::core::context::line_context::LineContext;
 use crate::core::context::{AlphaContext, BezierContext, WindowContext};
-use crate::core::misc::line_clipping_style::LineClippingStyle;
+
 
 #[derive(Debug)]
 pub struct GraphContext<UserData = Vec<i32>> {
