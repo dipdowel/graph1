@@ -52,8 +52,8 @@ fn draw_line_bresenham<UserData>(
     }
 }
 
-/// Draws a line between two points using the context's stroke width and anti-aliasing settings.
-/// Falls back to Bresenham if stroke width is 1 and anti-aliasing is off.
+/// Draws a line between two points using the context's line width and anti-aliasing settings.
+/// Falls back to Bresenham if line width is 1 and anti-aliasing is off.
 pub fn between_two_points<UserData>(
     ctx: &mut GraphContext<UserData>,
     start: &Point<i32>,
@@ -92,13 +92,13 @@ pub fn between_two_points<UserData>(
 /// A line is not rendered if its thickness is invalid (e.g., 0).
 fn is_line_visible<UserData>(ctx: &GraphContext<UserData>) -> bool {
     let line = &ctx.line;
-    let no_int = line.rasterization.is_int() && line.stroke_width_int < 1;
-    let no_float = line.rasterization.is_float() && line.stroke_width_float == 0.0;
+    let no_int = line.rasterization.is_int() && line.width_int < 1;
+    let no_float = line.rasterization.is_float() && line.width_float == 0.0;
     !(no_int && no_float)
 }
 
 fn should_use_bresenham<UserData>(ctx: &GraphContext<UserData>) -> bool {
-    ctx.line.stroke_width_int == 1 && !ctx.line.anti_aliasing.enabled
+    ctx.line.width_int == 1 && !ctx.line.anti_aliasing.enabled
 }
 
 fn clip_line<UserData>(
@@ -162,13 +162,13 @@ fn draw_integer_line<UserData>(
 
 
 
-    let stroke = ctx.line.stroke_width_int.max(1);
-    let radius = stroke as f32 / 2.0;
+    let line_width = ctx.line.width_int.max(1);
+    let radius = line_width as f32 / 2.0;
     let ceil_radius = radius.ceil() as i32;
     let max_dist2 = radius * radius;
 
-    // Used for limiting the length of the line to prevent protrusions due to the stroke width
-    let dst_len = len-(ctx.line.stroke_width_int as i32/2);
+    // Used for limiting the length of the line to prevent protrusions due to the line width
+    let dst_len = len-(ctx.line.width_int as i32/2);
 
     for i in 0..=len {
 
@@ -221,12 +221,12 @@ fn draw_float_line<UserData>(
     }
 
 
-    let radius = ctx.line.stroke_width_float.max(1.0) / 2.0;
+    let radius = ctx.line.width_float.max(1.0) / 2.0;
     let ceil_radius = radius.ceil() as i32;
     let max_dist2 = radius * radius;
 
-    // Used for limiting the length of the line to prevent protrusions due to the stroke width
-    let dst_len = ( len - ctx.line.stroke_width_int as f32 / 2.0) as i32;
+    // Used for limiting the length of the line to prevent protrusions due to the line width
+    let dst_len = ( len - ctx.line.width_int as f32 / 2.0) as i32;
 
     for i in 0..=len.ceil() as i32 {
 
@@ -274,7 +274,7 @@ pub fn horizontal<UserData>(
     }
     let color = color.unwrap_or_else(|| ctx.win.foreground_color);
     let alpha_method = ctx.alpha.enabled.then_some(ctx.alpha.method);
-    let half_thickness = (ctx.line.stroke_width_int.max(1) / 2) as i32;
+    let half_thickness = (ctx.line.width_int.max(1) / 2) as i32;
     for offset in -half_thickness..=half_thickness {
         let y = start.y + offset;
         if y < 0 || y >= ctx.win.h as i32 {
@@ -310,7 +310,7 @@ pub fn vertical<UserData>(
     }
     let color = color.unwrap_or_else(|| ctx.win.foreground_color);
     let alpha_method = ctx.alpha.enabled.then_some(ctx.alpha.method);
-    let half_thickness = (ctx.line.stroke_width_int.max(1) / 2) as i32;
+    let half_thickness = (ctx.line.width_int.max(1) / 2) as i32;
     for offset in -half_thickness..=half_thickness {
         let x = start.x + offset;
         if x < 0 || x >= ctx.win.w as i32 {

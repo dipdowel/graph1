@@ -15,15 +15,15 @@ pub struct LineContext {
     /// - `LiangBarsky`: mathematically precise and fastest of the three
     pub clipping: LineClippingStyle,
 
-    /// The width of the line stroke, in pixels.
+    /// The width of the drawn line, in pixels.
     /// This is a floating-point value to allow subpixel thickness.
     /// For example: `1.0` = 1 pixel, `0.5` = half pixel, `2.5` = slightly thicker than 2.
     /// Used when `rasterization` is set to `RasterizationMethod.Float`.
-    pub stroke_width_float: f32,
+    pub width_float: f32,
 
-    /// The width of the line stroke, in pixels.
+    /// The width of the drawn line, in pixels.
     /// Used when `rasterization` is set to `RasterizationMethod.Integer`.
-    pub stroke_width_int: u16,
+    pub width_int: u16,
 
     /// Anti-aliasing settings for drawing lines.
     pub anti_aliasing: AntiAliasingConfig,
@@ -31,8 +31,8 @@ pub struct LineContext {
     /// The type of rasterization used to generate the line path.
     /// - `Integer`: classic integer math, e.g. Bresenham or fixed-point geometry.
     ///    Use it for better speed and simpler math (good for animations or low-end CPUs).
-    /// - `Float`: floating-point line interpolation and stroke sampling
-    ///    Use it for more accurate rendering (especially with subpixel stroke widths).
+    /// - `Float`: floating-point line interpolation and line width sampling
+    ///    Use it for more accurate rendering (especially with subpixel line widths).
     pub rasterization: RasterizationMethod,
 }
 
@@ -40,16 +40,16 @@ impl LineContext {
 
     pub fn new(
         clipping: LineClippingStyle,
-        stroke_width_float: f32,
-        stroke_width_int: u16,
+        width_float: f32,
+        width_int: u16,
         anti_aliasing_enabled: bool,
         anti_aliasing_method: AntiAliasingMethod,
         rasterization: RasterizationMethod,
     ) -> Self {
         Self {
             clipping,
-            stroke_width_float,
-            stroke_width_int,
+            width_float: width_float,
+            width_int: width_int,
             anti_aliasing: AntiAliasingConfig {
                 enabled: anti_aliasing_enabled,
                 method: anti_aliasing_method,
@@ -83,8 +83,8 @@ impl Default for LineContext {
     fn default() -> Self {
         Self {
             clipping: LineClippingStyle::ElasticSlide,
-            stroke_width_float: 1.0,
-            stroke_width_int: 1,
+            width_float: 1.0,
+            width_int: 1,
             anti_aliasing: AntiAliasingConfig::default(),
             rasterization: RasterizationMethod::Int,
         }
@@ -139,7 +139,7 @@ pub enum RasterizationMethod {
     /// Includes Bresenham and fixed-point Xiaolin Wu techniques.
     Int,
     /// Use floating-point subpixel rendering.
-    /// Required for smooth curves and fractional stroke widths.
+    /// Required for smooth curves and fractional line widths.
     Float,
 }
 
