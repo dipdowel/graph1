@@ -127,45 +127,34 @@ fn draw_float_line<UserData>(
     p1: &Point<i32>,
     color: u32,
 ) {
+    // Compute directional deltas as floats
     let dx = (p1.x - p0.x) as f32;
     let dy = (p1.y - p0.y) as f32;
+
+    // Compute line length (Euclidean distance)
     let len = (dx * dx + dy * dy).sqrt();
     if len == 0.0 {
         return;
     }
 
-    let (nx, ny) = (-dy / len, dx / len);
-    let is_thin = ctx.line.stroke_width_float <= 1.0;
-    let half_thick = if is_thin {
-        0.0
-    } else {
-        ctx.line.stroke_width_float / 2.0
-    };
-
+    // Iterate over points on the line from p0 to p1
     for i in 0..=len.ceil() as i32 {
         let t = i as f32 / len;
         let x = p0.x as f32 + t * dx;
         let y = p0.y as f32 + t * dy;
 
-        for w in if is_thin {
-            0..=0
-        } else {
-            -half_thick.ceil() as i32..=half_thick.ceil() as i32
-        } {
-            let ox = x + w as f32 * nx;
-            let oy = y + w as f32 * ny;
-            let ix = ox.round() as i32;
-            let iy = oy.round() as i32;
+        // Round to nearest integer pixel position
+        let ix = x.round() as i32;
+        let iy = y.round() as i32;
 
-            if ctx.line.anti_aliasing.enabled && ctx.line.anti_aliasing.method.is_float() {
-                let dx = ox - ix as f32;
-                let dy = oy - iy as f32;
-                let dist2 = dx * dx + dy * dy;
-                let alpha = (1.0 - dist2.sqrt()).clamp(0.0, 1.0);
-                write_pixel_f32(ctx, ix, iy, color, alpha);
-            } else {
-                write_pixel(ctx, ix, iy, color, 255);
-            }
+        // Draw center pixel
+        write_pixel(ctx, ix, iy, color, 255);
+
+        // Get thickness and draw additional horizontal copies
+        let thickness = ctx.line.stroke_width_float.round() as i32;
+        for offset in 1..=(thickness / 2) {
+            write_pixel(ctx, ix + offset, iy, color, 255);
+            write_pixel(ctx, ix - offset, iy, color, 255);
         }
     }
 }
@@ -178,41 +167,48 @@ fn draw_integer_line<UserData>(
     p1: &Point<i32>,
     color: u32,
 ) {
+    // Delta X and Delta Y: the difference in horizontal and vertical direction between the two points
     let dx = p1.x - p0.x;
     let dy = p1.y - p0.y;
+
+    // Length: Euclidean distance between p0 and p1, rounded to nearest integer
     let len = (((dx * dx + dy * dy) as f64).sqrt()) as i32;
     if len == 0 {
         return;
     }
-    let scale = 256;
-    let nx = (-dy * scale) / len;
-    let ny = (dx * scale) / len;
-    let half_thick_px = (ctx.line.stroke_width_int.max(1) / 2) as i32;
 
+    // Scale factor used to simulate subpixel precision using fixed-point math
+    let scale = 512;
+
+    // Loop over each step along the line length
     for i in 0..=len {
-        let t = (i * 256) / len;
-        let x = p0.x * 256 + t * dx;
-        let y = p0.y * 256 + t * dy;
+        // t: interpolation parameter (scaled)
+        let t = (i * scale) / len;
 
-        for w in -half_thick_px..=half_thick_px {
-            let ox = x + w * nx;
-            let oy = y + w * ny;
-            let ix = ((ox + 128) / 256) as i32;
-            let iy = ((oy + 128) / 256) as i32;
+        // x and y: current point along the line, in fixed-point coordinates
+        let x = p0.x * scale + t * dx;
+        let y = p0.y * scale + t * dy;
 
-            if ctx.line.anti_aliasing.enabled && ctx.line.anti_aliasing.method.is_int() {
-                let dx = ox - ix * 256;
-                let dy = oy - iy * 256;
-                let dist2 = dx * dx + dy * dy;
-                let max_dist2 = 2 * 256 * 256;
-                let alpha = (((max_dist2 - dist2) * 255) / max_dist2).clamp(0, 255) as u8;
-                write_pixel(ctx, ix, iy, color, alpha);
-            } else {
-                write_pixel(ctx, ix, iy, color, 255);
-            }
+        // Convert fixed-point back to integer screen coordinates by rounding
+        let ix = ((x + scale / 2) / scale) as i32;
+        let iy = ((y + scale / 2) / scale) as i32;
+
+        // Draw the center pixel
+        write_pixel(ctx, ix, iy, color, 255);
+
+        // Draw additional pixels based on thickness rule
+        let thickness = ctx.line.stroke_width_int as i32;
+
+        // For thickness > 1, replicate pixels symmetrically left and right (on X axis only)
+        for offset in 1..=(thickness / 2) {
+            // Draw to the right
+            write_pixel(ctx, ix + offset, iy, color, 255);
+            // Draw to the left (only if within bounds of the rule)
+            write_pixel(ctx, ix - offset, iy, color, 255);
         }
     }
 }
+
 
 /// Optimized horizontal line renderer with thickness and optional anti-aliasing.
 pub fn horizontal<UserData>(
