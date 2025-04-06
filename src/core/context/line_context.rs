@@ -37,7 +37,72 @@ pub struct LineContext {
 }
 
 impl LineContext {
+    /// Configures the context to draw without anti-aliasing using integer rasterization.
+    ///
+    /// - `width`: line width in whole pixels (used with integer rasterization)
+    pub fn set_int_no_aa(&mut self, width: u16) {
+        self.width_int = width;
+        self.anti_aliasing.enabled = false;
+        self.rasterization = RasterizationMethod::Int;
+    }
 
+    /// Configures the context to draw without anti-aliasing using float rasterization.
+    ///
+    /// - `width`: subpixel-precise line width (used with float rasterization)
+    pub fn set_float_no_aa(&mut self, width: f32) {
+        self.width_float = width;
+        self.anti_aliasing.enabled = false;
+        self.rasterization = RasterizationMethod::Float;
+    }
+
+    /// Configures the context to draw with integer anti-aliasing and integer rasterization.
+    ///
+    /// - `width`: line width in whole pixels (used with integer rasterization)
+    pub fn set_int_aa_int(&mut self, width: u16) {
+        self.width_int = width;
+        self.anti_aliasing.enabled = true;
+        self.anti_aliasing.method = AntiAliasingMethod::Int;
+        self.rasterization = RasterizationMethod::Int;
+    }
+
+    /// Configures the context to draw with integer anti-aliasing and float rasterization.
+    ///
+    /// - `width`: line width in whole pixels (used with integer AA)
+    pub fn set_float_aa_int(&mut self, width: u16) {
+        self.width_int = width;
+        self.anti_aliasing.enabled = true;
+        self.anti_aliasing.method = AntiAliasingMethod::Int;
+        self.rasterization = RasterizationMethod::Float;
+    }
+
+    /// Configures the context to draw with float anti-aliasing and integer rasterization.
+    ///
+    /// - `width`: line width in whole pixels (used with integer rasterization)
+    pub fn set_int_aa_float(&mut self, width: u16) {
+        self.width_int = width;
+        self.anti_aliasing.enabled = true;
+        self.anti_aliasing.method = AntiAliasingMethod::Float;
+        self.rasterization = RasterizationMethod::Int;
+    }
+
+    /// Configures the context to draw with float anti-aliasing and float rasterization.
+    ///
+    /// - `width`: subpixel-precise line width (used with float AA and rasterization)
+    pub fn set_float_aa_float(&mut self, width: f32) {
+        self.width_float = width;
+        self.anti_aliasing.enabled = true;
+        self.anti_aliasing.method = AntiAliasingMethod::Float;
+        self.rasterization = RasterizationMethod::Float;
+    }
+
+    /// Creates a new LineContext with all configurable rendering parameters.
+    ///
+    /// - `clipping`: how to clip line endpoints
+    /// - `width_float`: line width for float rasterization
+    /// - `width_int`: line width for integer rasterization
+    /// - `anti_aliasing_enabled`: enable or disable AA
+    /// - `anti_aliasing_method`: which AA technique to use if enabled
+    /// - `rasterization`: float or int rasterization method
     pub fn new(
         clipping: LineClippingStyle,
         width_float: f32,
@@ -48,8 +113,8 @@ impl LineContext {
     ) -> Self {
         Self {
             clipping,
-            width_float: width_float,
-            width_int: width_int,
+            width_float,
+            width_int,
             anti_aliasing: AntiAliasingConfig {
                 enabled: anti_aliasing_enabled,
                 method: anti_aliasing_method,
@@ -58,24 +123,9 @@ impl LineContext {
         }
     }
 
-    // pub fn is_float_rasterization(&self) -> bool {
-    //     self.rasterization == RasterizationMethod::Float
-    // }
-    //
-    // pub fn is_int_rasterization(&self) -> bool {
-    //     self.rasterization == RasterizationMethod::Integer
-    // }
-
+    /// Returns `true` if anti-aliasing is enabled.
     pub fn is_anti_aliasing(&self) -> bool {
         self.anti_aliasing.enabled
-    }
-
-    pub fn is_integer_aa(&self) -> bool {
-        self.anti_aliasing.method == AntiAliasingMethod::Int
-    }
-
-    pub fn is_float_aa(&self) -> bool {
-        self.anti_aliasing.method == AntiAliasingMethod::Float
     }
 }
 
@@ -91,6 +141,7 @@ impl Default for LineContext {
     }
 }
 
+/// Anti-aliasing configuration state.
 #[derive(Debug, Clone)]
 pub struct AntiAliasingConfig {
     /// Whether anti-aliasing is enabled for lines.
