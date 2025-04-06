@@ -119,95 +119,99 @@ fn clip_line<UserData>(
         }
     }
 }
-/// TODO: Add proper documentation to the function!
-/// TODO: Check if it is possible to call `vertical()` and `horizontal()` from here for optization when a line needs to be drawn along one of the axis.
-fn draw_float_line<UserData>(
-    ctx: &mut GraphContext<UserData>,
-    p0: &Point<i32>,
-    p1: &Point<i32>,
-    color: u32,
-) {
-    // Compute directional deltas as floats
-    let dx = (p1.x - p0.x) as f32;
-    let dy = (p1.y - p0.y) as f32;
-
-    // Compute line length (Euclidean distance)
-    let len = (dx * dx + dy * dy).sqrt();
-    if len == 0.0 {
-        return;
-    }
-
-    // Iterate over points on the line from p0 to p1
-    for i in 0..=len.ceil() as i32 {
-        let t = i as f32 / len;
-        let x = p0.x as f32 + t * dx;
-        let y = p0.y as f32 + t * dy;
-
-        // Round to nearest integer pixel position
-        let ix = x.round() as i32;
-        let iy = y.round() as i32;
-
-        // Draw center pixel
-        write_pixel(ctx, ix, iy, color, 255);
-
-        // Get thickness and draw additional horizontal copies
-        let thickness = ctx.line.stroke_width_float.round() as i32;
-        for offset in 1..=(thickness / 2) {
-            write_pixel(ctx, ix + offset, iy, color, 255);
-            write_pixel(ctx, ix - offset, iy, color, 255);
-        }
-    }
-}
-
-/// TODO: Add proper documentation to the function!
-/// TODO: Check if it is possible to call `vertical()` and `horizontal()` from here for optization when a line needs to be drawn along one of the axis.
 fn draw_integer_line<UserData>(
     ctx: &mut GraphContext<UserData>,
     p0: &Point<i32>,
     p1: &Point<i32>,
     color: u32,
 ) {
-    // Delta X and Delta Y: the difference in horizontal and vertical direction between the two points
     let dx = p1.x - p0.x;
     let dy = p1.y - p0.y;
-
-    // Length: Euclidean distance between p0 and p1, rounded to nearest integer
     let len = (((dx * dx + dy * dy) as f64).sqrt()) as i32;
     if len == 0 {
         return;
     }
 
-    // Scale factor used to simulate subpixel precision using fixed-point math
-    let scale = 512;
+    let stroke = ctx.line.stroke_width_int.max(1);
+    let radius = stroke as f32 / 2.0;
+    let ceil_radius = radius.ceil() as i32;
+    let max_dist2 = radius * radius;
 
-    // Loop over each step along the line length
     for i in 0..=len {
-        // t: interpolation parameter (scaled)
-        let t = (i * scale) / len;
+        let t = i as f32 / len as f32;
+        let x = p0.x as f32 + t * dx as f32;
+        let y = p0.y as f32 + t * dy as f32;
 
-        // x and y: current point along the line, in fixed-point coordinates
-        let x = p0.x * scale + t * dx;
-        let y = p0.y * scale + t * dy;
+        let cx = (x + 0.5).floor() as i32;
+        let cy = (y + 0.5).floor() as i32;
 
-        // Convert fixed-point back to integer screen coordinates by rounding
-        let ix = ((x + scale / 2) / scale) as i32;
-        let iy = ((y + scale / 2) / scale) as i32;
+        for oy in -ceil_radius..=ceil_radius {
+            for ox in -ceil_radius..=ceil_radius {
+                let px = cx + ox;
+                let py = cy + oy;
 
-        // Draw the center pixel
-        write_pixel(ctx, ix, iy, color, 255);
+                let dist2 = (x - px as f32).powi(2) + (y - py as f32).powi(2);
 
-        // Draw additional pixels based on thickness rule
-        let thickness = ctx.line.stroke_width_int as i32;
-
-        // For thickness > 1, replicate pixels symmetrically left and right (on X axis only)
-        for offset in 1..=(thickness / 2) {
-            // Draw to the right
-            write_pixel(ctx, ix + offset, iy, color, 255);
-            // Draw to the left (only if within bounds of the rule)
-            write_pixel(ctx, ix - offset, iy, color, 255);
+                if dist2 <= max_dist2 {
+                    if ctx.line.anti_aliasing.enabled && ctx.line.anti_aliasing.method.is_int() {
+                        let alpha = ((1.0 - dist2 / max_dist2) * 255.0).clamp(0.0, 255.0) as u8;
+                        write_pixel(ctx, px, py, color, alpha);
+                    } else {
+                        write_pixel(ctx, px, py, color, 255);
+                    }
+                }
+            }
         }
     }
 }
+
+fn draw_float_line<UserData>(
+    ctx: &mut GraphContext<UserData>,
+    p0: &Point<i32>,
+    p1: &Point<i32>,
+    color: u32,
+) {
+    let dx = (p1.x - p0.x) as f32;
+    let dy = (p1.y - p0.y) as f32;
+    let len = (dx * dx + dy * dy).sqrt();
+    if len == 0.0 {
+        return;
+    }
+
+    let radius = ctx.line.stroke_width_float.max(1.0) / 2.0;
+    let ceil_radius = radius.ceil() as i32;
+    let max_dist2 = radius * radius;
+
+    for i in 0..=len.ceil() as i32 {
+        let t = i as f32 / len;
+        let x = p0.x as f32 + t * dx;
+        let y = p0.y as f32 + t * dy;
+
+        let cx = (x + 0.5).floor() as i32;
+        let cy = (y + 0.5).floor() as i32;
+
+        for oy in -ceil_radius..=ceil_radius {
+            for ox in -ceil_radius..=ceil_radius {
+                let px = cx + ox;
+                let py = cy + oy;
+
+                let dist2 = (x - px as f32).powi(2) + (y - py as f32).powi(2);
+
+                if dist2 <= max_dist2 {
+                    if ctx.line.anti_aliasing.enabled && ctx.line.anti_aliasing.method.is_float() {
+                        let alpha = (1.0 - dist2.sqrt() / radius).clamp(0.0, 1.0);
+                        write_pixel_f32(ctx, px, py, color, alpha);
+                    } else {
+                        write_pixel(ctx, px, py, color, 255);
+                    }
+                }
+            }
+        }
+    }
+}
+
+
+
 
 
 /// Optimized horizontal line renderer with thickness and optional anti-aliasing.
