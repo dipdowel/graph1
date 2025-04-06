@@ -1,8 +1,8 @@
+use crate::primitives::plane::{Dimensions2d, RectArea};
+use crate::primitives::point::Point;
 use std::collections::HashMap;
 use std::fmt;
 use std::fmt::Display;
-use crate::primitives::plane::{Dimensions2d, RectArea};
-use crate::primitives::point::Point;
 
 // FIXME: Improve European languages support
 // FIXME: https://github.com/dipdowel/graph1/issues/4
@@ -11,6 +11,7 @@ pub const DEFAULT_CHAR_ORDER: &str = " ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmno
 
 /// Space between glyphs in the font source image file
 pub const DEFAULT_KERNING_PX: u8 = 1;
+pub const DEFAULT_LEADING_PX: u8 = 2;
 
 #[derive(Debug, Clone)]
 /// Font spacing properties (typography)
@@ -19,6 +20,27 @@ pub struct Spacing {
     pub kerning_px: u8,
     /// Vertical spacing between lines of characters
     pub leading_px: u8,
+}
+
+impl Default for Spacing {
+    fn default() -> Self {
+        Self::new(DEFAULT_KERNING_PX, DEFAULT_LEADING_PX)
+    }
+}
+
+impl Spacing {
+    /// Creates a new `Spacing` instance.
+    /// 
+    /// # Parameters
+    /// 
+    /// - `kerning_px`: Horizontal spacing between characters, in pixels.
+    /// - `leading_px`: Vertical spacing between lines of characters, in pixels.
+    pub fn new(kerning_px: u8, leading_px: u8) -> Self {
+        Self {
+            kerning_px,
+            leading_px,
+        }
+    }
 }
 
 #[derive(Debug, Clone)]
@@ -30,7 +52,6 @@ pub struct PixelFontMeta {
     pub font_name: String,
     pub author_signature: String,
 }
-
 
 #[derive(Debug, Clone)]
 pub struct PixelFont {
