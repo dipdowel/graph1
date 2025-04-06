@@ -66,7 +66,6 @@ pub fn between_two_points<UserData>(
 
     let color = color.unwrap_or_else(|| ctx.win.foreground_color);
 
-
     // This is an `let-else` statement, stabilised in Rust 1.65.
     // It does the same as
     // let (p0, p1) = match clipped {
@@ -119,12 +118,40 @@ fn clip_line<UserData>(
         }
     }
 }
+
+#[inline(always)]
+fn draw_along_axis<UserData>(
+    ctx: &mut GraphContext<UserData>,
+    p0: &Point<i32>,
+    p1: &Point<i32>,
+    color: u32,
+) -> bool {
+    if !ctx.line.anti_aliasing.enabled {
+        if p0.x == p1.x && p0.y != p1.y {
+            let start = Point::new(p0.x, p0.y.min(p1.y));
+            let length = (p1.y - p0.y).abs() as u32;
+            vertical(ctx, &start, length, Some(color));
+            return true;
+        } else if p0.y == p1.y && p0.x != p1.x {
+            let start = Point::new(p0.x.min(p1.x), p0.y);
+            let length = (p1.x - p0.x).abs() as u32;
+            horizontal(ctx, &start, length, Some(color));
+            return true;
+        }
+    }
+    false
+}
+
 fn draw_integer_line<UserData>(
     ctx: &mut GraphContext<UserData>,
     p0: &Point<i32>,
     p1: &Point<i32>,
     color: u32,
 ) {
+    if draw_along_axis(ctx, p0, p1, color) {
+        return;
+    }
+
     let dx = p1.x - p0.x;
     let dy = p1.y - p0.y;
     let len = (((dx * dx + dy * dy) as f64).sqrt()) as i32;
@@ -164,13 +191,16 @@ fn draw_integer_line<UserData>(
         }
     }
 }
-
 fn draw_float_line<UserData>(
     ctx: &mut GraphContext<UserData>,
     p0: &Point<i32>,
     p1: &Point<i32>,
     color: u32,
 ) {
+    if draw_along_axis(ctx, p0, p1, color) {
+        return;
+    }
+
     let dx = (p1.x - p0.x) as f32;
     let dy = (p1.y - p0.y) as f32;
     let len = (dx * dx + dy * dy).sqrt();
@@ -209,10 +239,6 @@ fn draw_float_line<UserData>(
         }
     }
 }
-
-
-
-
 
 /// Optimized horizontal line renderer with thickness and optional anti-aliasing.
 pub fn horizontal<UserData>(
