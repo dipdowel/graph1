@@ -14,18 +14,18 @@ fn draw_line_bresenham<UserData>(
     y1: i32,
     color: u32,
 ) {
-    // TODO: Detect vertical lines and draw them using a more optimised approach
-    // if x0 == x1 && y0 != y1 {
-    //     vertical(... parameters ...);
-    //     return;
-    // }
-
-    // TODO: Detect horizontal lines and draw them using a more optimised approach
-    // if y0 == y1 && x0 != x1 {
-    //     horizontal( ... parameters ...);
-    //     return;
-    // }
-
+    if x0 == x1 && y0 != y1 {
+        let start = Point::new(x0, y0.min(y1));
+        let length = (y1 - y0).abs() as u32;
+        vertical(ctx, &start, length, Some(color));
+        return;
+    }
+    if y0 == y1 && x0 != x1 {
+        let start = Point::new(x0.min(x1), y0);
+        let length = (x1 - x0).abs() as u32;
+        horizontal(ctx, &start, length, Some(color));
+        return;
+    }
 
     let mut x = x0;
     let mut y = y0;
@@ -89,7 +89,8 @@ pub fn between_two_points<UserData>(
     }
 }
 
-/// TODO: Add proper documentation to the function!
+/// Determines whether the line should be rendered based on the context configuration.
+/// A line is not rendered if its thickness is invalid (e.g., 0).
 fn is_line_visible<UserData>(ctx: &GraphContext<UserData>) -> bool {
     let line = &ctx.line;
     let no_int = line.rasterization.is_int() && line.stroke_width_int < 1;
@@ -213,8 +214,7 @@ fn draw_integer_line<UserData>(
     }
 }
 
-/// TODO: Add proper documentation to the function!
-/// TODO: Add support for line thickness (read from the `ctx`) to the function!
+/// Optimized horizontal line renderer with thickness and optional anti-aliasing.
 pub fn horizontal<UserData>(
     ctx: &mut GraphContext<UserData>,
     start: &Point<i32>,
@@ -226,27 +226,31 @@ pub fn horizontal<UserData>(
     }
     let color = color.unwrap_or_else(|| ctx.win.foreground_color);
     let alpha_method = ctx.alpha.enabled.then_some(ctx.alpha.method);
-    if start.y < 0 || start.y >= ctx.win.h as i32 {
-        return;
-    }
-    let mut x0 = start.x;
-    let mut x1 = start.x + length as i32;
-    if x1 <= 0 || x0 >= ctx.win.w as i32 {
-        return;
-    }
-    x0 = x0.max(0);
-    x1 = x1.min(ctx.win.w as i32);
-    if x1 <= x0 {
-        return;
-    }
-    let mut buf_index = (start.y as u32 * ctx.win.w + x0 as u32) as usize;
-    for _ in x0..x1 {
-        write_pixel_with_blending(&mut ctx.frame_buf[buf_index], color, alpha_method);
-        buf_index += 1;
+    let half_thickness = (ctx.line.stroke_width_int.max(1) / 2) as i32;
+    for offset in -half_thickness..=half_thickness {
+        let y = start.y + offset;
+        if y < 0 || y >= ctx.win.h as i32 {
+            continue;
+        }
+        let mut x0 = start.x;
+        let mut x1 = start.x + length as i32;
+        if x1 <= 0 || x0 >= ctx.win.w as i32 {
+            continue;
+        }
+        x0 = x0.max(0);
+        x1 = x1.min(ctx.win.w as i32);
+        if x1 <= x0 {
+            continue;
+        }
+        let mut buf_index = (y as u32 * ctx.win.w + x0 as u32) as usize;
+        for _ in x0..x1 {
+            write_pixel_with_blending(&mut ctx.frame_buf[buf_index], color, alpha_method);
+            buf_index += 1;
+        }
     }
 }
-/// TODO: Add proper documentation to the function!
-/// TODO: Add support for line thickness (read from the `ctx`) to the function!
+
+/// Optimized vertical line renderer with thickness and optional anti-aliasing.
 pub fn vertical<UserData>(
     ctx: &mut GraphContext<UserData>,
     start: &Point<i32>,
@@ -258,22 +262,26 @@ pub fn vertical<UserData>(
     }
     let color = color.unwrap_or_else(|| ctx.win.foreground_color);
     let alpha_method = ctx.alpha.enabled.then_some(ctx.alpha.method);
-    if start.x < 0 || start.x >= ctx.win.w as i32 {
-        return;
-    }
-    let mut y0 = start.y;
-    let mut y1 = start.y + length as i32;
-    if y1 <= 0 || y0 >= ctx.win.h as i32 {
-        return;
-    }
-    y0 = y0.max(0);
-    y1 = y1.min(ctx.win.h as i32);
-    if y1 <= y0 {
-        return;
-    }
-    let mut buf_index = (y0 as u32 * ctx.win.w + start.x as u32) as usize;
-    for _ in y0..y1 {
-        write_pixel_with_blending(&mut ctx.frame_buf[buf_index], color, alpha_method);
-        buf_index += ctx.win.w_usize;
+    let half_thickness = (ctx.line.stroke_width_int.max(1) / 2) as i32;
+    for offset in -half_thickness..=half_thickness {
+        let x = start.x + offset;
+        if x < 0 || x >= ctx.win.w as i32 {
+            continue;
+        }
+        let mut y0 = start.y;
+        let mut y1 = start.y + length as i32;
+        if y1 <= 0 || y0 >= ctx.win.h as i32 {
+            continue;
+        }
+        y0 = y0.max(0);
+        y1 = y1.min(ctx.win.h as i32);
+        if y1 <= y0 {
+            continue;
+        }
+        let mut buf_index = (y0 as u32 * ctx.win.w + x as u32) as usize;
+        for _ in y0..y1 {
+            write_pixel_with_blending(&mut ctx.frame_buf[buf_index], color, alpha_method);
+            buf_index += ctx.win.w_usize;
+        }
     }
 }
