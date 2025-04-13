@@ -54,6 +54,12 @@ fn draw_line_bresenham<UserData>(
 
 /// Draws a line between two points using the context's line width and anti-aliasing settings.
 /// Falls back to Bresenham if line width is 1 and anti-aliasing is off.
+///
+/// # Arguments
+/// * `ctx` - The graph context.
+/// * `start` - The starting point of the line.
+/// * `end` - The ending point of the line.
+/// * `color` - Optional color for the line. If not provided, the context's foreground color is used.
 pub fn between_two_points<UserData>(
     ctx: &mut GraphContext<UserData>,
     start: &Point<i32>,
