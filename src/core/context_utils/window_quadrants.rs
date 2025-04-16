@@ -1,7 +1,7 @@
 use crate::primitives::plane::RectArea;
 use crate::utils::math::geometry::region::Region;
 
-#[derive(Debug)]
+#[derive(Clone, Copy, Debug)]
 pub struct Quadrants {
     pub top_left: Region<u32>,
     pub top_right: Region<u32>,
@@ -23,6 +23,19 @@ impl Quadrants {
             bottom_right,
         }
     }
+
+    /// Returns a vector of references to the four quadrants
+    /// In the following order: top-left, top-right, bottom-right,bottom-left
+    pub fn get_quadrants(&self) -> Vec<&Region<u32>> {
+        vec![
+            &self.top_left,
+            &self.top_right,
+            &self.bottom_right,
+            &self.bottom_left,
+        ]
+    }
+
+
 }
 
 #[cfg(test)]

@@ -153,6 +153,31 @@ impl<T: Numeric> Region<T> {
         self.width() * self.height()
     }
 
+    /// Returns a vector of points representing the corners and midpoints of the region in the following order
+    /// - top, top-right, right, bottom-right, bottom, bottom-left, left, top-left
+    /// # Arguments
+    ///
+    /// * `include_center` - If `true`, the center point is also included (as the last element).
+    pub fn get_points(&self, include_center:bool) -> Vec<Point<T>> {
+        let capacity = if include_center { 9 } else { 8 };
+        let mut points = Vec::with_capacity(capacity);
+
+        points.extend([
+            self.top,
+            self.top_right,
+            self.right,
+            self.bottom_right,
+            self.bottom,
+            self.bottom_left,
+            self.left,
+            self.top_left,
+        ]);
+        if include_center{
+            points.push(self.center);
+        }
+        points
+    }
+
     /// Returns a deterministic pseudorandom point inside the region, based on the given seed.
     pub fn random_point_inside(&self, seed: u32) -> Point<u32> {
         let min_x = self.rect_area.top_left.x.to_u32();
@@ -207,50 +232,45 @@ impl<T: Numeric> Region<T> {
     }
 
     /*
-    /// ATTEMPT TO FIX THE BUGGY SPLIT! :(
-    pub fn split_horizontal(&self, ratio: Option<Ratio<T>>) -> (Region<T>, Region<T>) {
-        let  h = self.height().to_f64();
-        let  w = self.width().to_f64();
+        /// ATTEMPT TO FIX THE BUGGY SPLIT! :(
+        pub fn split_horizontal(&self, ratio: Option<Ratio<T>>) -> (Region<T>, Region<T>) {
+            let  h = self.height().to_f64();
+            let  w = self.width().to_f64();
 
-        let (top_h, bottom_h) = match ratio {
-            Some(r) => {
-                let n = r.numerator.to_f64();
-                let d = r.denominator.to_f64();
-                let mut top_h = h * n / (n + d);
-                let mut bottom_h = h - top_h;
-                (T::from_f64(top_h), T::from_f64(bottom_h))
-            }
-            None => {
-                let half = h / 2.0;
+            let (top_h, bottom_h) = match ratio {
+                Some(r) => {
+                    let n = r.numerator.to_f64();
+                    let d = r.denominator.to_f64();
+                    let mut top_h = h * n / (n + d);
+                    let mut bottom_h = h - top_h;
+                    (T::from_f64(top_h), T::from_f64(bottom_h))
+                }
+                None => {
+                    let half = h / 2.0;
 
-                (T::from_f64(half), T::from_f64(h - half))
-            }
-        };
+                    (T::from_f64(half), T::from_f64(h - half))
+                }
+            };
 
-        let top = RectArea::new(
-            self.rect_area.top_left.x,
-            self.rect_area.top_left.y,
-            T::from_f64(w),
-            top_h,
-            self.rect_area.color,
-        );
+            let top = RectArea::new(
+                self.rect_area.top_left.x,
+                self.rect_area.top_left.y,
+                T::from_f64(w),
+                top_h,
+                self.rect_area.color,
+            );
 
-        let bottom = RectArea::new(
-            self.rect_area.top_left.x,
-            self.rect_area.top_left.y + top_h,
-            T::from_f64(w),
-            bottom_h,
-            self.rect_area.color,
-        );
+            let bottom = RectArea::new(
+                self.rect_area.top_left.x,
+                self.rect_area.top_left.y + top_h,
+                T::from_f64(w),
+                bottom_h,
+                self.rect_area.color,
+            );
 
-        (Region::new(top), Region::new(bottom))
-    }
-*/
-
-
-
-
-
+            (Region::new(top), Region::new(bottom))
+        }
+    */
 
     pub fn split_vertical(&self, ratio: Option<Ratio<T>>) -> (Region<T>, Region<T>) {
         let w = self.width();
@@ -445,8 +465,6 @@ mod tests {
         assert_eq!(px.color, color);
     }
 
-
-
     #[test]
     fn test_jittered_center_stays_near_center() {
         let region = Region::new(RectArea::new(100, 100, 20, 20, None));
@@ -471,20 +489,19 @@ mod tests {
         assert_eq!(px.color, color);
     }
 
-
     /*
-     // FIXME: THIS TEST FAILS!
-    #[test]
-    fn test_split_horizontal_ratio() {
-        let region = Region::new(RectArea::new(0, 0, 10, 10, None));
-        let ratio = Ratio::new(1, 3).unwrap();
-        let (top, bottom) = region.split_horizontal(Some(ratio));
+         // FIXME: THIS TEST FAILS!
+        #[test]
+        fn test_split_horizontal_ratio() {
+            let region = Region::new(RectArea::new(0, 0, 10, 10, None));
+            let ratio = Ratio::new(1, 3).unwrap();
+            let (top, bottom) = region.split_horizontal(Some(ratio));
 
-        assert_eq!(top.height(), 2);
-        assert_eq!(bottom.height(), 8);
-    }
+            assert_eq!(top.height(), 2);
+            assert_eq!(bottom.height(), 8);
+        }
 
-*/
+    */
 
     #[test]
     fn test_split_vertical_ratio() {
@@ -512,38 +529,38 @@ mod tests {
         assert_eq!(left.width() + right.width(), 9);
         assert!((left.width() - right.width()).abs() <= 1);
     }
-/*
- // FIXME: THESE TESTS FAIL!
-#[test]
-fn test_split_horizontal_inverse_ratio() {
-    let region = Region::new(RectArea::new(0, 0, 10, 10, None));
-    let ratio = Ratio::new(1, 3).unwrap();
-    println!("ratio : {:?}", ratio);
-    println!("ratio inv : {:?}", ratio.inverted().unwrap());
+    /*
+     // FIXME: THESE TESTS FAIL!
+    #[test]
+    fn test_split_horizontal_inverse_ratio() {
+        let region = Region::new(RectArea::new(0, 0, 10, 10, None));
+        let ratio = Ratio::new(1, 3).unwrap();
+        println!("ratio : {:?}", ratio);
+        println!("ratio inv : {:?}", ratio.inverted().unwrap());
 
-    let (top1, bottom1) = region.split_horizontal(Some(ratio));
-    let (top2, bottom2) = region.split_horizontal(Some(ratio.inverted().unwrap()));
+        let (top1, bottom1) = region.split_horizontal(Some(ratio));
+        let (top2, bottom2) = region.split_horizontal(Some(ratio.inverted().unwrap()));
 
-    println!("top1 : {:?}", top1);
-    println!("bottom1 : {:?}", bottom1);
-    println!("top2 : {:?}", top2);
-    println!("bottom2 : {:?}", bottom2);
+        println!("top1 : {:?}", top1);
+        println!("bottom1 : {:?}", bottom1);
+        println!("top2 : {:?}", top2);
+        println!("bottom2 : {:?}", bottom2);
 
 
-    assert_eq!(top1.height(), bottom2.height());
-    assert_eq!(bottom1.height(), top2.height());
-}
+        assert_eq!(top1.height(), bottom2.height());
+        assert_eq!(bottom1.height(), top2.height());
+    }
 
-#[test]
-fn test_split_vertical_inverse_ratio() {
-    let region = Region::new(RectArea::new(0, 0, 20, 10, None));
-    let ratio = Ratio::new(2, 5).unwrap();
-    let (left1, right1) = region.split_vertical(Some(ratio));
-    let (left2, right2) = region.split_vertical(Some(ratio.inverted().unwrap()));
+    #[test]
+    fn test_split_vertical_inverse_ratio() {
+        let region = Region::new(RectArea::new(0, 0, 20, 10, None));
+        let ratio = Ratio::new(2, 5).unwrap();
+        let (left1, right1) = region.split_vertical(Some(ratio));
+        let (left2, right2) = region.split_vertical(Some(ratio.inverted().unwrap()));
 
-    assert_eq!(left1.width(), right2.width());
-    assert_eq!(right1.width(), left2.width());
-}
+        assert_eq!(left1.width(), right2.width());
+        assert_eq!(right1.width(), left2.width());
+    }
 
- */
+     */
 }
