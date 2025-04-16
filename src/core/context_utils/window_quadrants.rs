@@ -96,4 +96,18 @@ mod tests {
 
         assert_eq!(total_area, w * h);
     }
+
+    #[test]
+    fn get_quadrants_should_return_correct_order() {
+        let quads = Quadrants::from_dimensions(100, 100);
+        let regions = quads.get_quadrants();
+
+        assert_eq!(regions.len(), 4);
+        assert!(std::ptr::eq(regions[0], &quads.top_left));
+        assert!(std::ptr::eq(regions[1], &quads.top_right));
+        assert!(std::ptr::eq(regions[2], &quads.bottom_right));
+        assert!(std::ptr::eq(regions[3], &quads.bottom_left));
+    }
+
+
 }

@@ -529,6 +529,34 @@ mod tests {
         assert_eq!(left.width() + right.width(), 9);
         assert!((left.width() - right.width()).abs() <= 1);
     }
+
+    #[test]
+    fn get_points_should_return_8_points_without_center() {
+        let region = Region::new(RectArea::new(0, 0, 10, 10, None));
+        let points = region.get_points(false);
+
+        assert_eq!(points.len(), 8);
+        assert_eq!(points[0], region.top());
+        assert_eq!(points[1], region.top_right());
+        assert_eq!(points[2], region.right());
+        assert_eq!(points[3], region.bottom_right());
+        assert_eq!(points[4], region.bottom());
+        assert_eq!(points[5], region.bottom_left());
+        assert_eq!(points[6], region.left());
+        assert_eq!(points[7], region.top_left());
+    }
+
+    #[test]
+    fn get_points_should_include_center_when_requested() {
+        let region = Region::new(RectArea::new(0, 0, 20, 20, None));
+        let points = region.get_points(true);
+
+        assert_eq!(points.len(), 9);
+        assert_eq!(points.last().unwrap(), &region.center());
+    }
+
+
+
     /*
      // FIXME: THESE TESTS FAIL!
     #[test]
