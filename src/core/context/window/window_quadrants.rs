@@ -1,13 +1,15 @@
+use crate::primitives::numeric::Numeric;
 use crate::primitives::plane::RectArea;
 use crate::utils::math::geometry::region::Region;
 
 #[derive(Clone, Copy, Debug)]
-pub struct Quadrants {
-    pub top_left: Region<u32>,
-    pub top_right: Region<u32>,
-    pub bottom_left: Region<u32>,
-    pub bottom_right: Region<u32>,
+pub struct Quadrants<T: Numeric = u32> {
+    pub top_left: Region<T>,
+    pub top_right: Region<T>,
+    pub bottom_left: Region<T>,
+    pub bottom_right: Region<T>,
 }
+
 
 impl Quadrants {
     pub fn from_dimensions(w: u32, h: u32) -> Self {
@@ -34,9 +36,23 @@ impl Quadrants {
             &self.bottom_left,
         ]
     }
-
-
 }
+
+
+impl<T: Numeric> Quadrants<T> {
+
+    /// Converts all `Region<T>` fields to another numeric type, returning a new `Quadrants<U>`.
+    /// Useful for rendering or calculation scenarios involving a different numeric precision.
+    pub fn convert<U: Numeric>(&self) -> Quadrants<U> {
+        Quadrants {
+            top_left: self.top_left.convert::<U>(),
+            top_right: self.top_right.convert::<U>(),
+            bottom_left: self.bottom_left.convert::<U>(),
+            bottom_right: self.bottom_right.convert::<U>(),
+        }
+    }
+}
+
 
 #[cfg(test)]
 mod tests {

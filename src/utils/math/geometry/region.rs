@@ -52,6 +52,13 @@ impl<T: Numeric> Region<T> {
         }
     }
 
+    /// Converts a `Region<T>` to a `Region<U>` where `U: Numeric`, converting all internal `Point<T>` values.
+    /// This is useful when changing numeric precision or type, e.g. `u32` to `i32`.
+    pub fn convert<U: Numeric>(&self) -> Region<U> {
+        let new_area = self.rect_area.convert::<U>();
+        Region::new(new_area)
+    }
+    
     /// Updates the region with a new `RectArea` and recalculates all relevant points.
     pub fn update(&mut self, area: RectArea<T>) {
         self.rect_area = area;
