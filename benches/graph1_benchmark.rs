@@ -16,6 +16,7 @@ fn rgba_to_0rgb_bench(ctx_dst: &mut GraphContext<MockUserData>, ctx_src: &mut Gr
     adapters::rgba_to_0rgb(
         &mut ctx_dst.frame_buf,
         &mut ctx_src.frame_buf,
+        1,
         false,
     );
 }
@@ -23,7 +24,7 @@ fn benchmark_comparison(c: &mut Criterion) {
     // Test set-up
     let mut ctx_dst: GraphContext<MockUserData> = get_mock_graph_context(640, 480);
     let mut ctx_src: GraphContext<MockUserData> = get_mock_graph_context(640, 480);
-    fill::buffer(&mut ctx_src.frame_buf, 0x33_44_55_ff);
+    fill::buffer(&mut ctx_src.frame_buf, 0x33_44_55_ff,1);
 
     // Create a benchmark group
     let mut group = c.benchmark_group("Function Comparison");
