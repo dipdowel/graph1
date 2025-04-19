@@ -124,6 +124,15 @@ mod tests {
         assert!(std::ptr::eq(regions[2], &quads.bottom_right));
         assert!(std::ptr::eq(regions[3], &quads.bottom_left));
     }
+    #[test]
+    fn quadrants_convert_should_preserve_layout() {
+        let quads_u32 = Quadrants::from_dimensions(100, 100);
+        let quads_i32 = quads_u32.convert::<i32>();
+
+        assert_eq!(quads_u32.top_left.area() as i32, quads_i32.top_left.area());
+        assert_eq!(quads_u32.top_right.center().x as i32, quads_i32.top_right.center().x);
+        assert_eq!(quads_u32.bottom_right.size().w as i32, quads_i32.bottom_right.size().w);
+    }
 
 
 }

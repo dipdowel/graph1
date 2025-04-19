@@ -562,6 +562,16 @@ mod tests {
         assert_eq!(points.last().unwrap(), &region.center());
     }
 
+    #[test]
+    fn region_convert_should_preserve_geometry() {
+        let rect = RectArea::new(10u32, 20u32, 30u32, 40u32, None);
+        let region_u32 = Region::new(rect);
+        let region_i32 = region_u32.convert::<i32>();
+
+        assert_eq!(region_i32.rect_area().top_left, Point::new(10i32, 20i32));
+        assert_eq!(region_i32.rect_area().dimensions, Dimensions2d::new(30i32, 40i32));
+        assert_eq!(region_i32.center(), Point::new(25i32, 40i32));
+    }
 
 
     /*
