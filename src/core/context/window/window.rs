@@ -1,8 +1,8 @@
-
-use crate::core::context_utils::window_quadrants::Quadrants;
+use crate::core::context::window::window_quadrants::Quadrants;
 use crate::core::default_colors;
 use crate::primitives::plane::{Dimensions2d, RectArea};
 use crate::primitives::point::Point;
+use crate::utils::math::geometry::region::Region;
 
 #[derive(Debug)]
 /// A collection of window properties, such as width, height, and background color,
@@ -34,6 +34,8 @@ pub struct WindowContext {
     pub center: Point<u32>,
     /// Four equally sized subregions representing the screen's quadrants (top-left, top-right, bottom-left, bottom-right)
     pub quadrants: Quadrants,
+    /// Window as a Region (to access points: top, top-right, right, bottom-right, bottom, etc).
+    pub region: Region,
 }
 
 impl WindowContext {
@@ -48,6 +50,8 @@ impl WindowContext {
 
         let quadrants = Quadrants::from_dimensions(w, h);
 
+        let win_rect_area = RectArea::new(0, 0, w, h, Some(fg_color));
+
         Self {
             w,
             h,
@@ -60,11 +64,12 @@ impl WindowContext {
                 w: w as usize,
                 h: h as usize,
             },
-            rect_area: RectArea::new(0, 0, w, h, Some(fg_color)),
+            rect_area: win_rect_area.clone(),
             background_color: background_color_rgba.unwrap_or(default_colors::BACKGROUND),
             foreground_color: fg_color,
             center: Point::new(w / 2, h / 2),
             quadrants,
+            region: Region::new(win_rect_area)
         }
     }
 

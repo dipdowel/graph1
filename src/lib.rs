@@ -14,26 +14,32 @@ pub mod core {
         mod bezier;
         mod graph;
         mod line_context;
-        mod window;
+        pub(crate) mod window {
+            pub(crate) mod window;
+            pub(crate) mod window_quadrants;
+        }
+        
         
 
         pub use alpha::AlphaContext;
         // pub use alpha::AlphaMethod;
         pub use bezier::BezierContext;
         pub use graph::GraphContext;
-        pub use window::WindowContext;
+        pub use window::window::WindowContext;
+        pub use window::window_quadrants::Quadrants;
         pub use line_context::AntiAliasingConfig;
         pub use line_context::AntiAliasingMethod;
         pub use line_context::LineContext;
         pub use line_context::RasterizationMethod;
-
-
+        
 
     }
 
     pub mod context_utils {
         pub mod line_clipping_style;
-        pub(crate) mod window_quadrants;
+        
+
+
     }
     
     /// Default colors used in the library if no custom colors specified
