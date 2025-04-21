@@ -1,7 +1,7 @@
 use crate::core::default_colors;
 
 /// Settings for rendering controls for Bezier curves
-#[derive(Debug)]
+#[derive(Debug, Default, Clone, Copy)]
 pub struct BezierContext {
     /// If true, the control points and start-end points will be rendered
     pub render_controls: bool,
@@ -11,6 +11,8 @@ pub struct BezierContext {
     pub control_color: Option<u32>,
     /// Color of the start and end points, if `None` the inverted background color will be used
     pub start_end_points_color: Option<u32>,
+    /// If true, Bézier curves will be rendered, otherwise not
+    pub enabled: bool
 }
 
 impl BezierContext {
@@ -21,6 +23,11 @@ impl BezierContext {
             render_levers: true,
             control_color: Some(default_colors::BEZIER_CONTROL),
             start_end_points_color: Some(default_colors::BEZIER_START_END),
+            enabled: true,
         }
+    }
+
+    pub fn default() -> Self {
+        Self::new()
     }
 }

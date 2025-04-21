@@ -55,9 +55,14 @@ pub mod draw {
     }
     /// Draw circles
     pub mod circle;
-    pub mod curves {
-        pub mod bezier;
+
+    pub mod curve{
+        /// Draw Bezier curves
+        mod bezier;
+        pub use bezier::bezier;
+        
     }
+    
     /// Draw lines
     pub mod line;
 
@@ -102,6 +107,7 @@ pub mod draw {
 //-=[ F }=------------------------------------------------------------------------------------------
 
 pub mod filters {
+    pub mod image;
 
 }
 

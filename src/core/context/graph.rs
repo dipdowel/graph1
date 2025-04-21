@@ -16,7 +16,7 @@ pub struct GraphContext<UserData = Vec<i32>> {
     /// A vector of user-defined data. Store any information here that needs to be passed around with the context
     pub user_data: Box<UserData>,
     /// Settings for rendering controls for Bezier curves
-    pub bezier: Option<BezierContext>,
+    pub bezier: BezierContext,
     /// Current frame in animation. If no animation is needed, can be set to `0`
     pub frame_count: usize,
     ///  Configurations for alpha blending (where applicable)
@@ -81,7 +81,7 @@ impl<UserData: Default> GraphContext<UserData> {
 
             // Use the provided `user_data` or default to `UserData::default()`
             user_data: Box::new(user_data.unwrap_or_default()),
-            bezier: None,
+            bezier: BezierContext::default(),
             frame_count: 0,
             alpha: AlphaContext {
                 enabled: use_alpha,
