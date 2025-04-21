@@ -1,5 +1,6 @@
 use crate::core::context::window::window_quadrants::Quadrants;
 use crate::core::default_colors;
+use crate::primitives::Pixel;
 use crate::primitives::plane::{Dimensions2d, RectArea};
 use crate::primitives::point::Point;
 use crate::utils::math::geometry::region::Region;
@@ -103,6 +104,11 @@ impl WindowContext {
         self.center.x = w / 2;
         self.center.y = h / 2;
         self.update_quadrants();
+    }
+
+    /// Returns the center pixel of the window of the foreground color
+    pub fn center_pixel(&self) -> Pixel {
+        Pixel::new(self.center.x, self.center.y, self.foreground_color)
     }
 
     fn update_quadrants(&mut self) {

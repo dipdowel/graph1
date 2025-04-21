@@ -142,6 +142,13 @@ impl<T: Numeric> Region<T> {
         self.bottom_right
     }
 
+    // TODO:
+    // TODO:
+    // TODO: Consider adding a `pixel` property that would have all the helper functions as above
+    // TODO: but would return a `Pixel` instead of a `Point` with the color from `RectArea`
+    // TODO:
+    // TODO:
+
     //----------------------------------------------------------------------------------------------
 
     pub fn width(&self) -> T {
