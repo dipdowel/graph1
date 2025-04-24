@@ -1,7 +1,9 @@
 use crate::core::context::GraphContext;
+use crate::draw::curve::bezier_segment::BezierSegment;
 use crate::draw::line;
 use crate::draw::rectangle;
 use crate::filters::image;
+use crate::primitives::numeric::Numeric;
 use crate::primitives::plane::{Dimensions2d, RectArea};
 use crate::primitives::point::Point;
 
@@ -62,6 +64,7 @@ fn bezier_point(t: f32, p0: &Point, p1: &Point<i32>, p2: &Point<i32>, p3: &Point
 ///     2. Control point #1 `control_points[2]`
 ///     3. Control point #2 `control_points[3]`
 ///     4. The ending point: `start_end_points[2]`
+///
 ///     Etc.
 ///
 /// ### Performance
@@ -224,4 +227,55 @@ fn draw_controls<UserData>(
             control_color.unwrap_or(ctx.win.foreground_color),
         );
     }
+}
+
+pub fn bezier2<UserData, PointType: Numeric>(
+    ctx: &mut GraphContext<UserData>,
+    segments: &[BezierSegment<PointType>],
+    resolution_delta: f32,
+) {
+    if !ctx.bezier.enabled {
+        return;
+    }
+
+    for segment in segments {
+
+        let mut t = 0.0;
+        let mut current_point = segment.start;
+        
+        while t <= 1.0 {
+            let next_point = bezier_point(
+                t,
+                &segment.start.convert(),
+                &segment.start_control.convert(),
+                &segment.end_control.convert(),
+                &segment.end.convert(),
+            );
+            line::between_two_points(
+                ctx,
+                &current_point.convert(),
+                &next_point.convert(),
+                Some(segment.color),
+            );
+            current_point = next_point.convert();
+            t += resolution_delta;
+        }
+        
+        line::between_two_points(
+            ctx,
+            &current_point.convert(),
+            &segment.end.convert(),
+            Some(segment.color),
+        );
+    }
+
+    // if ctx.bezier.render_controls {
+    //     draw_controls(
+    //         ctx,
+    //         Some(control_points),
+    //         ctx.bezier.control_color,
+    //         Some(start_end_points),
+    //         ctx.bezier.start_end_points_color,
+    //     );
+    // }
 }

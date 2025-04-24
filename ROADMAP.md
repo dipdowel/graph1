@@ -1,4 +1,9 @@
--[ ] Get rid of &u32 and other primitive numeric types passed by reference. That's inefficient.
+## Roadmap
+
+
+
+## TODO (partially outdated?)
+- [ ] Get rid of &u32 and other primitive numeric types passed by reference. That's inefficient.
 -[ ] Create a package with formulas, like formulas of circle, ellipse, etc.
  ================================================================================================================
 -[ ] Consider adding `#[derive(Default)]` in places where it makes sense!
