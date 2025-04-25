@@ -70,6 +70,11 @@ pub trait Numeric:
         panic!("from_u64 not supported for this type")
     }
 
+    /// Convert to i32, with clamping or saturating if needed.
+    fn to_i32(self) -> i32 {
+        self.to_f64().round().clamp(i32::MIN as f64, i32::MAX as f64) as i32
+    }
+
     /// Returns the additive identity (zero).<br />
     /// 🤓 The additive identity is the element in a number system (or algebraic structure) that,
     /// when added to any other element, leaves that element unchanged.
@@ -138,6 +143,10 @@ impl Numeric for u32 {
         value as u32
     }
 
+    fn to_i32(self) -> i32 {
+        self.min(i32::MAX as u32) as i32
+    }
+
     fn zero() -> Self {
         0
     }
@@ -179,6 +188,11 @@ impl Numeric for u64 {
     fn from_u64(value: u64) -> Self {
         value
     }
+
+    fn to_i32(self) -> i32 {
+        self.min(i32::MAX as u64) as i32
+    }
+
 
     fn zero() -> Self {
         0
@@ -222,6 +236,9 @@ impl Numeric for usize {
         value as usize
     }
 
+    fn to_i32(self) -> i32 {
+        self.min(i32::MAX as usize) as i32
+    }
     fn zero() -> Self {
         0
     }
@@ -275,6 +292,10 @@ impl Numeric for i32 {
 
     }
 
+    fn to_i32(self) -> i32 {
+        self
+    }
+
     fn zero() -> Self {
         0
     }
@@ -325,6 +346,10 @@ impl Numeric for f32 {
 
     fn from_u64(value: u64) -> Self {
         value as f32
+    }
+
+    fn to_i32(self) -> i32 {
+        self.round().clamp(i32::MIN as f32, i32::MAX as f32) as i32
     }
 
     fn zero() -> Self {
@@ -385,6 +410,10 @@ impl Numeric for f64 {
 
     fn from_u64(value: u64) -> Self {
         value as f64
+    }
+
+    fn to_i32(self) -> i32 {
+        self.round().clamp(i32::MIN as f64, i32::MAX as f64) as i32
     }
 
     fn zero() -> Self {
@@ -698,7 +727,18 @@ mod tests {
         assert_eq!(result, i32::MAX); // unchecked, might overflow
     }
 
-
+    #[test]
+    fn test_to_i32_clamping() {
+        assert_eq!(123_u32.to_i32(), 123);
+        assert_eq!(u64::MAX.to_i32(), i32::MAX);
+        assert_eq!((-999.9_f64).to_i32(), -1000);
+        assert_eq!(9999999999_f64.to_i32(), i32::MAX);
+        assert_eq!((-9999999999_f64).to_i32(), i32::MIN);
+        assert_eq!(i32::MAX.to_i32(), i32::MAX);
+        assert_eq!(i32::MIN.to_i32(), i32::MIN);
+        assert_eq!((123.8_f32).to_i32(), 124);
+        assert_eq!((-1.9_f32).to_i32(), -2);
+    }
 
 
 }
