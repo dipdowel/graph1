@@ -60,7 +60,6 @@ pub mod draw {
         /// Draw Bezier curves
         mod bezier;
         pub use bezier::bezier;
-        pub use bezier::bezier2;
 
         pub mod bezier_segment;
         
