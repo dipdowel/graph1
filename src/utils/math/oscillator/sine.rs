@@ -39,7 +39,7 @@ pub fn sine<C: Numeric, LB: Numeric, UB: Numeric>(
     let upper_bound = upper_bound.to_f64();
     let lower_bound = lower_bound.to_f64();
     let counter = counter.to_f64();
-
+    
     // The line below causes the oscillation to speed up. There's a potential usage for it!
     // let angle = counter * frequency * 2.0 * PI;
 

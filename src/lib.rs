@@ -290,7 +290,9 @@ pub mod utils {
         /// Generators of periodic values
         pub mod oscillator {
             mod sine;
+            mod sine_discrete;
             pub use sine::sine;
+            pub use sine_discrete::sine_discrete;
         }
 
         /// Random number generators
