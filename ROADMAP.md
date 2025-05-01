@@ -16,10 +16,10 @@
 ## Intensity
 
 ## Documentation
-Update the documentation with the multithreaded support in the operations. 
+Update the documentation with the multithreaded support in the operations.
 
 ## multithreaded support in operations
-- Make a multithreaded function that copies one buffer to another 
+- Make a multithreaded function that copies one buffer to another
 - Drawing a rectangle can be multithreaded, try it!
 - Make multithreaded color adapters
 - The scanline effect can potentially be multithreaded
