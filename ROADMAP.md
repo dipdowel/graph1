@@ -1,6 +1,7 @@
-## Roadmap
+# The Roadmap
 
-
+**NB:** The roadmap is still a work in progress. The notes below might be outdated and/or incomplete.
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
 ## TODO (partially outdated?)
 - [ ] Get rid of &u32 and other primitive numeric types passed by reference. That's inefficient.
@@ -15,10 +16,10 @@
 ## Intensity
 
 ## Documentation
-Update the documentation with the multithreaded support in the operations. 
+Update the documentation with the multithreaded support in the operations.
 
 ## multithreaded support in operations
-- Make a multithreaded function that copies one buffer to another 
+- Make a multithreaded function that copies one buffer to another
 - Drawing a rectangle can be multithreaded, try it!
 - Make multithreaded color adapters
 - The scanline effect can potentially be multithreaded
