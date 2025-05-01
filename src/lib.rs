@@ -202,6 +202,7 @@ pub mod utils {
             mod rgba_to_0rgb_unsafe;
             mod rgba_to_abgr;
             mod rgba_to_abgr_unsafe;
+            mod rgba_to_argb;
             mod single_pixel;
 
             pub use adapter_statistics::AdapterStatistics;
@@ -209,6 +210,7 @@ pub mod utils {
             pub use rgba_to_0rgb_unsafe::rgba_to_0rgb_unsafe;
             pub use rgba_to_abgr::rgba_to_abgr;
             pub use rgba_to_abgr_unsafe::rgba_to_abgr_unsafe;
+            pub use rgba_to_argb::rgba_to_argb;
             pub use single_pixel::rgba_color_to_0rgb;
             pub use single_pixel::rgba_color_to_abgr;
         }
