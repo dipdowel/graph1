@@ -157,13 +157,14 @@ Graph1 is open-source. See file `LICENSE`.
 - Add procedural shape generators
 - Write a roadmap
 
-
-
+<br /><br />
 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
 ## NB: Below is an older version of the README.md file. 
 It contains some useful bits which need to be cleaned up, reorganized, and incorporated into the new version (above).
 
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+<br /><br /><br />
 
 # Graph1
 
