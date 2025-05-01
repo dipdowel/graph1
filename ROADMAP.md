@@ -1,6 +1,7 @@
-## Roadmap
+# The Roadmap
 
-
+**NB:** The roadmap is still a work in progress. The notes below might be outdated and/or incomplete.
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
 ## TODO (partially outdated?)
 - [ ] Get rid of &u32 and other primitive numeric types passed by reference. That's inefficient.
