@@ -1,5 +1,172 @@
 # Graph1
 
+Graph1 is a zero-dependency Rust library for pixel-level 2D graphics, drawing, animation, and procedural effects. Designed for real-time applications, it provides primitives, geometry, drawing tools, effects, and font rendering utilities. It is suitable for games, demos, educational tools, or any project that requires software rendering with high control and precision.
+
+---
+
+## ✨ Features
+
+- **Zero dependencies** — no external crates used.
+- **Cross-platform** — works on any platform with Rust support.
+- **Multithreading** — parallel rendering for large framebuffers.
+- **Compositing** — alpha blending with integer and float support.
+- **Geometric Primitives** — lines, polygons, circles, bézier curves, etc.
+- **Context-based API** — all the settings for drawing are available in one place.
+- **Pixel Fonts** — supports  bitmap fonts for rendering text
+- **Procedural Effects** — scanlines, glitch effects, white noise, gradients, etc.
+- **Flexible Clipping** — built-in clipping strategies for line drawing.
+- **Color Utilities** — palettes, conversion between 0RGB, RGBA, ABGR, etc.
+
+---
+
+## 📄 What Graph1 Is
+
+- A **software renderer** for  2D graphics.
+- A **toolkit** for manipulating pixels, shapes, and effects.
+- A **real-time capable** drawing engine for dynamic visuals.
+
+
+
+---
+
+## ⛔️ What Graph1 is/does Not
+
+- Does **not perform file I/O** (reading/writing images, fonts, etc.).
+- Does **not maintain state** beyond the active frame context.
+- Does **not depend on any OS, graphics API, or runtime**.
+
+---
+
+## 🖋️ Drawing Contexts
+
+Graph1 uses context objects to separate responsibilities:
+
+- `GraphContext` — main entry point: framebuffer, window, settings.
+- `WindowContext` — defines screen size, center, color, quadrants.
+- `LineContext` — manages anti-aliasing, thickness and rasterization of lines.
+- `BezierContext` — control over how bézier curves are rendered.
+- , `AlphaContext` — alpha blending settings
+
+Each context can be programmatically configured at any point in runtime. Default values are provided for ease of use.
+
+---
+
+## 🌈 Colors and Pixels
+
+- Graph1 uses RGBA model for color representation.
+- The resulting framebuffer can be converted to other color models before being sent to the graphics output.
+
+## 🚀 Multithreaded Rendering
+
+Many Graph1 operations (e.g., buffer fill, scanline effect, rectangle drawing) can be executed in parallel. The `GraphContext.num_threads` controls how many threads are used:
+
+- `0` → don't use any threads (i.e. do nothing)
+- `1` → single-threaded
+- `n > 1` → use `n` threads to divide workload
+
+Some of the functions that support multithreading:
+
+- `draw::tools::fill::buffer`
+- `draw::rectangle::filled`
+- `fx::scanline::window`
+- `utils::color::adapters::rgba_to_0rgb`
+
+---
+
+## 🌐 Geometry and Drawing
+
+Supported primitives and shapes:
+
+- Lines (with clipping, anti-aliasing)
+- Polygons (including stars and convex shapes)
+- Circles and ellipses
+- Bézier curves (with control rendering)
+- Filled rectangles
+
+Closed shapes can be flood-filled with a color
+
+---
+
+## 📅 Fonts and Text
+
+Graph1 ships with pixel fonts embedded using the `CBF` (Compact Bitmap Font) format.
+
+### Embedded fonts:
+
+- `c_c_red_alert_inet0`
+- `c_c_red_alert_inet1 (LAN)`
+
+These fonts are parsed at runtime and rendered directly into the framebuffer.
+
+### CBF format:
+
+A binary format optimized for small size and fast parsing. It contains:
+
+- Metadata: font name, author, kerning, size
+- Character layout, widths, and pixel bitmap (1-bit)
+
+> **Note:** Custom fonts can be made using the [CBF generator]\([https://github.com/dipdowel/compact-bitmap-font](https://github.com/dipdowel/compact-bitmap-font)) .
+
+---
+
+## ⚒️ Utilities
+
+- `utils::math::rng` — deterministic and random generators
+- `utils::math::geometry::region` — bounding regions for layouts
+- `utils::color::adapters` — fast color format conversions
+- `utils::color::palettes` — predefined color palettes
+- `utils::pixel_copy::image_data` — copy and transform raw buffers
+
+---
+
+## ⚠️ Safety and Performance Notes
+
+- All rendering happens in system memory — no GPU.
+- Unsafe operations are avoided unless performance requires it.
+- Custom numeric traits are used (`Numeric`) to support generic math.
+- Tests are included to verify precision and corner cases.
+
+---
+
+## ✨ Examples and links
+
+- [https://github.com/dipdowel/graph1\_wasm\_demo](https://github.com/dipdowel/graph1_wasm_demo/)
+  - A collection of demos implemented with Graph1
+  - Guides and tutorials
+  - See it in action on [https://graph1.codument.com](https://graph1.codument.com/?demo=0)
+- [https://github.com/dipdowel/graph1\_app\_template](https://github.com/dipdowel/graph1_app_template)
+  - A bare-minimum app template to kick off your Graph1 project.
+- [https://github.com/dipdowel/graph1\_minifb\_demo](https://github.com/dipdowel/graph1_minifb_demo)
+  - Run demos from \`graph1\_wasm\_demo\` locally using \`minifb\`&#x20;
+- [https://github.com/dipdowel/compact-bitmap-font](https://github.com/dipdowel/compact-bitmap-font)
+  - Compact bitmap font generator. Such fonts can be rendered by Graph1.
+
+
+
+---
+
+## 🎓 License
+
+Graph1 is open-source. See file `LICENSE`.
+
+---
+
+## 🚨 TODOs
+
+- Add documentation on custom font loading
+- Add procedural shape generators
+- Write a roadmap
+
+
+
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+
+## NB: Below is an older version of the README.md file. 
+It contains some useful bits which need to be cleaned up, reorganized, and incorporated into the new version (above).
+
+
+# Graph1
+
 **Application code** is code that uses Graph1 library.
 
 ## What Graph1 is and what it does
