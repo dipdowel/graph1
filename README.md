@@ -1,6 +1,9 @@
 # Graph1
 
 Graph1 is a zero-dependency Rust library for pixel-level 2D graphics, drawing, animation, and procedural effects. Designed for real-time applications, it provides primitives, geometry, drawing tools, effects, and font rendering utilities. It is suitable for games, demos, educational tools, or any project that requires software rendering with high control and precision.
+- - - - - - - - - - - - 
+![project-screenshot.png](doc/project-screenshot.png)
+- - - - - - - - - - - -
 
 ---
 
