@@ -124,7 +124,7 @@ impl PixelFont {
                 color: None,
             };
 
-            width_count += glyph.dimensions.w + src_kerning_px;
+            width_count += glyph.dimensions.w;
             glyphs.insert(character, glyph);
         }
 
