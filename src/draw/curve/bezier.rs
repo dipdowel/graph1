@@ -165,7 +165,7 @@ fn render_points<UserData, PointType: Numeric>(
     points: &[Point<PointType>],
 ) {
     for p in points {
-        let point_color = ctx.bezier.start_end_points_color;
+        let point_color= ctx.bezier.control_color;
 
         if point_color.is_some() {
             render_point_color(

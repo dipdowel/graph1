@@ -9,8 +9,6 @@ pub struct BezierContext {
     pub render_levers: bool,
     /// Color of the control points, if `None` the inverted background color will be used
     pub control_color: Option<u32>,
-    /// Color of the start and end points, if `None` the inverted background color will be used
-    pub start_end_points_color: Option<u32>,
     /// If true, Bézier curves will be rendered, otherwise not
     pub enabled: bool
 }
@@ -22,7 +20,6 @@ impl BezierContext {
             render_controls: false,
             render_levers: true,
             control_color: Some(default_colors::BEZIER_CONTROL),
-            start_end_points_color: Some(default_colors::BEZIER_START_END),
             enabled: true,
         }
     }
