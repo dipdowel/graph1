@@ -111,8 +111,12 @@ Perlin noise is currently a PoC. It should be improved and finalized
 - Downscale the palette ("posterize")
 - Etc.
 
-## Parametric curves
+## Bézier curves
+Check if the Bézier curves drawing can be multithreaded. If it's possible, implement it!
 
+
+## Parametric curves
+- TBD
 
 ## Multithreading
 
