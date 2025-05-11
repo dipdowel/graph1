@@ -24,7 +24,7 @@ Graph1 is a zero-dependency Rust library for pixel-level 2D graphics, drawing, a
 
 ## 🗺️ Roadmap
 
-See [ROADMAP.md](ROADMAP.md) for plans on future features and improvements.
+Please refer to the [ROADMAP.md](ROADMAP.md) for plans on future features and improvements.
 
 ---
 
