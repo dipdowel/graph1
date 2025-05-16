@@ -27,11 +27,20 @@ impl<T: Numeric> UniformGrid<T> {
         rows: usize,
         /// Number of columns in the grid
         cols: usize,
-    ) -> Self {
-        let num_cells = rows * cols;
-        let mut cells = Vec::with_capacity(num_cells);
-        for _ in 0..num_cells {
-            cells.push(Region::new(proto_cell.clone()));
+    ) -> Self  {
+        let mut cells = Vec::with_capacity(rows * cols);
+        let w = proto_cell.dimensions.w;
+        let h = proto_cell.dimensions.h;
+        let base_x = proto_cell.top_left.x;
+        let base_y = proto_cell.top_left.y;
+
+        for row in 0..rows {
+            for col in 0..cols {
+                let x = base_x + T::from_u32(col as u32) * w; // FIXME! will break on huge grids
+                let y = base_y + T::from_u32(row as u32) * h; // FIXME! will break on huge grids
+                let rect = RectArea::new(x, y, w, h, proto_cell.color);
+                cells.push(Region::new(rect));
+            }
         }
 
         Self {
@@ -71,17 +80,51 @@ impl<T: Numeric> UniformGrid<T> {
     /// * If new_rows or new_cols are greater than the current ones, the new cells will be added correspondingly after the existing ones.
     /// * If `color` is provided, it will be applied to the newly added cells, 
     /// otherwise the original color of the `proto_cell` will be used, @see `new()`.
- 
+
     pub fn resize_grid(&mut self, new_rows: usize, new_cols: usize, color: Option<u32>) {
-        //TODO: Implement!
-        //TODO: Make sure the cells are correctly shifted per row and column
-        //TODO: Probably, re-creating the `self.cells` vector is the easiest way to do this
+        let mut new_cells = Vec::with_capacity(new_rows * new_cols);
+        let w = self.proto_cell.dimensions.w;
+        let h = self.proto_cell.dimensions.h;
+        let base_x = self.proto_cell.top_left.x;
+        let base_y = self.proto_cell.top_left.y;
+
+        for row in 0..new_rows {
+            for col in 0..new_cols {
+                let x = base_x + T::from_u32(col as u32) * w; // FIXME! will break on huge grids
+                let y = base_y + T::from_u32(row as u32) * h; // FIXME! will break on huge grids
+                let idx = row * self.cols + col;
+
+                if row < self.rows && col < self.cols {
+                    let region = self.cells[idx].clone();
+                    new_cells.push(region);
+                } else {
+                    let rect = RectArea::new(x, y, w, h, color.or(self.proto_cell.color));
+                    new_cells.push(Region::new(rect));
+                }
+            }
+        }
+
+        self.cells = new_cells;
+        self.rows = new_rows;
+        self.cols = new_cols;
     }
 
     /// Resizes all cells with the new width and height, keeping grid layout, preserving Region:id of the cells
     pub fn resize_cells(&mut self, new_cell_size: Dimensions2d<T>) {
-        //TODO: Implement!
-        //TODO: Make sure to use `Region::update()` to preserve the IDs of the regions!
+        let base_x = self.proto_cell.top_left.x;
+        let base_y = self.proto_cell.top_left.y;
+
+        for row in 0..self.rows {
+            for col in 0..self.cols {
+                let x = base_x + T::from_u32(col as u32) * new_cell_size.w; // FIXME! will break on huge grids
+                let y = base_y + T::from_u32(row as u32) * new_cell_size.h; // FIXME! will break on huge grids
+                let idx = row * self.cols + col;
+                let new_rect = RectArea::new(x, y, new_cell_size.w, new_cell_size.h, self.proto_cell.color);
+                self.cells[idx].update(new_rect);
+            }
+        }
+
+        self.proto_cell.dimensions = new_cell_size;
     }
 
     /// Returns the full width of the grid in numeric units
