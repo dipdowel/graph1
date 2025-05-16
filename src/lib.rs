@@ -149,6 +149,9 @@ pub mod primitives {
     /// Math-related primitives
     pub mod math;
     /// `Numeric` - a convenience trait, simplifies conversions between numeric types.
+
+    /// Helps to access neighbors of a cell in a 2D grid (pixels, tiles, etc.)
+    pub mod neighborhood;
     pub mod numeric;
     mod pixel;
     /// `Pixel` - a simple struct representing a position on a physical screen + a color in RGBA.
@@ -215,6 +218,8 @@ pub mod utils {
             pub use single_pixel::rgba_color_to_abgr;
         }
 
+        
+        
         /// Functions to blend colors taking into account the alpha channel
         pub mod alpha;
         /// Conversions between RGBA and 1-bit image
@@ -267,6 +272,11 @@ pub mod utils {
             pub mod luminance;
         }
     }
+
+    pub mod grid {
+        pub mod uniform;
+    }
+
     /// Various math utilities and constants
     pub mod math {
 
