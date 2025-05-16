@@ -67,8 +67,12 @@ impl<T: Numeric> UniformGrid<T> {
     }
 
     /// Resizes the number of rows and columns, keeping cell size and top-left the same.
-    /// If `new_color` is provided, it will be used for newly added cells.
-    pub fn resize_grid(&mut self, new_rows: usize, new_cols: usize, new_color: Option<u32>) {
+    /// * If new_rows or new_cols are less than the current ones, the columns and/or rows will be truncated.
+    /// * If new_rows or new_cols are greater than the current ones, the new cells will be added correspondingly after the existing ones.
+    /// * If `color` is provided, it will be applied to the newly added cells, 
+    /// otherwise the original color of the `proto_cell` will be used, @see `new()`.
+ 
+    pub fn resize_grid(&mut self, new_rows: usize, new_cols: usize, color: Option<u32>) {
         //TODO: Implement!
         //TODO: Make sure the cells are correctly shifted per row and column
         //TODO: Probably, re-creating the `self.cells` vector is the easiest way to do this
