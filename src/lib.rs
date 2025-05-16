@@ -275,6 +275,7 @@ pub mod utils {
 
     pub mod grid {
         pub mod uniform;
+        pub mod render;
     }
 
     /// Various math utilities and constants
