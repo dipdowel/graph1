@@ -4,6 +4,12 @@ use crate::primitives::plane::{Dimensions2d, RectArea};
 use crate::primitives::point::Point;
 use crate::primitives::ratio::Ratio;
 use crate::primitives::Pixel;
+use std::sync::atomic::{AtomicUsize, Ordering};
+
+/// Global counter for assigning unique IDs to Region instances
+// Even though we have not cared that much about thread safety yet,
+// maybe we should finally start doing it
+static REGION_ID_COUNTER: AtomicUsize = AtomicUsize::new(0);
 
 /// Represents a rectangular region on a 2D-plane.
 /// Provides access to some spatial reference points such as:
@@ -13,6 +19,7 @@ use crate::primitives::Pixel;
 /// These could be used in layout implementations, animation effects, transformations, and screen subdivisions.
 #[derive(Debug, Clone, Copy)]
 pub struct Region<T: Numeric = u32> {
+    id: usize,
     rect_area: RectArea<T>,
     center: Point<T>,
     top: Point<T>,
@@ -38,7 +45,10 @@ impl<T: Numeric> Region<T> {
         let cx = (x0 + x1) / two;
         let cy = (y0 + y1) / two;
 
+        let id = REGION_ID_COUNTER.fetch_add(1, Ordering::Relaxed);
+
         Self {
+            id,
             rect_area: area,
             center: Point::new(cx, cy),
             top: Point::new(cx, y0),
@@ -50,6 +60,11 @@ impl<T: Numeric> Region<T> {
             bottom_left: Point::new(x0, y1),
             bottom_right: Point::new(x1, y1),
         }
+    }
+
+    /// Returns the unique identifier of this region.
+    pub fn id(&self) -> usize {
+        self.id
     }
 
     /// Converts a `Region<T>` to a `Region<U>` where `U: Numeric`, converting all internal `Point<T>` values.

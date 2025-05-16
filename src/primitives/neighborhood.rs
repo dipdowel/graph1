@@ -1,113 +1,111 @@
 /// Represents different types of neighborhoods in a uniform 2D grid.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum NeighborhoodType {
-    /// The Von Neumann neighborhood includes the 4 orthogonal (non-diagonal) neighbors:
+    /// Includes the 4 orthogonal (non-diagonal) neighbors:
     /// - Top (0, -1)
     /// - Right (1, 0)
     /// - Bottom (0, 1)
     /// - Left (-1, 0)
     ///
+    /// Also known as the **Von Neumann neighborhood**.
+    ///
     /// ### Example:
-    /// 
+    ///
     /// . # .
     /// # x #
     /// . # .
-    /// 
     ///
     /// ### Use Cases:
-    /// - Cellular automata (e.g., Conway’s Game of Life variant)
-    /// - Manhattan-style pathfinding (no diagonal movement)
-    VonNeumann,
+    /// - Grid-based pathfinding (non-diagonal movement)
+    /// - Cellular automata with orthogonal interaction
+    Orthogonal,
 
-    /// The Moore neighborhood includes all 8 surrounding cells:
-    /// - Orthogonal and Diagonal neighbors
+    /// Includes all 8 surrounding cells: the 4 orthogonal and 4 diagonal neighbors.
+    ///
+    /// Also known as the **Moore neighborhood**.
     ///
     /// ### Example:
-    /// 
+    ///
     /// # # #
     /// # x #
     /// # # #
-    /// 
     ///
     /// ### Use Cases:
-    /// - Image filtering (e.g., 3x3 convolution kernels)
-    /// - Cellular automata (standard Game of Life)
-    Moore,
+    /// - Image filtering (3x3 kernels)
+    /// - Game of Life
+    /// - Local spatial interaction
+    Immediate,
 
     /// Includes only the 4 diagonal neighbors:
-    /// - Top-Left (-1, -1)
-    /// - Top-Right (1, -1)
-    /// - Bottom-Left (-1, 1)
-    /// - Bottom-Right (1, 1)
+    /// - Top-Left, Top-Right, Bottom-Left, Bottom-Right
     ///
     /// ### Example:
-    /// 
+    ///
     /// # . #
     /// . x .
     /// # . #
-    /// 
     ///
     /// ### Use Cases:
-    /// - Symmetry operations
-    /// - Diagonal flow or interaction checks
-    DiagonalOnly,
+    /// - Diagonal-only pathfinding
+    /// - Symmetry and diagonal-based simulations
+    Diagonal,
 
-    /// Includes all cells within a square of side length `(2 * radius + 1)`.
-    /// Can generalize Moore and Von Neumann for larger distances.
+    /// Includes all cells within a square area of side length `(2 * radius + 1)`.
+    /// Grows outward in axis-aligned steps.
     ///
     /// ### Use Cases:
-    /// - Local area simulations
-    /// - Gaussian blur and other extended kernels
-    ExtendedSquare {
-        /// Radius around the center cell (number of steps outwards)
+    /// - Local field interaction
+    /// - Gaussian filters or blurs
+    SquareRadius {
+        /// Radius in cells (number of steps outwards from the center)
         radius: usize,
     },
 
-    /// Includes all cells within a circular area defined by Euclidean distance.
+    /// Includes all cells within a circular radius (based on Euclidean distance).
     ///
     /// ### Use Cases:
-    /// - Smooth falloff filters
-    /// - Light propagation and radial field effects
-    Circular {
-        /// Maximum Euclidean distance from the center
+    /// - Radial effects like lighting or explosion radius
+    /// - Smooth influence propagation
+    CircularRadius {
+        /// Maximum Euclidean distance from center
         radius: usize,
     },
 
-    /// Includes all cells within a Manhattan distance ≤ `radius`.
-    /// Forms a diamond shape in the grid.
+    /// Includes all cells within a given Manhattan distance.
+    /// Forms a diamond-shaped neighborhood.
     ///
     /// ### Use Cases:
-    /// - Movement and reachability maps in grid-based games
-    /// - Heatmap simulations
-    Manhattan {
+    /// - Grid distance maps
+    /// - Fire spread, infection simulations
+    DiamondRadius {
         /// Maximum Manhattan distance (|dx| + |dy|)
         radius: usize,
     },
 
-    /// Includes all cells within a Chebyshev distance ≤ `radius`.
-    /// Equivalent to the maximum of |dx| and |dy| ≤ radius.
+    /// Includes all cells within a Chebyshev distance (max of |dx|, |dy|).
+    /// Forms a square neighborhood similar to Immediate but configurable.
     ///
     /// ### Use Cases:
-    /// - Simulates square-area influence
-    /// - Generalized Moore neighborhood
-    Chebyshev {
+    /// - Generalized square neighborhood
+    /// - Uniform influence zones
+    SquareRange {
         /// Maximum Chebyshev distance
         radius: usize,
     },
 /*
-    /// Includes neighbors only in a specific direction or angular sector.
-    /// Used for directional effects.
+    /// Includes only cells in a specified direction and within a certain angular width.
     ///
     /// ### Use Cases:
-    /// - Vision cones in games
-    /// - Field-of-view for AI agents
-    Directional {
-        /// Angle (degrees or radians) of direction from the center (e.g. 0 = right)
-        angle: usize,
-        /// Angular width of the sector (e.g. 90 degrees for a quarter circle)
-        aperture: usize,
-        /// Maximum radius to include
+    /// - Vision cones for AI
+    /// - Directed particle spread
+    DirectionalSector {
+        /// Direction angle in degrees or radians (0 = right, 90 = up, etc.)
+        angle: f32,
+        /// Width of the sector in degrees or radians (e.g. 90 for quarter circle)
+        aperture: f32,
+        /// Maximum radius from center
         radius: usize,
     },
-    */
+    
+ */
 }
