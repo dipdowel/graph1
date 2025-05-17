@@ -69,6 +69,21 @@ pub fn blend_pixel_f32(bg: u32, fg: u32) -> u32 {
         | (blended_a.round() as u32)
 }
 
+
+
+/// Sets the Alpha channel of `color` to the specified `alpha` value.
+/// - `color` is the original color in RGBA format as `u32`
+/// - `alpha` is the new alpha value (0-255)
+/// Returns the color with the updated alpha channel.
+pub fn set_alpha(color: u32, alpha:u8) -> u32 {
+    let r = (color >> 24) & 0xff;
+    let g = (color >> 16) & 0xff;
+    let b = (color >> 8) & 0xff;
+
+    // Reassemble the color with the new alpha value
+    (r << 24) | (g << 16) | (b << 8) | alpha as u32
+}
+
 /*
 #[cfg(test)]
 mod tests {
