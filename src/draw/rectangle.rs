@@ -4,6 +4,8 @@ use crate::primitives::plane::RectArea;
 use crate::utils::color::alpha::{blend_pixel_f32, blend_pixel_int};
 use std::cmp::PartialEq;
 use std::thread;
+use crate::draw;
+use crate::primitives::point::Point;
 
 impl PartialEq for AlphaMethod {
     fn eq(&self, other: &Self) -> bool {
@@ -37,19 +39,31 @@ fn draw_lines_of_rectangle_thread(
     match alpha_method {
         // No alpha blending — just overwrite pixels
         None => {
+
             for line in 0..total_lines {
                 let base = line * line_length;
-                for pixel in color_start..color_end {
-                    rectangle_slice[base + pixel] = color;
+                // Ensure we don't go beyond the edge of the screen on the right and on the bottom
+                // to avoid unwanted glitches and buffer overflow.
+                let line_end = (base + color_end).min(base + line_length).min(rectangle_slice.len());
+                let line_start = (base + color_start).min(line_end); // Ensure we don’t go backwards
+                for idx in line_start..line_end {
+                    rectangle_slice[idx] = color;
                 }
             }
+
+
         }
         // Integer-based alpha blending
         Some(AlphaMethod::Int) => {
+
+
             for line in 0..total_lines {
                 let base = line * line_length;
-                for pixel in color_start..color_end {
-                    let idx = base + pixel;
+                // Ensure we don't go beyond the edge of the screen on the right and on the bottom
+                // to avoid unwanted glitches and buffer overflow.
+                let line_end = (base + color_end).min(base + line_length).min(rectangle_slice.len());
+                let line_start = (base + color_start).min(line_end); // Ensure we don’t go backwards
+                for idx in line_start..line_end {
                     rectangle_slice[idx] = blend_pixel_int(rectangle_slice[idx], color);
                 }
             }
@@ -58,8 +72,11 @@ fn draw_lines_of_rectangle_thread(
         Some(AlphaMethod::Float) => {
             for line in 0..total_lines {
                 let base = line * line_length;
-                for pixel in color_start..color_end {
-                    let idx = base + pixel;
+                // Ensure we don't go beyond the edge of the screen on the right and on the bottom
+                // to avoid unwanted glitches and buffer overflow.
+                let line_end = (base + color_end).min(base + line_length).min(rectangle_slice.len());
+                let line_start = (base + color_start).min(line_end); // Ensure we don’t go backwards
+                for idx in line_start..line_end {
                     rectangle_slice[idx] = blend_pixel_f32(rectangle_slice[idx], color);
                 }
             }
@@ -95,6 +112,7 @@ pub fn filled<UserData>(ctx: &mut GraphContext<UserData>, rect: &RectArea) {
     let first_line_start = (rect.top_left.y * ctx.win.w) as usize;
     let last_line_end = ((rect.top_left.y + rect.dimensions.h) * ctx.win.w) as usize;
 
+    let last_line_end = last_line_end.min(ctx.frame_buf.len()); // Ensure we don’t go beyond the framebuffer length
     let rectangle_slice = &mut ctx.frame_buf[first_line_start..last_line_end];
 
     // Calculate how much work each thread should do
@@ -140,4 +158,30 @@ pub fn filled<UserData>(ctx: &mut GraphContext<UserData>, rect: &RectArea) {
         }
     }); // The scope for the scoped threads ends here. All the threads are expected to be joined automagically at this point.
 
+}
+
+/// Draws outline of the given rectangle using settings from `LineContext` (`ctx.line`).
+///
+/// # Arguments
+/// * `ctx` - Mutable reference to the rendering context
+/// * `rect_area` - The rectangle area to draw the outline for
+///
+/// This function draws four sides (top, bottom, left, right) of the rectangle.
+pub fn outline<UserData>(ctx: &mut GraphContext<UserData>, rect_area: &RectArea) {
+    let RectArea { top_left, dimensions, color } = rect_area;
+    let color = *color;
+
+    let x = top_left.x as i32;
+    let y = top_left.y as i32;
+    let w = dimensions.w as i32;
+    let h = dimensions.h as i32;
+
+    let top_left_i32 = Point::new(x, y);
+    let top_right_i32 = Point::new(x + w - 1, y);
+    let bottom_left_i32 = Point::new(x, y + h - 1);
+
+    draw::line::horizontal(ctx, &top_left_i32, w as u32, color); // Top edge
+    draw::line::horizontal(ctx, &bottom_left_i32, w as u32, color); // Bottom edge
+    draw::line::vertical(ctx, &top_left_i32, h as u32, color); // Left edge
+    draw::line::vertical(ctx, &top_right_i32, h as u32, color); // Right edge
 }
