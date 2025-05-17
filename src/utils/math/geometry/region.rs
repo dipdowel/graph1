@@ -109,6 +109,11 @@ impl<T: Numeric> Region<T> {
         self.bottom_right.y = y1;
     }
 
+    /// Sets the color of the region (passed to the internal `RectArea`).
+    pub fn set_color(&mut self, color: Option<u32>) {
+        self.rect_area.color = color;
+    }
+
     /// Returns the region's full area.
     pub fn rect_area(&self) -> RectArea<T> {
         self.rect_area
