@@ -41,7 +41,7 @@ Please refer to the [ROADMAP.md](ROADMAP.md) for plans on future features and im
 ## ⛔️ What Graph1 is/does Not
 
 - Does **not perform file I/O** (reading/writing images, fonts, etc.).
-- Does **not maintain state** beyond the active frame context.
+- Does **not maintain state** beyond its own context (@see [GraphContext](src/core/context/graph.rs)).
 - Does **not depend on any OS, graphics API, or runtime**.
 
 ---
@@ -156,7 +156,7 @@ A binary format optimized for small size and fast parsing. It contains:
 
 ## 🎓 License
 
-Graph1 is open-source. See file `LICENSE`.
+Graph1 is open-source. See file [LICENSE](LICENSE).
 
 ---
 
