@@ -40,6 +40,14 @@ pub struct RectArea<T: Numeric = u32> {
 }
 impl<T: Numeric + std::ops::Add<Output = T>> RectArea<T> {
     /// Creates a new `RectArea` with the given top-left point, dimensions, and color.
+    ///
+    /// # Parameters
+    ///
+    /// - `x`: The x-coordinate of the top-left corner.
+    /// - `y`: The y-coordinate of the top-left corner.
+    /// - `w`: The width of the rectangle.
+    /// - `h`: The height of the rectangle.
+    /// - `color`: An optional color value (RGBA).
     pub fn new(x: T, y: T, w: T, h: T, color: Option<u32>) -> Self {
         Self {
             top_left: Point { x, y },
