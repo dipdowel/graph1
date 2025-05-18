@@ -274,8 +274,16 @@ pub mod utils {
     }
 
     pub mod grid {
-        pub mod uniform;
-        
+
+        pub mod uniform {
+            mod render;
+            mod uniform_grid;
+            mod neighbors;
+            pub use render::*;
+            pub use uniform_grid::*;
+            pub use neighbors::*;
+        }
+
     }
 
     /// Various math utilities and constants
