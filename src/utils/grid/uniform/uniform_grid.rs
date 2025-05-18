@@ -2,6 +2,10 @@ use crate::primitives::numeric::Numeric;
 use crate::primitives::plane::{Dimensions2d, RectArea};
 use crate::utils::math::geometry::region::Region;
 
+use crate::primitives::neighborhood::NeighborhoodType;
+
+
+
 /// A 2D uniform grid of rectangular `Region` cells
 #[derive(Debug, Clone)]
 pub struct UniformGrid<T: Numeric> {
@@ -164,3 +168,118 @@ impl<T: Numeric> UniformGrid<T> {
     }
 }
 
+
+
+
+//***************************************************************************************************
+//***************************************************************************************************
+//***************************************************************************************************
+//***************************************************************************************************
+
+// WiP WiP WiP WiP WiP WiP WiP WiP WiP WiP WiP WiP WiP WiP WiP WiP WiP WiP WiP WiP WiP WiP WiP WiP WiP 
+
+/// A single neighbor: index and reference to the Region cell
+#[derive(Debug)]
+pub struct Neighbor<'a, T: Numeric> {
+    pub row: usize,
+    pub col: usize,
+    pub cell: &'a Region<T>,
+}
+
+/// All neighbors of a given grid cell
+#[derive(Debug)]
+pub struct Neighborhood<'a, T: Numeric> {
+    pub cells: Vec<Neighbor<'a, T>>,
+}
+
+impl<'a, T: Numeric> Neighborhood<'a, T> {
+    pub fn new() -> Self {
+        Self { cells: Vec::new() }
+    }
+}
+
+// TODO: This implementation is so much a WiP! 
+// TODO: Refactor: 
+// TODO: - Better naming 
+// TODO: - Better structure 
+// TODO: - Think of DRYing it a bit, maybe? 
+impl<T: Numeric> UniformGrid<T> {
+    /// Returns immutable references to neighboring cells, along with their indices
+    pub fn get_neighbors(
+        &self,
+        row: usize,
+        col: usize,
+        kind: &NeighborhoodType,
+    ) -> Neighborhood<T> {
+        let mut result = Neighborhood::new();
+
+        let directions: Vec<(isize, isize)> = match kind {
+            NeighborhoodType::Orthogonal => vec![(0, -1), (1, 0), (0, 1), (-1, 0)],
+            NeighborhoodType::Diagonal => vec![(-1, -1), (1, -1), (1, 1), (-1, 1)],
+            NeighborhoodType::Immediate => vec![
+                (-1, -1), (0, -1), (1, -1),
+                (-1, 0),           (1, 0),
+                (-1, 1),  (0, 1),  (1, 1),
+            ],
+            NeighborhoodType::SquareRadius { radius } => {
+                let mut dirs = vec![];
+                for dy in -(*radius as isize)..=(*radius as isize) {
+                    for dx in -(*radius as isize)..=(*radius as isize) {
+                        if dx != 0 || dy != 0 {
+                            dirs.push((dx, dy));
+                        }
+                    }
+                }
+                dirs
+            }
+
+            
+            
+            NeighborhoodType::CircularRadius { radius } => {
+                let mut dirs = vec![];
+                let r_sq = (*radius as isize).pow(2);
+                for dy in -(*radius as isize)..=(*radius as isize) {
+                    for dx in -(*radius as isize)..=(*radius as isize) {
+                        if dx != 0 || dy != 0 {
+                            if dx * dx + dy * dy <= r_sq {
+                                dirs.push((dx, dy));
+                            }
+                        }
+                    }
+                }
+                dirs
+            }
+            NeighborhoodType::DiamondRadius { radius } => {
+                let mut dirs = vec![];
+                for dy in -(*radius as isize)..=(*radius as isize) {
+                    for dx in -(*radius as isize)..=(*radius as isize) {
+                        if dx != 0 || dy != 0 {
+                            if dx.abs() + dy.abs() <= *radius as isize {
+                                dirs.push((dx, dy));
+                            }
+                        }
+                    }
+                }
+                dirs
+            }
+
+        };
+
+        for (dx, dy) in directions {
+            let n_row = row as isize + dy;
+            let n_col = col as isize + dx;
+            if n_row >= 0 && n_col >= 0 {
+                let (n_row, n_col) = (n_row as usize, n_col as usize);
+                if let Some(region) = self.get_cell(n_row, n_col) {
+                    result.cells.push(Neighbor {
+                        row: n_row,
+                        col: n_col,
+                        cell: region,
+                    });
+                }
+            }
+        }
+
+        result
+    }
+}

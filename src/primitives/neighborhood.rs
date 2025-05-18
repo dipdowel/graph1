@@ -10,10 +10,11 @@ pub enum NeighborhoodType {
     /// Also known as the **Von Neumann neighborhood**.
     ///
     /// ### Example:
-    ///
-    /// . # .
-    /// # x #
-    /// . # .
+    ///```text
+    /// . * .
+    /// * x *
+    /// . * .
+    ///```
     ///
     /// ### Use Cases:
     /// - Grid-based pathfinding (non-diagonal movement)
@@ -25,11 +26,11 @@ pub enum NeighborhoodType {
     /// Also known as the **Moore neighborhood**.
     ///
     /// ### Example:
-    ///
-    /// # # #
-    /// # x #
-    /// # # #
-    ///
+    ///```text
+    /// * * *
+    /// * x *
+    /// * * *
+    ///```
     /// ### Use Cases:
     /// - Image filtering (3x3 kernels)
     /// - Game of Life
@@ -40,10 +41,11 @@ pub enum NeighborhoodType {
     /// - Top-Left, Top-Right, Bottom-Left, Bottom-Right
     ///
     /// ### Example:
-    ///
-    /// # . #
+    ///```text
+    /// * . *
     /// . x .
-    /// # . #
+    /// * . *
+    ///```
     ///
     /// ### Use Cases:
     /// - Diagonal-only pathfinding
@@ -82,17 +84,8 @@ pub enum NeighborhoodType {
         radius: usize,
     },
 
-    /// Includes all cells within a Chebyshev distance (max of |dx|, |dy|).
-    /// Forms a square neighborhood similar to Immediate but configurable.
-    ///
-    /// ### Use Cases:
-    /// - Generalized square neighborhood
-    /// - Uniform influence zones
-    SquareRange {
-        /// Maximum Chebyshev distance
-        radius: usize,
-    },
 /*
+    // TODO: this type looks promising. See how it can be improved and implemented
     /// Includes only cells in a specified direction and within a certain angular width.
     ///
     /// ### Use Cases:
