@@ -186,17 +186,7 @@ pub struct Neighbor<'a, T: Numeric> {
     pub cell: &'a Region<T>,
 }
 
-/// All neighbors of a given grid cell
-#[derive(Debug)]
-pub struct Neighborhood<'a, T: Numeric> {
-    pub cells: Vec<Neighbor<'a, T>>,
-}
 
-impl<'a, T: Numeric> Neighborhood<'a, T> {
-    pub fn new() -> Self {
-        Self { cells: Vec::new() }
-    }
-}
 
 // TODO: This implementation is so much a WiP! 
 // TODO: Refactor: 
@@ -210,9 +200,9 @@ impl<T: Numeric> UniformGrid<T> {
         row: usize,
         col: usize,
         kind: &NeighborhoodType,
-    ) -> Neighborhood<T> {
-        let mut result = Neighborhood::new();
-
+    ) -> Vec<Neighbor<T>> {
+        let mut result:Vec<Neighbor<T>> = Vec::new();
+                
         let directions: Vec<(isize, isize)> = match kind {
             NeighborhoodType::Orthogonal => vec![(0, -1), (1, 0), (0, 1), (-1, 0)],
             NeighborhoodType::Diagonal => vec![(-1, -1), (1, -1), (1, 1), (-1, 1)],
@@ -221,10 +211,10 @@ impl<T: Numeric> UniformGrid<T> {
                 (-1, 0),           (1, 0),
                 (-1, 1),  (0, 1),  (1, 1),
             ],
-            NeighborhoodType::SquareRadius { radius } => {
+            NeighborhoodType::Square { distance } => {
                 let mut dirs = vec![];
-                for dy in -(*radius as isize)..=(*radius as isize) {
-                    for dx in -(*radius as isize)..=(*radius as isize) {
+                for dy in -(*distance as isize)..=(*distance as isize) {
+                    for dx in -(*distance as isize)..=(*distance as isize) {
                         if dx != 0 || dy != 0 {
                             dirs.push((dx, dy));
                         }
@@ -235,7 +225,7 @@ impl<T: Numeric> UniformGrid<T> {
 
             
             
-            NeighborhoodType::CircularRadius { radius } => {
+            NeighborhoodType::Circle { radius } => {
                 let mut dirs = vec![];
                 let r_sq = (*radius as isize).pow(2);
                 for dy in -(*radius as isize)..=(*radius as isize) {
@@ -249,12 +239,12 @@ impl<T: Numeric> UniformGrid<T> {
                 }
                 dirs
             }
-            NeighborhoodType::DiamondRadius { radius } => {
+            NeighborhoodType::Diamond { distance } => {
                 let mut dirs = vec![];
-                for dy in -(*radius as isize)..=(*radius as isize) {
-                    for dx in -(*radius as isize)..=(*radius as isize) {
+                for dy in -(*distance as isize)..=(*distance as isize) {
+                    for dx in -(*distance as isize)..=(*distance as isize) {
                         if dx != 0 || dy != 0 {
-                            if dx.abs() + dy.abs() <= *radius as isize {
+                            if dx.abs() + dy.abs() <= *distance as isize {
                                 dirs.push((dx, dy));
                             }
                         }
@@ -271,7 +261,7 @@ impl<T: Numeric> UniformGrid<T> {
             if n_row >= 0 && n_col >= 0 {
                 let (n_row, n_col) = (n_row as usize, n_col as usize);
                 if let Some(region) = self.get_cell(n_row, n_col) {
-                    result.cells.push(Neighbor {
+                    result.push(Neighbor {
                         row: n_row,
                         col: n_col,
                         cell: region,

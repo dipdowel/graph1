@@ -1,6 +1,23 @@
 /// Represents different types of neighborhoods in a uniform 2D grid.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum NeighborhoodType {
+
+    /// Includes all 8 surrounding cells: the 4 orthogonal and 4 diagonal neighbors.
+    ///
+    /// Also known as the **Moore neighborhood**.
+    ///
+    /// ### Example:
+    ///```text
+    /// * * *
+    /// * x *
+    /// * * *
+    ///```
+    /// ### Use Cases:
+    /// - Image filtering (3x3 kernels)
+    /// - Game of Life
+    /// - Local spatial interaction
+    Immediate,
+    
     /// Includes the 4 orthogonal (non-diagonal) neighbors:
     /// - Top (0, -1)
     /// - Right (1, 0)
@@ -20,22 +37,6 @@ pub enum NeighborhoodType {
     /// - Grid-based pathfinding (non-diagonal movement)
     /// - Cellular automata with orthogonal interaction
     Orthogonal,
-
-    /// Includes all 8 surrounding cells: the 4 orthogonal and 4 diagonal neighbors.
-    ///
-    /// Also known as the **Moore neighborhood**.
-    ///
-    /// ### Example:
-    ///```text
-    /// * * *
-    /// * x *
-    /// * * *
-    ///```
-    /// ### Use Cases:
-    /// - Image filtering (3x3 kernels)
-    /// - Game of Life
-    /// - Local spatial interaction
-    Immediate,
 
     /// Includes only the 4 diagonal neighbors:
     /// - Top-Left, Top-Right, Bottom-Left, Bottom-Right
@@ -58,9 +59,9 @@ pub enum NeighborhoodType {
     /// ### Use Cases:
     /// - Local field interaction
     /// - Gaussian filters or blurs
-    SquareRadius {
-        /// Radius in cells (number of steps outwards from the center)
-        radius: usize,
+    Square {
+        /// Number of cells to cover, outwards from the given center
+        distance: usize,
     },
 
     /// Includes all cells within a circular radius (based on Euclidean distance).
@@ -68,7 +69,7 @@ pub enum NeighborhoodType {
     /// ### Use Cases:
     /// - Radial effects like lighting or explosion radius
     /// - Smooth influence propagation
-    CircularRadius {
+    Circle {
         /// Maximum Euclidean distance from center
         radius: usize,
     },
@@ -79,9 +80,9 @@ pub enum NeighborhoodType {
     /// ### Use Cases:
     /// - Grid distance maps
     /// - Fire spread, infection simulations
-    DiamondRadius {
+    Diamond {
         /// Maximum Manhattan distance (|dx| + |dy|)
-        radius: usize,
+        distance: usize,
     },
 
 /*
