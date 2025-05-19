@@ -4,9 +4,8 @@ use crate::utils::math::geometry::region::Region;
 
 use crate::primitives::neighborhood::NeighborhoodType;
 
-
-
 /// A 2D uniform grid of rectangular `Region` cells
+/// The cell indices are positive integers, starting from (0, 0) in the top-left corner.
 #[derive(Debug, Clone)]
 pub struct UniformGrid<T: Numeric> {
     cells: Vec<Region<T>>,
@@ -29,7 +28,7 @@ impl<T: Numeric> UniformGrid<T> {
     ///     - The default color of `proto_cell` is assigned to each created cell (can be changed later)
     /// - `rows`: Number of rows in the grid
     /// - `cols`: Number of columns in the grid
-    /// - `colors`: Optional vector of colors for the cells. It is treated as a ring buffer, 
+    /// - `colors`: Optional vector of colors for the cells. It is treated as a ring buffer,
     /// the first color from `colors` is applied to the first cell, the second color to the second cell, and so on.
     /// When the end of the vector is reached, the color pointer is reset to the beginning of the vector and the coloring
     /// continues from there.
@@ -40,16 +39,15 @@ impl<T: Numeric> UniformGrid<T> {
         proto_cell: RectArea<T>,
         rows: usize,
         cols: usize,
-        colors:Option<Vec<u32>>,
-    ) -> Self  {
+        colors: Option<Vec<u32>>,
+    ) -> Self {
         let mut cells = Vec::with_capacity(rows * cols);
         let w = proto_cell.dimensions.w;
         let h = proto_cell.dimensions.h;
         let base_x = proto_cell.top_left.x;
         let base_y = proto_cell.top_left.y;
 
-
-        let colors:Vec<Option<u32>> = colors
+        let colors: Vec<Option<u32>> = colors
             .map(|v| v.into_iter().map(Some).collect())
             .unwrap_or(vec![proto_cell.color]);
 
@@ -60,9 +58,7 @@ impl<T: Numeric> UniformGrid<T> {
             for col in 0..cols {
                 let x = base_x + T::from_u32(col as u32) * w; // FIXME! will break on huge grids
                 let y = base_y + T::from_u32(row as u32) * h; // FIXME! will break on huge grids
-                // let rect = RectArea::new(x, y, w, h, circular_iter.next().unwrap_or(proto_cell.color));
                 let color = *circular_iter.next().unwrap_or(&proto_cell.color);
-
                 let rect = RectArea::new(x, y, w, h, color);
                 cells.push(Region::new(rect));
             }
@@ -135,21 +131,21 @@ impl<T: Numeric> UniformGrid<T> {
     }
 
     /// Resizes all cells with the new width and height, keeping grid layout, preserving Region:id of the cells
-    pub fn resize_cells(&mut self, new_cell_size: Dimensions2d<T>) {
+    pub fn resize_cells(&mut self, size: Dimensions2d<T>) {
         let base_x = self.proto_cell.top_left.x;
         let base_y = self.proto_cell.top_left.y;
 
         for row in 0..self.rows {
             for col in 0..self.cols {
-                let x = base_x + T::from_u32(col as u32) * new_cell_size.w; // FIXME! will break on huge grids
-                let y = base_y + T::from_u32(row as u32) * new_cell_size.h; // FIXME! will break on huge grids
+                let x = base_x + T::from_u32(col as u32) * size.w; // FIXME! will break on huge grids
+                let y = base_y + T::from_u32(row as u32) * size.h; // FIXME! will break on huge grids
                 let idx = row * self.cols + col;
-                let new_rect = RectArea::new(x, y, new_cell_size.w, new_cell_size.h, self.proto_cell.color);
+                let new_rect = RectArea::new(x, y, size.w, size.h, self.proto_cell.color);
                 self.cells[idx].update(new_rect);
             }
         }
 
-        self.proto_cell.dimensions = new_cell_size;
+        self.proto_cell.dimensions = size;
     }
 
     /// Returns the full width of the grid in numeric units
@@ -161,22 +157,19 @@ impl<T: Numeric> UniformGrid<T> {
     pub fn total_height(&self) -> T {
         self.proto_cell.dimensions.h * T::from_u32(self.rows as u32)
     }
-    
+
     /// Returns the total number of cells in the grid
     pub fn num_cells(&self) -> usize {
         self.rows * self.cols
     }
 }
 
-
-
-
 //***************************************************************************************************
 //***************************************************************************************************
 //***************************************************************************************************
 //***************************************************************************************************
 
-// WiP WiP WiP WiP WiP WiP WiP WiP WiP WiP WiP WiP WiP WiP WiP WiP WiP WiP WiP WiP WiP WiP WiP WiP WiP 
+// WiP WiP WiP WiP WiP WiP WiP WiP WiP WiP WiP WiP WiP WiP WiP WiP WiP WiP WiP WiP WiP WiP WiP WiP WiP
 
 /// A single neighbor: index and reference to the Region cell
 #[derive(Debug)]
@@ -186,51 +179,61 @@ pub struct Neighbor<'a, T: Numeric> {
     pub cell: &'a Region<T>,
 }
 
-
-
-// TODO: This implementation is so much a WiP! 
-// TODO: Refactor: 
-// TODO: - Better naming 
-// TODO: - Better structure 
-// TODO: - Think of DRYing it a bit, maybe? 
+// TODO: This implementation is so much a WiP!
+// TODO: Refactor:
+// TODO: - Better naming
+// TODO: - Better structure
+// TODO: - Think of DRYing it a bit, maybe?
 impl<T: Numeric> UniformGrid<T> {
     /// Returns immutable references to neighboring cells, along with their indices
+    ///
+    /// # Parameters
+    /// - `row`: The row index of the cell for which to find neighbors
+    /// - `col`: The column index of the cell for which to find neighbors
+    /// - `kind`: The type of neighborhood to consider (e.g., orthogonal, diagonal, etc.)
     pub fn get_neighbors(
         &self,
         row: usize,
         col: usize,
-        kind: &NeighborhoodType,
+        neighborhood_type: &NeighborhoodType,
     ) -> Vec<Neighbor<T>> {
-        let mut result:Vec<Neighbor<T>> = Vec::new();
-                
-        let directions: Vec<(isize, isize)> = match kind {
+        let mut result: Vec<Neighbor<T>> = Vec::new();
+
+        // Determine the directions to check based on the neighborhood type
+        #[rustfmt::skip]
+        let directions: Vec<(isize, isize)> = match neighborhood_type {
+            // Orthogonal neighbors: up, right, down, left
             NeighborhoodType::Orthogonal => vec![(0, -1), (1, 0), (0, 1), (-1, 0)],
+            // Diagonal neighbors: top-left, top-right, bottom-right, bottom-left
             NeighborhoodType::Diagonal => vec![(-1, -1), (1, -1), (1, 1), (-1, 1)],
+            // Immediate neighbors: all 8 surrounding cells
             NeighborhoodType::Immediate => vec![
                 (-1, -1), (0, -1), (1, -1),
                 (-1, 0),           (1, 0),
                 (-1, 1),  (0, 1),  (1, 1),
             ],
+            // Square neighborhood: all cells within a square of given distance
             NeighborhoodType::Square { distance } => {
+                let distance = *distance as isize;
                 let mut dirs = vec![];
-                for dy in -(*distance as isize)..=(*distance as isize) {
-                    for dx in -(*distance as isize)..=(*distance as isize) {
+                for dy in -distance..=distance {
+                    for dx in -distance ..=distance {
                         if dx != 0 || dy != 0 {
                             dirs.push((dx, dy));
                         }
                     }
                 }
                 dirs
-            }
-
-            
-            
+            },
+            // Circular neighborhood: all cells within a given radius
             NeighborhoodType::Circle { radius } => {
                 let mut dirs = vec![];
-                let r_sq = (*radius as isize).pow(2);
-                for dy in -(*radius as isize)..=(*radius as isize) {
-                    for dx in -(*radius as isize)..=(*radius as isize) {
+                let radius = *radius as isize;
+                let r_sq = radius.pow(2);
+                for dy in -radius ..=radius {
+                    for dx in -radius..=radius {
                         if dx != 0 || dy != 0 {
+                            // Include only cells within the circle
                             if dx * dx + dy * dy <= r_sq {
                                 dirs.push((dx, dy));
                             }
@@ -238,28 +241,34 @@ impl<T: Numeric> UniformGrid<T> {
                     }
                 }
                 dirs
-            }
+            },
+            // Diamond neighborhood: all cells within a diamond of given distance
             NeighborhoodType::Diamond { distance } => {
                 let mut dirs = vec![];
-                for dy in -(*distance as isize)..=(*distance as isize) {
-                    for dx in -(*distance as isize)..=(*distance as isize) {
+                let distance = *distance as isize;
+                for dy in distance..=distance {
+                    for dx in -distance..=distance {
                         if dx != 0 || dy != 0 {
-                            if dx.abs() + dy.abs() <= *distance as isize {
+                            // Include only cells within the diamond
+                            if dx.abs() + dy.abs() <= distance {
                                 dirs.push((dx, dy));
                             }
                         }
                     }
                 }
                 dirs
-            }
-
+            },
         };
 
+        // Iterate over the previously calculated directions
         for (dx, dy) in directions {
-            let n_row = row as isize + dy;
-            let n_col = col as isize + dx;
+            // Calculate the neighbor's row and column
+            let (n_row, n_col) = ((row as isize + dy) as usize, (col as isize + dx) as usize);
+
+            // Ensure the neighbors are not negative (those simply don't exist in an on-screen grid)
             if n_row >= 0 && n_col >= 0 {
                 let (n_row, n_col) = (n_row as usize, n_col as usize);
+                // Retrieve the cell at the neighbor's position, if it exists
                 if let Some(region) = self.get_cell(n_row, n_col) {
                     result.push(Neighbor {
                         row: n_row,
