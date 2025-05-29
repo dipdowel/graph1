@@ -1,3 +1,4 @@
+use std::ops::{Add, Sub};
 use crate::primitives::numeric::Numeric;
 use crate::primitives::Pixel;
 
@@ -60,8 +61,39 @@ impl<T: Numeric> Point<T> {
     }
 }
 
+
+
+impl<T: Numeric> Add for Point<T> {
+    type Output = Self;
+
+    /// Adds two points component-wise.
+    /// Returns a new point where x = self.x + rhs.x and y = self.y + rhs.y.
+    fn add(self, rhs: Self) -> Self::Output {
+        Self {
+            x: self.x + rhs.x,
+            y: self.y + rhs.y,
+        }
+    }
+}
+
+impl<T: Numeric> Sub for Point<T> {
+    type Output = Self;
+
+    /// Subtracts two points component-wise.
+    /// Returns a new point where x = self.x - rhs.x and y = self.y - rhs.y.
+    fn sub(self, rhs: Self) -> Self::Output {
+        Self {
+            x: self.x - rhs.x,
+            y: self.y - rhs.y,
+        }
+    }
+}
+
+
+
 /// An often-used constant for a point at the origin (0, 0).
 pub const POINT_ZERO: Point = Point { x: 0, y: 0 };
+pub const POINT_ONE: Point = Point { x: 1, y: 1 };
 
 /// A generic 3D-point: `(x: u32, y:u32, z:u32)`. Other `Numeric` types can be used instead of `u32`.
 ///
@@ -108,6 +140,37 @@ pub const POINT_3D_ZERO: Point3D = Point3D { x: 0, y: 0, z: 0 };
 #[cfg(test)]
 mod tests {
     use super::*;
+
+
+    #[test]
+    fn test_add_points() {
+        let a = Point::new(1, 2);
+        let b = Point::new(3, 4);
+        let expected = Point::new(4, 6);
+        assert_eq!(a + b, expected);
+    }
+    #[test]
+    fn test_add_points_float() {
+        let a = Point::new(1.0, 2.0);
+        let b = Point::new(3.1, 4.1);
+        let expected = Point::new(4.1, 6.1);
+        assert_eq!(a + b, expected);
+    }
+
+    #[test]
+    fn test_sub_points() {
+        let a = Point::new(5, 7);
+        let b = Point::new(2, 3);
+        let expected = Point::new(3, 4);
+        assert_eq!(a - b, expected);
+    }
+    #[test]
+    fn test_sub_points_float() {
+        let a = Point::new(5.2, 7.2);
+        let b = Point::new(2.2, 3.2);
+        let expected = Point::new(3.0, 4.0);
+        assert_eq!(a - b, expected);
+    }
 
 
     #[test]

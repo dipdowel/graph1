@@ -16,9 +16,9 @@ edition = "2021"
 [dev-dependencies]
 criterion = { version = "0.5.1", features = ["html_reports"] }
 
-[[bench]]
-name = "graph1_benchmark"
-harness = false
+#[[bench]]
+#name = "graph1_benchmark"
+#harness = false
 
 
 
