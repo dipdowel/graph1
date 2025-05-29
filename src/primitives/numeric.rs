@@ -34,6 +34,7 @@ pub trait Numeric:
     + Sub<Output = Self>
     + Mul<Output = Self>
     + Div<Output = Self>
+    // TODO: Think about adding *Assing traits, like AddAssign, SubAssign, etc.
     + Rem<Output = Self>
     + RemAssign
 {
