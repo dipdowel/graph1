@@ -1,4 +1,5 @@
 use crate::core::context_utils::line_clipping_style::LineClippingStyle;
+use crate::core::context_utils::context_snapshot::ContextSnapshot;
 
 /// Defines the rendering style for lines drawn in the framebuffer.
 ///
@@ -126,6 +127,15 @@ impl LineContext {
     /// Returns `true` if anti-aliasing is enabled.
     pub fn is_anti_aliasing(&self) -> bool {
         self.anti_aliasing.enabled
+    }
+}
+impl ContextSnapshot for LineContext {
+    fn get_context(&self) -> Self {
+        self.clone()
+    }
+
+    fn set_context(&mut self, ctx: Self) {
+        *self = ctx;
     }
 }
 

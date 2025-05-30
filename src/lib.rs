@@ -14,6 +14,7 @@ pub mod core {
         mod bezier;
         mod graph;
         mod line_context;
+
         pub(crate) mod window {
             pub(crate) mod window;
             pub(crate) mod window_quadrants;
@@ -37,8 +38,8 @@ pub mod core {
 
     pub mod context_utils {
         pub mod line_clipping_style;
-        
-
+        // pub(crate) mod context_snapshot;
+        pub mod context_snapshot;
 
     }
     
@@ -300,6 +301,8 @@ pub mod utils {
         
         pub mod geometry{
             pub mod region;
+            mod approximate_center;
+            pub use approximate_center::approximate_center; 
         }
 
         /// Power functions
