@@ -132,12 +132,11 @@ impl<T: Numeric> UniformGrid<T> {
 
     /// Resizes all cells with the new width and height, keeping grid layout, preserving Region:id of the cells
     pub fn resize_cells(&mut self, size: Dimensions2d<T>) {
-        if size.w == self.proto_cell.dimensions.w &&  size.h == self.proto_cell.dimensions.h {
+        if size.w == self.proto_cell.dimensions.w && size.h == self.proto_cell.dimensions.h {
             // No need to resize if the size is the same
             return;
         }
-        
-        
+
         let base_x = self.proto_cell.top_left.x;
         let base_y = self.proto_cell.top_left.y;
 
@@ -165,13 +164,16 @@ impl<T: Numeric> UniformGrid<T> {
     /// - `color`: Optional color to apply to the cells. If not provided, the original color of the `proto_cell` will be used.
     ///
     /// **NB:** This method calls `resize_cells()` and `resize_grid()` internally.
-    pub fn resize(&mut self, cell_size: Dimensions2d<T>, rows: usize, cols: usize, color: Option<u32>) {
+    pub fn resize(
+        &mut self,
+        cell_size: Dimensions2d<T>,
+        rows: usize,
+        cols: usize,
+        color: Option<u32>,
+    ) {
         self.resize_cells(cell_size);
         self.resize_grid(rows, cols, color);
     }
-
-
-
 
     /// Resizes the grid to the specified number of rows and columns.
     /// Cells get resized automatically to keep the original width and height of the grid intact.
@@ -186,7 +188,6 @@ impl<T: Numeric> UniformGrid<T> {
         self.resize_cells(Dimensions2d::new(new_cell_width, new_cell_height));
         self.resize_grid(rows, cols, color);
     }
-
 
     /// Returns the full width of the grid in numeric units
     pub fn total_width(&self) -> T {
@@ -203,13 +204,6 @@ impl<T: Numeric> UniformGrid<T> {
         self.rows * self.cols
     }
 }
-
-//***************************************************************************************************
-//***************************************************************************************************
-//***************************************************************************************************
-//***************************************************************************************************
-
-// WiP WiP WiP WiP WiP WiP WiP WiP WiP WiP WiP WiP WiP WiP WiP WiP WiP WiP WiP WiP WiP WiP WiP WiP WiP
 
 /// A single neighbor: index and reference to the Region cell
 #[derive(Debug)]
