@@ -5,6 +5,7 @@ use crate::utils::color::alpha::{blend_pixel_f32, blend_pixel_int};
 use std::cmp::PartialEq;
 use std::thread;
 use crate::draw;
+use crate::primitives::numeric::Numeric;
 use crate::primitives::point::Point;
 
 impl PartialEq for AlphaMethod {
@@ -90,7 +91,7 @@ fn draw_lines_of_rectangle_thread(
 /// # Arguments
 /// * `ctx` - The graph context
 /// * `rect` - The rectangle to draw
-pub fn filled<UserData>(ctx: &mut GraphContext<UserData>, rect: &RectArea) {
+pub fn filled<UserData, T:Numeric>(ctx: &mut GraphContext<UserData>, rect: &RectArea<T>) {
     // Do nothing if threading is not enabled
     if ctx.num_threads == 0 {
         return;
@@ -104,13 +105,13 @@ pub fn filled<UserData>(ctx: &mut GraphContext<UserData>, rect: &RectArea) {
 
     // Framebuffer and rectangle layout variables
     let line_length = ctx.win.w_usize;
-    let total_lines = rect.dimensions.h as usize;
-    let color_start = rect.top_left.x as usize;
-    let color_end = (rect.top_left.x + rect.dimensions.w) as usize;
+    let total_lines = T::to_u32(rect.dimensions.h) as usize;
+    let color_start = T::to_u32(rect.top_left.x) as usize;
+    let color_end = T::to_u32(rect.top_left.x + rect.dimensions.w) as usize;
 
     // Slice start/end in framebuffer
-    let first_line_start = (rect.top_left.y * ctx.win.w) as usize;
-    let last_line_end = ((rect.top_left.y + rect.dimensions.h) * ctx.win.w) as usize;
+    let first_line_start = (T::to_u32(rect.top_left.y) * ctx.win.w) as usize;
+    let last_line_end = (T::to_u32(rect.top_left.y + rect.dimensions.h) * ctx.win.w) as usize;
 
     let last_line_end = last_line_end.min(ctx.frame_buf.len()); // Ensure we don’t go beyond the framebuffer length
     let rectangle_slice = &mut ctx.frame_buf[first_line_start..last_line_end];
@@ -167,14 +168,14 @@ pub fn filled<UserData>(ctx: &mut GraphContext<UserData>, rect: &RectArea) {
 /// * `rect_area` - The rectangle area to draw the outline for
 ///
 /// This function draws four sides (top, bottom, left, right) of the rectangle.
-pub fn outline<UserData>(ctx: &mut GraphContext<UserData>, rect_area: &RectArea) {
+pub fn outline<UserData, T:Numeric>(ctx: &mut GraphContext<UserData>, rect_area: &RectArea<T>) {
     let RectArea { top_left, dimensions, color } = rect_area;
     let color = *color;
 
-    let x = top_left.x as i32;
-    let y = top_left.y as i32;
-    let w = dimensions.w as i32;
-    let h = dimensions.h as i32;
+    let x = T::to_i32(top_left.x);
+    let y = T::to_i32(top_left.y);
+    let w = T::to_i32(dimensions.w);
+    let h = T::to_i32(dimensions.h);
 
     let top_left_i32 = Point::new(x, y);
     let top_right_i32 = Point::new(x + w - 1, y);

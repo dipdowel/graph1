@@ -14,6 +14,7 @@ pub mod core {
         mod bezier;
         mod graph;
         mod line_context;
+
         pub(crate) mod window {
             pub(crate) mod window;
             pub(crate) mod window_quadrants;
@@ -37,8 +38,7 @@ pub mod core {
 
     pub mod context_utils {
         pub mod line_clipping_style;
-        
-
+        pub mod context_snapshot;
 
     }
     
@@ -166,6 +166,15 @@ pub mod primitives {
     /// `Ratio` - a representation of a ratio of two numbers and operations on it.
     pub mod ratio;
 
+}
+
+//-=[ S }=------------------------------------------------------------------------------------------
+pub mod sprites {
+    pub mod axonometric {
+        mod bar_3d;
+        pub use bar_3d::Bar3DProps;
+        pub use bar_3d::bar_3d;
+    }
 }
 
 //-=[ T }=------------------------------------------------------------------------------------------
@@ -300,6 +309,8 @@ pub mod utils {
         
         pub mod geometry{
             pub mod region;
+            mod approximate_center;
+            pub use approximate_center::approximate_center;
         }
 
         /// Power functions
@@ -338,6 +349,7 @@ pub mod utils {
     pub mod pixel_copy {
         pub mod image_data;
     }
+
 
 }
 
