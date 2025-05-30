@@ -66,20 +66,22 @@ pub fn bar_3d<UserData>(ctx: &mut GraphContext<UserData>, props: &Bar3DProps) {
 
     //
     // TOP face (parallelogram) drawn using horizontal lines with slant control
+    //
+    // Save the current line context state to restore it after drawing the top face
     let line_ctx_state = ctx.line.get_context();
     ctx.line.set_int_no_aa(Some(1));
 
-    for i in 0..=depth {
-        let base_x = x + i * slant_x;
-        let base_y = y - height - i * slant_y;
+    let mut start = Point::new(x, y - height);
+    let total_steps = (depth + 1) * slant_y;
 
-        // Fill all y_slant scanlines at this depth level
-        for j in 0..slant_y {
-            let y_line = base_y + j;
-            let start = Point::new(base_x, y_line);
-            draw::line::horizontal(ctx, &start, i32::to_u32(width), Some(color_top));
-        }
+    for n in 0..total_steps {
+        let i = n / slant_y;
+        let j = n % slant_y;
+        start.x = x + i * slant_x;
+        start.y = y - height - i * slant_y + j;
+        draw::line::horizontal(ctx, &start, i32::to_u32(width), Some(color_top));
     }
+    // Restore the original line context
     ctx.line.set_context(line_ctx_state);
 
     //
