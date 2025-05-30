@@ -102,15 +102,15 @@ impl<T: Numeric> UniformGrid<T> {
     /// * If `color` is provided, it will be applied to the newly added cells,
     /// otherwise the original color of the `proto_cell` will be used, @see `new()`.
 
-    pub fn resize_grid(&mut self, new_rows: usize, new_cols: usize, color: Option<u32>) {
-        let mut new_cells = Vec::with_capacity(new_rows * new_cols);
+    pub fn resize_grid(&mut self, rows: usize, cols: usize, color: Option<u32>) {
+        let mut new_cells = Vec::with_capacity(rows * cols);
         let w = self.proto_cell.dimensions.w;
         let h = self.proto_cell.dimensions.h;
         let base_x = self.proto_cell.top_left.x;
         let base_y = self.proto_cell.top_left.y;
 
-        for row in 0..new_rows {
-            for col in 0..new_cols {
+        for row in 0..rows {
+            for col in 0..cols {
                 let x = base_x + T::from_u32(col as u32) * w; // FIXME! will break on huge grids
                 let y = base_y + T::from_u32(row as u32) * h; // FIXME! will break on huge grids
                 let idx = row * self.cols + col;
@@ -126,12 +126,18 @@ impl<T: Numeric> UniformGrid<T> {
         }
 
         self.cells = new_cells;
-        self.rows = new_rows;
-        self.cols = new_cols;
+        self.rows = rows;
+        self.cols = cols;
     }
 
     /// Resizes all cells with the new width and height, keeping grid layout, preserving Region:id of the cells
     pub fn resize_cells(&mut self, size: Dimensions2d<T>) {
+        if size.w == self.proto_cell.dimensions.w &&  size.h == self.proto_cell.dimensions.h {
+            // No need to resize if the size is the same
+            return;
+        }
+        
+        
         let base_x = self.proto_cell.top_left.x;
         let base_y = self.proto_cell.top_left.y;
 
@@ -147,6 +153,40 @@ impl<T: Numeric> UniformGrid<T> {
 
         self.proto_cell.dimensions = size;
     }
+
+    /// A convenience method that does two things:
+    /// 1. Resizes the grid to the specified number of rows and columns.
+    /// 2. Resizes cells to the given size.
+    ////
+    /// # Parameters
+    /// - `cell_size`: The new size of each cell in the grid
+    /// - `rows`: The new number of rows in the grid
+    /// - `cols`: The new number of columns in the grid
+    /// - `color`: Optional color to apply to the cells. If not provided, the original color of the `proto_cell` will be used.
+    ///
+    /// **NB:** This method calls `resize_cells()` and `resize_grid()` internally.
+    pub fn resize(&mut self, cell_size: Dimensions2d<T>, rows: usize, cols: usize, color: Option<u32>) {
+        self.resize_cells(cell_size);
+        self.resize_grid(rows, cols, color);
+    }
+
+
+
+
+    /// Resizes the grid to the specified number of rows and columns.
+    /// Cells get resized automatically to keep the original width and height of the grid intact.
+    /// # Parameters
+    /// - `rows`: The new number of rows in the grid
+    /// - `cols`: The new number of columns in the grid
+    /// - `color`: Optional color to apply to the cells. If not provided, the original color of the `proto_cell` will be used.
+    /// **NB:** This method calls `resize_cells()` and `resize_grid()` internally.
+    pub fn resize_grid_auto(&mut self, rows: usize, cols: usize, color: Option<u32>) {
+        let new_cell_width = self.total_width() / T::from_u64(cols as u64);
+        let new_cell_height = self.total_height() / T::from_u64(rows as u64);
+        self.resize_cells(Dimensions2d::new(new_cell_width, new_cell_height));
+        self.resize_grid(rows, cols, color);
+    }
+
 
     /// Returns the full width of the grid in numeric units
     pub fn total_width(&self) -> T {
