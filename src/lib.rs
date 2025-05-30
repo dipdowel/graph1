@@ -169,6 +169,15 @@ pub mod primitives {
 
 }
 
+//-=[ S }=------------------------------------------------------------------------------------------
+pub mod sprites {
+    pub mod axonometric {
+        mod bar_3d;
+        pub use bar_3d::Bar3DProps;
+        pub use bar_3d::bar_3d;
+    }
+}
+
 //-=[ T }=------------------------------------------------------------------------------------------
 
 pub mod test {
@@ -341,6 +350,7 @@ pub mod utils {
     pub mod pixel_copy {
         pub mod image_data;
     }
+    
 
 }
 
