@@ -33,9 +33,11 @@ pub struct Bar3DProps {
     /// slant.x and slant.y control horizontal and vertical offset per depth step,
     /// shaping the bar’s 3D tilt visually.
     /// Best works with low values (1..10).
-    pub slant: Point<u32>
-}
+    pub slant: Point<u32>,
 
+    /// If true, the bar is projected to the right, otherwise -- to the left.
+    pub project_to_right: bool,
+}
 
 /// Draws a pseudo-3D bar in isometric projection using polygons and flood fill.
 /// Each face is drawn using `closed_perimeter()` and filled with `flood()`.
@@ -53,7 +55,8 @@ pub fn bar_3d<UserData>(ctx: &mut GraphContext<UserData>, props: &Bar3DProps) {
         color_front,
         color_top,
         color_side,
-        slant
+        slant,
+        project_to_right: draw_left_face,
     } = *props;
     let slant_x = slant.x as i32; // how much the bar shifts right
     let slant_y = slant.y as i32; // how much the bar shifts up
@@ -71,32 +74,44 @@ pub fn bar_3d<UserData>(ctx: &mut GraphContext<UserData>, props: &Bar3DProps) {
     let line_ctx_state = ctx.line.get_context();
     ctx.line.set_int_no_aa(Some(1));
 
-    let mut start = Point::new(x, y - height);
     let total_steps = (depth + 1) * slant_y;
-
     for n in 0..total_steps {
         let i = n / slant_y;
         let j = n % slant_y;
-        start.x = x + i * slant_x;
-        start.y = y - height - i * slant_y + j;
+
+        let dx = if props.project_to_right {
+            x + i * slant_x
+        } else {
+            x - i * slant_x
+        };
+        let dy = y - height - i * slant_y + j;
+
+        let start = Point::new(dx, dy);
         draw::line::horizontal(ctx, &start, i32::to_u32(width), Some(color_top));
     }
+
     // Restore the original line context
     ctx.line.set_context(line_ctx_state);
 
-    //
-    // RIGHT-SIDE face (slanted parallelogram)
-    let side = vec![
-        Point::new(x + width, (y - height)),
-        Point::new(x + width + depth * slant_x, y - height - depth * slant_y),
-        Point::new(x + width + depth * slant_x, y - depth * slant_y),
-        Point::new(x + width, y),
-    ];
+    // RIGHT-SIDE or LEFT-SIDE face (slanted parallelogram)
+    let side = if props.project_to_right {
+        vec![
+            Point::new(x + width, y - height),
+            Point::new(x + width + depth * slant_x, y - height - depth * slant_y),
+            Point::new(x + width + depth * slant_x, y - depth * slant_y),
+            Point::new(x + width, y),
+        ]
+    } else {
+        vec![
+            Point::new(x, y - height),
+            Point::new(x - depth * slant_x, y - height - depth * slant_y),
+            Point::new(x - depth * slant_x, y - depth * slant_y),
+            Point::new(x, y),
+        ]
+    };
 
     closed_perimeter(ctx, &side, Some(color_side));
-
     let flood_fill_point = approximate_center(&side).unwrap_or(side[0].clone() + Point::new(1, 1));
-
     fill::flood(
         &mut ctx.frame_buf,
         &ctx.win.dimensions,

@@ -86,13 +86,15 @@ impl<T: Numeric> UniformGrid<T> {
     }
 
     /// Returns an iterator over all cells (immutable)
-    pub fn iter(&self) -> impl Iterator<Item = &Region<T>> {
+    pub fn iter(&self) -> impl DoubleEndedIterator<Item = &Region<T>> {
         self.cells.iter()
     }
 
+
+
     /// Returns an iterator over all cells (mutable)
     /// NB: check if this is actually needed
-    pub fn iter_mut(&mut self) -> impl Iterator<Item = &mut Region<T>> {
+    pub fn iter_mut(&mut self) -> impl DoubleEndedIterator<Item = &mut Region<T>> {
         self.cells.iter_mut()
     }
 
