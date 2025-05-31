@@ -17,6 +17,27 @@ pub struct AlphaContext {
     pub method: AlphaMethod,
 }
 
+impl AlphaContext {
+    /// Create a new `AlphaContext` with default values
+    pub fn new( enabled:bool, method:AlphaMethod ) -> Self {
+        Self {
+            enabled,
+            method,
+        }
+    }
+
+    /// Set the alpha blending method to `Int`
+    pub fn set_method_int(&mut self) {
+        self.method = AlphaMethod::Int;
+    }
+
+    /// Set the alpha blending method to `Float`
+    pub fn set_method_float(&mut self) {
+        self.method = AlphaMethod::Float;
+    }
+}
+
+
 impl Default for AlphaContext {
     fn default() -> Self {
         Self {
