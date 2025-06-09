@@ -81,7 +81,7 @@ impl<T: Numeric> UniformGrid<T> {
     }
 
     /// Returns a cell by flat index (row-major order)
-    pub fn get_cell_index(&self, index: usize) -> Option<&Region<T>> {
+    pub fn get_cell_by_index(&self, index: usize) -> Option<&Region<T>> {
         self.cells.get(index)
     }
 
@@ -214,7 +214,7 @@ pub struct Neighbor<'a, T: Numeric> {
     pub col: usize,
     pub cell: &'a Region<T>,
     pub is_center: bool,
-    pub distance_from_center: u32,
+    pub distance_to_center: u32,
 }
 
 
@@ -304,7 +304,7 @@ impl<T: Numeric> UniformGrid<T> {
                     col,
                     cell,
                     is_center: true,
-                    distance_from_center: 0,
+                    distance_to_center: 0,
                 });
             }
         }
@@ -321,6 +321,9 @@ impl<T: Numeric> UniformGrid<T> {
                         NeighborhoodType::Circle { .. } => {
                             ((dx * dx + dy * dy) as f64).sqrt().round() as u32
                         },
+                        NeighborhoodType::Square { .. } => {
+                            dx.abs().max(dy.abs()) as u32
+                        },
                         NeighborhoodType::Diamond { .. } => {
                             (dx.abs() + dy.abs()) as u32
                         },
@@ -334,7 +337,7 @@ impl<T: Numeric> UniformGrid<T> {
                         col: n_col,
                         cell: region,
                         is_center: false,
-                        distance_from_center: distance,
+                        distance_to_center: distance,
                     });
                 }
             }
@@ -343,5 +346,3 @@ impl<T: Numeric> UniformGrid<T> {
         result
     }
 }
-
-
