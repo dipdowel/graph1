@@ -214,6 +214,7 @@ pub struct Neighbor<'a, T: Numeric> {
     pub col: usize,
     pub cell: &'a Region<T>,
     pub is_center: bool,
+    pub distance_from_center: u32,
 }
 
 
@@ -303,6 +304,7 @@ impl<T: Numeric> UniformGrid<T> {
                     col,
                     cell,
                     is_center: true,
+                    distance_from_center: 0,
                 });
             }
         }
@@ -315,11 +317,24 @@ impl<T: Numeric> UniformGrid<T> {
             if n_row >= 0 && n_col >= 0 {
                 let (n_row, n_col) = (n_row as usize, n_col as usize);
                 if let Some(region) = self.get_cell(n_row, n_col) {
+                    let distance = match neighborhood_type {
+                        NeighborhoodType::Circle { .. } => {
+                            ((dx * dx + dy * dy) as f64).sqrt().round() as u32
+                        },
+                        NeighborhoodType::Diamond { .. } => {
+                            (dx.abs() + dy.abs()) as u32
+                        },
+                        _ => {
+                            ((dx * dx + dy * dy) as f64).sqrt().round() as u32
+                        }
+                    };
+
                     result.push(Neighbor {
                         row: n_row,
                         col: n_col,
                         cell: region,
                         is_center: false,
+                        distance_from_center: distance,
                     });
                 }
             }
@@ -328,4 +343,5 @@ impl<T: Numeric> UniformGrid<T> {
         result
     }
 }
+
 
