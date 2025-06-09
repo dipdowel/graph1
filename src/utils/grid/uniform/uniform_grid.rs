@@ -213,7 +213,9 @@ pub struct Neighbor<'a, T: Numeric> {
     pub row: usize,
     pub col: usize,
     pub cell: &'a Region<T>,
+    pub is_center: bool,
 }
+
 
 // TODO: This implementation is so much a WiP!
 // TODO: Refactor:
@@ -226,34 +228,35 @@ impl<T: Numeric> UniformGrid<T> {
     /// # Parameters
     /// - `row`: The row index of the cell for which to find neighbors
     /// - `col`: The column index of the cell for which to find neighbors
-    /// - `kind`: The type of neighborhood to consider (e.g., orthogonal, diagonal, etc.)
+    /// - `neighborhood_type`: The type of neighborhood to consider (e.g., orthogonal, diagonal, etc.)
+    /// - `include_center`: If true, the center cell itself will be included in the result with `is_center = true`
+    ///
+    /// # Returns
+    /// A vector of `Neighbor` instances around the specified cell, possibly including the center
     pub fn get_neighbors(
         &self,
         row: usize,
         col: usize,
         neighborhood_type: &NeighborhoodType,
+        include_center: bool,
     ) -> Vec<Neighbor<T>> {
         let mut result: Vec<Neighbor<T>> = Vec::new();
 
         // Determine the directions to check based on the neighborhood type
         #[rustfmt::skip]
         let directions: Vec<(isize, isize)> = match neighborhood_type {
-            // Orthogonal neighbors: up, right, down, left
             NeighborhoodType::Orthogonal => vec![(0, -1), (1, 0), (0, 1), (-1, 0)],
-            // Diagonal neighbors: top-left, top-right, bottom-right, bottom-left
             NeighborhoodType::Diagonal => vec![(-1, -1), (1, -1), (1, 1), (-1, 1)],
-            // Immediate neighbors: all 8 surrounding cells
             NeighborhoodType::Immediate => vec![
                 (-1, -1), (0, -1), (1, -1),
                 (-1, 0),           (1, 0),
                 (-1, 1),  (0, 1),  (1, 1),
             ],
-            // Square neighborhood: all cells within a square of given distance
             NeighborhoodType::Square { distance } => {
                 let distance = *distance as isize;
                 let mut dirs = vec![];
                 for dy in -distance..=distance {
-                    for dx in -distance ..=distance {
+                    for dx in -distance..=distance {
                         if dx != 0 || dy != 0 {
                             dirs.push((dx, dy));
                         }
@@ -261,15 +264,13 @@ impl<T: Numeric> UniformGrid<T> {
                 }
                 dirs
             },
-            // Circular neighborhood: all cells within a given radius
             NeighborhoodType::Circle { radius } => {
                 let mut dirs = vec![];
                 let radius = *radius as isize;
                 let r_sq = radius.pow(2);
-                for dy in -radius ..=radius {
+                for dy in -radius..=radius {
                     for dx in -radius..=radius {
                         if dx != 0 || dy != 0 {
-                            // Include only cells within the circle
                             if dx * dx + dy * dy <= r_sq {
                                 dirs.push((dx, dy));
                             }
@@ -278,14 +279,12 @@ impl<T: Numeric> UniformGrid<T> {
                 }
                 dirs
             },
-            // Diamond neighborhood: all cells within a diamond of given distance
             NeighborhoodType::Diamond { distance } => {
                 let mut dirs = vec![];
                 let distance = *distance as isize;
-                for dy in distance..=distance {
+                for dy in -distance..=distance {
                     for dx in -distance..=distance {
                         if dx != 0 || dy != 0 {
-                            // Include only cells within the diamond
                             if dx.abs() + dy.abs() <= distance {
                                 dirs.push((dx, dy));
                             }
@@ -296,20 +295,31 @@ impl<T: Numeric> UniformGrid<T> {
             },
         };
 
-        // Iterate over the previously calculated directions
-        for (dx, dy) in directions {
-            // Calculate the neighbor's row and column
-            let (n_row, n_col) = ((row as isize + dy) as usize, (col as isize + dx) as usize);
+        // Check and include center cell if requested
+        if include_center {
+            if let Some(cell) = self.get_cell(row, col) {
+                result.push(Neighbor {
+                    row,
+                    col,
+                    cell,
+                    is_center: true,
+                });
+            }
+        }
 
-            // Ensure the neighbors are not negative (those simply don't exist in an on-screen grid)
+        // Iterate over calculated directions
+        for (dx, dy) in directions {
+            let n_row = row as isize + dy;
+            let n_col = col as isize + dx;
+
             if n_row >= 0 && n_col >= 0 {
                 let (n_row, n_col) = (n_row as usize, n_col as usize);
-                // Retrieve the cell at the neighbor's position, if it exists
                 if let Some(region) = self.get_cell(n_row, n_col) {
                     result.push(Neighbor {
                         row: n_row,
                         col: n_col,
                         cell: region,
+                        is_center: false,
                     });
                 }
             }
@@ -318,3 +328,4 @@ impl<T: Numeric> UniformGrid<T> {
         result
     }
 }
+
