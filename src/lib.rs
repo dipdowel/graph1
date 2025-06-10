@@ -323,8 +323,15 @@ pub mod utils {
         pub mod oscillator {
             mod sine;
             mod sine_discrete;
+            mod linear;
+            mod linear_fast;
+
+
             pub use sine::sine;
             pub use sine_discrete::sine_discrete;
+            pub use linear::linear;
+            pub use linear_fast::linear_fast;
+
         }
 
         /// Random number generators

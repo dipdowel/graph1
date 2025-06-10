@@ -211,10 +211,16 @@ impl<T: Numeric> UniformGrid<T> {
 #[derive(Debug)]
 pub struct Neighbor<'a, T: Numeric> {
     pub row: usize,
+
     pub col: usize,
+    /// A reference to the cell in the neighborhood (and also in the grid!)
     pub cell: &'a Region<T>,
+    /// Whether this neighbor is the center cell itself
     pub is_center: bool,
+    /// The distance to the center cell, in number of cells
     pub distance_to_center: u32,
+    /// The index of the cell in the flat array (row-major order)
+    pub cell_index: usize,
 }
 
 
@@ -299,12 +305,14 @@ impl<T: Numeric> UniformGrid<T> {
         // Check and include center cell if requested
         if include_center {
             if let Some(cell) = self.get_cell(row, col) {
+                let cell_index = row * self.cols + col;
                 result.push(Neighbor {
                     row,
                     col,
                     cell,
                     is_center: true,
                     distance_to_center: 0,
+                    cell_index,
                 });
             }
         }
@@ -331,13 +339,14 @@ impl<T: Numeric> UniformGrid<T> {
                             ((dx * dx + dy * dy) as f64).sqrt().round() as u32
                         }
                     };
-
+                    let cell_index = n_row * self.cols + n_col;
                     result.push(Neighbor {
                         row: n_row,
                         col: n_col,
                         cell: region,
                         is_center: false,
                         distance_to_center: distance,
+                        cell_index,
                     });
                 }
             }
