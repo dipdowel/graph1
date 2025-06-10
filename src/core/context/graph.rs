@@ -1,7 +1,8 @@
 use crate::core::context::alpha::AlphaMethod;
 use crate::core::context::line_context::LineContext;
 use crate::core::context::{AlphaContext, BezierContext, WindowContext};
-
+use crate::core::default_rng_seeds::{DEFAULT_SEED, DEFAULT_SEED_64};
+use crate::utils::math::rng::XorShiftRng;
 
 #[derive(Debug)]
 pub struct GraphContext<UserData = Vec<i32>> {
@@ -28,9 +29,15 @@ pub struct GraphContext<UserData = Vec<i32>> {
     /// If `0`, Graph1 will not perform those operations, that support multithreading. Not recommended for usage.
     pub num_threads: usize,
 
+    /// A random number generator (XorShiftRng) seeded with default values.
+    /// If needed, reseed using:
+    /// - `rng.set_seed_32(seed_u32)`
+    /// - `rng.set_seed_64(seed_u64)`
+    pub rng: XorShiftRng,
+
     /// Settings for line drawing
     pub line: LineContext,
-    
+
     /*
     // TODO: Consider implementing the following feature:
     /// Autodetect when it's cheaper to perform an operation on just one thread (e.g. due to a small buffer size)
@@ -88,7 +95,7 @@ impl<UserData: Default> GraphContext<UserData> {
                 method: AlphaMethod::Int,
             },
             num_threads,
-
+            rng:XorShiftRng::new(DEFAULT_SEED, DEFAULT_SEED_64),
             line: line.unwrap_or_default(),
         }
     }
@@ -107,4 +114,31 @@ impl<UserData: Default> GraphContext<UserData> {
             self.draft_buf.resize(num_pixels, self.win.background_color);
         }
     }
+
+    /// Sets the pixel at (x, y) in the frame buffer to the specified color.
+    /// If the coordinates are out of bounds, the pixel will not be set.
+    /// # Arguments
+    /// * `x` - The x-coordinate of the pixel
+    /// * `y` - The y-coordinate of the pixel
+    /// * `color` - The color to set the pixel to, in RGBA format (0xRRGGBBAA)
+    pub fn set_pixel(&mut self, x: u32, y: u32, color: u32) {
+        if x < self.win.w && y < self.win.h {
+            self.frame_buf[(x + y * self.win.w) as usize] = color;
+        }
+    }
+
+    /// Reads the pixel color from the frame buffer at (x, y).
+    /// If the coordinates are out of bounds, returns `None`.
+    /// # Arguments
+    /// * `x` - The x-coordinate of the pixel
+    /// * `y` - The y-coordinate of the pixel
+    pub fn get_pixel(&self, x: u32, y: u32) -> Option<u32> {
+        if x < self.win.w && y < self.win.h {
+            Some(self.frame_buf[(x + y * self.win.w) as usize])
+        } else {
+            None
+        }
+    }
+
+
 }

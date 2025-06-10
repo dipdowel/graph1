@@ -7,6 +7,7 @@ use crate::utils::math::rng::helpers::normalize_xor_shift_input::{
 /// A Simple Random Number Generator (RNG) based on the XOR-Shift algorithm.
 ///
 /// **NB:** Do not use this for cryptographic purposes!
+#[derive(Debug)]
 pub struct XorShiftRng {
     state_32: u32,
     state_64: u64,

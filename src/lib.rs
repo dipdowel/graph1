@@ -44,6 +44,7 @@ pub mod core {
     
     /// Default colors used in the library if no custom colors specified
     pub mod default_colors;
+    pub(crate) mod default_rng_seeds;
 }
 //-=[ D }=------------------------------------------------------------------------------------------
 
