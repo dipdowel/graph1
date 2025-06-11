@@ -35,6 +35,20 @@ impl <T: Numeric> Range<T> {
 }
 
 
+
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct Shell<T: Numeric> {
+    pub inner: T,
+    pub outer: T,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct Bound<T: Numeric> {
+    pub lower: T,
+    pub upper: T,
+}
+
+
 /// A range of values.
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct ColorPair (pub u32, pub  u32);
