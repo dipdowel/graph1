@@ -1,14 +1,13 @@
 use crate::core::context::GraphContext;
 use crate::draw::tools::brush::Brush;
 use crate::primitives::math::MinMax;
-use crate::primitives::plane::Dimensions2d;
 
 pub fn simple<UserData>(
     ctx: &mut GraphContext<UserData>,
     x: u32,
     y: u32,
     density: u32,
-    colors:Vec<u32>
+    colors:&Vec<u32>
 ) {
     
     // TODO: Consider adding support for Alpha!
