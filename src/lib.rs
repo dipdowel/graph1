@@ -26,6 +26,7 @@ pub mod core {
         // pub use alpha::AlphaMethod;
         pub use bezier::BezierContext;
         pub use graph::GraphContext;
+        pub use graph::FrameBuffer;
         pub use window::window::WindowContext;
         pub use window::window_quadrants::Quadrants;
         pub use line_context::AntiAliasingConfig;

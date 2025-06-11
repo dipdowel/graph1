@@ -4,6 +4,16 @@ use crate::core::context::{AlphaContext, BezierContext, WindowContext};
 use crate::core::default_rng_seeds::{DEFAULT_SEED, DEFAULT_SEED_64};
 use crate::draw::tools::brush::Brush;
 use crate::utils::math::rng::XorShiftRng;
+use std::ptr;
+
+#[derive(Debug, PartialEq, Eq)]
+pub enum FrameBuffer {
+    /// The main frame buffer, used for rendering the final image
+    Primary,
+    /// The draft buffer, used for off-screen rendering
+    Draft,
+}
+
 
 #[derive(Debug)]
 pub struct GraphContext<UserData = Vec<i32>> {
@@ -41,6 +51,8 @@ pub struct GraphContext<UserData = Vec<i32>> {
     
     /// The brush used for paint-brush operations.
     pub brush: Brush,
+
+    cur_buf_type: FrameBuffer,
     /*
     // TODO: Consider implementing the following feature:
     /// Autodetect when it's cheaper to perform an operation on just one thread (e.g. due to a small buffer size)
@@ -101,6 +113,7 @@ impl<UserData: Default> GraphContext<UserData> {
             rng: XorShiftRng::new(DEFAULT_SEED, DEFAULT_SEED_64),
             line: line.unwrap_or_default(),
             brush: Brush::default(),
+            cur_buf_type: FrameBuffer::Primary,
         }
     }
 
@@ -150,4 +163,52 @@ impl<UserData> GraphContext<UserData> {
             None
         }
     }
+
+    /// Sets the current frame buffer to the specified type.
+    /// If the requested buffer type is already the current one, no action is taken.
+    /// # Arguments
+    /// * `buf_type` - The type of the frame buffer to set (either `Primary` or `Draft`)
+    pub fn set_frame_buf_to(&mut self, buf_type: FrameBuffer) {
+
+        if buf_type == self.cur_buf_type {
+            // No need to swap if the requested buffer is already the current one
+            return;
+        }
+        std::mem::swap(&mut self.frame_buf, &mut self.draft_buf);
+        self.cur_buf_type = buf_type;
+    }
+
+    /// Copies data between the primary and draft frame buffers.
+    /// This function allows you to copy `ctx.frame_buf` to `ctx.draft_buf` or vice versa.
+    /// /// # Arguments
+    /// /// * `src` - The source frame buffer type (either `Primary` or `Draft`)
+    /// /// * `dst` - The destination frame buffer type (either `Primary` or `Draft`)
+    /// /// # Notes
+    /// /// - If `src` and `dst` are the same, no action is taken.
+    pub fn copy_frame_buf (&mut self, src: FrameBuffer, dst: FrameBuffer) {
+
+        if src == dst {
+            // No need to copy if the source and destination buffers are the same
+            return;
+        }
+
+        match (src, dst) {
+            (FrameBuffer::Primary, FrameBuffer::Draft) => {
+                self.draft_buf.copy_from_slice(&self.frame_buf);
+                unsafe {
+                    ptr::copy_nonoverlapping(self.frame_buf.as_ptr(), self.draft_buf.as_mut_ptr(), self.frame_buf.len());
+                }
+
+            }
+            (FrameBuffer::Draft, FrameBuffer::Primary) => {
+                unsafe {
+                    ptr::copy_nonoverlapping(self.draft_buf.as_ptr(), self.frame_buf.as_mut_ptr(), self.draft_buf.len());
+                }
+            }
+            _ => {
+                panic!("Error: `copy_frame_buf()` failed!");
+            }
+        }
+    }
+
 }
