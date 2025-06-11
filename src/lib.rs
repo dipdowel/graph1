@@ -104,6 +104,15 @@ pub mod draw {
             /// Fill a shape with a color
             pub use flood::flood;
         }
+
+        /// spray paint-like tools
+        pub mod spray {
+            mod simple_spray;
+            pub use simple_spray::simple;
+        }
+
+        pub mod brush;
+
     }
 }
 

@@ -2,6 +2,7 @@ use crate::core::context::alpha::AlphaMethod;
 use crate::core::context::line_context::LineContext;
 use crate::core::context::{AlphaContext, BezierContext, WindowContext};
 use crate::core::default_rng_seeds::{DEFAULT_SEED, DEFAULT_SEED_64};
+use crate::draw::tools::brush::Brush;
 use crate::utils::math::rng::XorShiftRng;
 
 #[derive(Debug)]
@@ -37,7 +38,9 @@ pub struct GraphContext<UserData = Vec<i32>> {
 
     /// Settings for line drawing
     pub line: LineContext,
-
+    
+    /// The brush used for paint-brush operations.
+    pub brush: Brush,
     /*
     // TODO: Consider implementing the following feature:
     /// Autodetect when it's cheaper to perform an operation on just one thread (e.g. due to a small buffer size)
@@ -95,10 +98,18 @@ impl<UserData: Default> GraphContext<UserData> {
                 method: AlphaMethod::Int,
             },
             num_threads,
-            rng:XorShiftRng::new(DEFAULT_SEED, DEFAULT_SEED_64),
+            rng: XorShiftRng::new(DEFAULT_SEED, DEFAULT_SEED_64),
             line: line.unwrap_or_default(),
+            brush: Brush::default(),
         }
     }
+
+
+
+}
+
+
+impl<UserData> GraphContext<UserData> {
 
     /// Resizes the window context, the frame buffer, and the draft buffer (if `use_draft_buf == true`)
     pub fn resize(&mut self, w: u32, h: u32) {
@@ -114,7 +125,7 @@ impl<UserData: Default> GraphContext<UserData> {
             self.draft_buf.resize(num_pixels, self.win.background_color);
         }
     }
-
+    
     /// Sets the pixel at (x, y) in the frame buffer to the specified color.
     /// If the coordinates are out of bounds, the pixel will not be set.
     /// # Arguments
@@ -139,6 +150,4 @@ impl<UserData: Default> GraphContext<UserData> {
             None
         }
     }
-
-
 }
