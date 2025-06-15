@@ -4,6 +4,8 @@ use std::ops::{Add, Div, Mul, Rem, RemAssign, Sub};
 /// Enum representing supported numeric types.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum NumericType {
+    U16,
+    U8,
     U32,
     U64,
     I32,
@@ -116,6 +118,50 @@ pub trait Numeric:
 
     /// Returns the corresponding `NumericType` enum variant for the implementing type.
     fn get_type() -> NumericType;
+}
+// TODO: unit tests for u8!
+// TODO: unit tests for u8!
+// TODO: unit tests for u8!
+impl Numeric for u8 {
+fn to_f64(self) -> f64 { self as f64 }
+fn from_f64(value: f64) -> Self {
+    value.round().clamp(u8::MIN as f64, u8::MAX as f64) as u8
+}
+fn to_u32(self) -> u32 { self as u32 }
+fn from_u32(value: u32) -> Self {
+    value.clamp(u8::MIN as u32, u8::MAX as u32) as u8
+}
+fn to_u64(self) -> u64 { self as u64 }
+fn from_u64(value: u64) -> Self {
+    value.clamp(u8::MIN as u64, u8::MAX as u64) as u8
+}
+fn zero() -> Self { 0 }
+fn one() -> Self { 1 }
+fn is_unsigned() -> bool { true }
+fn get_type() -> NumericType { NumericType::U8 }  
+}
+
+
+// TODO: unit tests for u16!
+// TODO: unit tests for u16!
+// TODO: unit tests for u16!
+impl Numeric for u16 {
+    fn to_f64(self) -> f64 { self as f64 }
+    fn from_f64(value: f64) -> Self {
+        value.round().clamp(u16::MIN as f64, u16::MAX as f64) as u16
+    }
+    fn to_u32(self) -> u32 { self as u32 }
+    fn from_u32(value: u32) -> Self {
+        value.clamp(u16::MIN as u32, u16::MAX as u32) as u16
+    }
+    fn to_u64(self) -> u64 { self as u64 }
+    fn from_u64(value: u64) -> Self {
+        value.clamp(u16::MIN as u64, u16::MAX as u64) as u16
+    }
+    fn zero() -> Self { 0 }
+    fn one() -> Self { 1 }
+    fn is_unsigned() -> bool { true }
+    fn get_type() -> NumericType { NumericType::U16 }  
 }
 
 
