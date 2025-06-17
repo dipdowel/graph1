@@ -110,6 +110,7 @@ pub mod draw {
         pub mod spray {
             mod simple_spray;
             mod rectangular;
+            mod circular;
             pub use simple_spray::simple;
         }
 

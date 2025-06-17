@@ -50,6 +50,7 @@ pub fn rectangular_spray<UserData>(
                 return;
             }
 
+
             // Find min and max y among points
             let min_y = points.iter().map(|&(_, py, _)| py).min().unwrap();
             let max_y = points.iter().map(|&(_, py, _)| py).max().unwrap();
@@ -60,8 +61,18 @@ pub fn rectangular_spray<UserData>(
             // Use at least 2 threads, but never more than ctx.num_threads or n_points/min_points_per_thread.
             // For small sprays, use fewer threads to avoid overhead.
             let min_points_per_thread = 128; // Tweakable: minimum points per thread for multithreading to make sense
+
             let mut num_threads = (num_points + min_points_per_thread - 1) / min_points_per_thread;
-            num_threads = num_threads.clamp(2, ctx.num_threads);
+
+            let min_threads = usize::min(2, ctx.num_threads);
+            let max_threads = usize::max(2, ctx.num_threads);
+
+            // Clamp to at least 2 threads, but not more than ctx.num_threads
+            num_threads = num_threads.clamp(min_threads, max_threads);
+
+
+
+
             // If we still don't have enough points, or user requests 1 thread, fallback to single-threaded
             if ctx.num_threads == 1 || num_points < num_threads * 2 {
                 // Single-threaded
