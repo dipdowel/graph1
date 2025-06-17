@@ -150,8 +150,12 @@ A binary format optimized for small size and fast parsing. It contains:
 - [https://github.com/dipdowel/compact-bitmap-font](https://github.com/dipdowel/compact-bitmap-font)
   - Compact bitmap font generator. Such fonts can be rendered by Graph1.
 
-
-
+## Experimental GPU support.
+Support for GPU is experimental and not yet ready. 
+### Prerequisites
+```sh
+sudo apt-get install intel-opencl-icd ocl-icd-opencl-dev clinfo ocl-icd-libopencl1 opencl-headers
+```
 ---
 
 ## 🎓 License

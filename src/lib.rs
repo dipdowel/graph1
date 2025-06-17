@@ -12,6 +12,7 @@ pub mod core {
 
         pub mod alpha;
         mod bezier;
+        mod gpu;
         mod graph;
         mod line_context;
 
@@ -39,7 +40,7 @@ pub mod core {
 
     pub mod context_utils {
         pub mod line_clipping_style;
-        pub mod context_snapshot;
+        pub mod context_snapshot;       
 
     }
     

@@ -5,6 +5,7 @@ use crate::core::default_rng_seeds::{DEFAULT_SEED, DEFAULT_SEED_64};
 use crate::draw::tools::brush::Brush;
 use crate::utils::math::rng::XorShiftRng;
 use std::ptr;
+use crate::core::context::gpu::GpuContext;
 
 #[derive(Debug, PartialEq, Eq)]
 pub enum FrameBuffer {
@@ -39,6 +40,10 @@ pub struct GraphContext<UserData = Vec<i32>> {
     /// If `1`, Graph1 will perform calculations only on the main thread.
     /// If `0`, Graph1 will not perform those operations, that support multithreading. Not recommended for usage.
     pub num_threads: usize,
+
+    /// Experimental GPU rendering context.
+    /// **NB:** Use only if you know what you are doing.
+    pub gpu_context: GpuContext,
 
     /// A random number generator (XorShiftRng) seeded with default values.
     /// If needed, reseed using:
@@ -110,6 +115,7 @@ impl<UserData: Default> GraphContext<UserData> {
                 method: AlphaMethod::Int,
             },
             num_threads,
+            gpu_context: GpuContext::create().expect("Failed to create gpu context"),            
             rng: XorShiftRng::new(DEFAULT_SEED, DEFAULT_SEED_64),
             line: line.unwrap_or_default(),
             brush: Brush::default(),
