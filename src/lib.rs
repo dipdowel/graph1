@@ -109,6 +109,7 @@ pub mod draw {
         /// spray paint-like tools
         pub mod spray {
             mod simple_spray;
+            mod rectangular;
             pub use simple_spray::simple;
         }
 
