@@ -129,6 +129,11 @@ pub mod fx {
 
     /// Glitch effects to simulate various visual artifacts
     pub mod glitch;
+    
+    
+    mod fade;
+    
+    pub use fade::fade;
 
     /// Scanline effects to simulate CRT screens, old TVs, etc.
     pub mod scanline;

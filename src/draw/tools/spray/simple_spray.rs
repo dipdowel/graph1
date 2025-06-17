@@ -20,7 +20,7 @@ pub fn simple<UserData>(
             println!("! NOT IMPLEMENTED ! Circle with radius: {}", radius);
         }
         Brush::Rectangle { size } =>  {
-            println!("Rectangle with dimensions: {:?}", size);
+            // println!("Rectangle with dimensions: {:?}", size);
 
             let random_xs = ctx.rng.get_vec_u32(density as usize, &MinMax{min: 0, max: size.w - 1});
             let random_ys = ctx.rng.get_vec_u32(density as usize, &MinMax{min: 0, max: size.h - 1});
