@@ -101,15 +101,19 @@ pub mod draw {
         pub mod fill {
             mod buffer;
             mod flood;
+            mod scanline_wavefront;
             /// Fill a buffer with a color
             pub use buffer::buffer;
             /// Fill a shape with a color
             pub use flood::flood;
+            pub use scanline_wavefront::scanline_wavefront;
         }
 
         /// spray paint-like tools
         pub mod spray {
             mod simple_spray;
+            mod rectangular;
+            mod circular;
             pub use simple_spray::simple;
         }
 
@@ -130,6 +134,11 @@ pub mod fx {
 
     /// Glitch effects to simulate various visual artifacts
     pub mod glitch;
+    
+    
+    mod fade;
+    
+    pub use fade::fade;
 
     /// Scanline effects to simulate CRT screens, old TVs, etc.
     pub mod scanline;

@@ -1,0 +1,75 @@
+use crate::core::context::GraphContext;
+use crate::utils::color::math::{rgba_operation, ColorOperation};
+use std::thread;
+
+/// Fades the entire frame buffer by applying a color operation to each pixel.
+/// Multithreaded, if possible (per `ctx.num_threads`)
+///
+/// # Parameters
+/// - `ctx`: A mutable reference to the drawing context.
+/// - `color_operand`: The color to be used in the fade operation (RGBA as u32)
+/// - `op`: The color operation to apply (Add or Subtract).
+/// - `use_alpha`: If true, the alpha channel is considered in the operation; otherwise, it is ignored.
+pub fn fade<UserData>(ctx: &mut GraphContext<UserData>, color_operand: u32, op: ColorOperation, use_alpha: bool) {
+
+    // Nothing to do...
+    if ctx.num_threads == 0 {
+        return
+    }
+
+    // If threading is disabled, do single-threaded fade
+    if ctx.num_threads == 1 {
+        for px in ctx.frame_buf.iter_mut() {
+            *px = rgba_operation(*px, color_operand, op, use_alpha);
+        }
+        return;
+    }
+
+    let line_length = ctx.win.w_usize; // Framebuffer width in pixels
+    let buf_len = ctx.frame_buf.len();
+    let chunk_size = {
+        // Divide the framebuffer into roughly equal scanline-aligned chunks
+        let raw_chunk_size = usize::div_ceil(buf_len, ctx.num_threads);
+        // Align to scanlines (avoid splitting scanlines between threads)
+        (raw_chunk_size / line_length) * line_length
+    };
+
+    // If chunk is too small to bother with threads, fall back
+    if chunk_size < line_length {
+        for px in ctx.frame_buf.iter_mut() {
+            *px = rgba_operation(*px, color_operand, op, use_alpha);
+        }
+        return;
+    }
+
+    // Split framebuffer into mutable chunks
+    let mut chunks: Vec<&mut [u32]> = ctx.frame_buf.chunks_mut(chunk_size).collect();
+
+    // Use thread::scope to spawn threads that each fade their chunk
+    thread::scope(|s| {
+        for chunk in chunks.iter_mut() {
+            s.spawn(move || {
+                for px in chunk.iter_mut() {
+                    *px = rgba_operation(*px, color_operand, op, use_alpha);
+                }
+            });
+        }
+    });
+    // All threads joined here.
+}
+
+// pub fn fade_region<UserData>(ctx: &mut GraphContext<UserData>, region: &RectArea, fade_out: bool) {
+//
+//
+//     // Dereference the options
+//     let start_x = region.top_left.x;
+//     let start_y = region.top_left.y;
+//     let width = region.dimensions.w;
+//     let height = region.dimensions.h;
+//
+//     // Nothing to draw here
+//     if width == 0 || height == 0 {
+//         return;
+//     }
+//
+// }
