@@ -2,13 +2,22 @@
 name = "graph1"
 version = "0.1.0"
 edition = "2021"
+
 #build = "build.rs"
 
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-ocl = "0.19.7"
+ocl = { version = "0.19.7", optional = true }
+
+
+[features]
+gpu = ["ocl"]
+
+#default = ["gpu"]
+default = []
+
 
 
 [dev-dependencies]

@@ -9,8 +9,7 @@ use std::collections::VecDeque;
 /// - `buf`: The buffer of pixels to fill
 /// - `buf_dimensions`: Dimensions of the buffer (width, height)
 /// - `start_pixel`: The starting pixel (with fill color)
-    
- 
+     
 pub fn flood(buf: &mut [u32], buf_dimensions: &Dimensions2d, start_pixel: &Pixel) {
     // Buffer dimensions
     let width = buf_dimensions.w;

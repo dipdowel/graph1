@@ -1,12 +1,11 @@
 use crate::core::context::GraphContext;
 use crate::core::context_utils::context_snapshot::ContextSnapshot;
-use crate::draw;
 use crate::draw::polygons::closed_perimeter;
-use crate::draw::tools::fill;
 use crate::primitives::numeric::Numeric;
 use crate::primitives::plane::RectArea;
 use crate::primitives::point::Point;
 use crate::utils::math::geometry::approximate_center;
+use crate::{buffer_op, draw};
 
 /// Struct holding customizable properties of the 3D bar
 /// @See `bar_3d()`.
@@ -112,9 +111,7 @@ pub fn bar_3d<UserData>(ctx: &mut GraphContext<UserData>, props: &Bar3DProps) {
 
     closed_perimeter(ctx, &side, Some(color_side));
     let flood_fill_point = approximate_center(&side).unwrap_or(side[0].clone() + Point::new(1, 1));
-    fill::flood(
-        &mut ctx.frame_buf,
-        &ctx.win.dimensions,
-        &flood_fill_point.to_pixel(color_side),
-    );
+    buffer_op::scanline_wavefront(&mut ctx.frame_buf, &ctx.win.dimensions, &flood_fill_point.to_pixel(color_side),);
+
+
 }

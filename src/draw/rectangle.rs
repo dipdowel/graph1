@@ -1,12 +1,12 @@
 use crate::core::context::alpha::AlphaMethod;
 use crate::core::context::GraphContext;
+use crate::primitives::numeric::Numeric;
 use crate::primitives::plane::RectArea;
+use crate::primitives::point::Point;
 use crate::utils::color::alpha::{blend_pixel_f32, blend_pixel_int};
+use crate::{buffer_op, draw};
 use std::cmp::PartialEq;
 use std::thread;
-use crate::draw;
-use crate::primitives::numeric::Numeric;
-use crate::primitives::point::Point;
 
 impl PartialEq for AlphaMethod {
     fn eq(&self, other: &Self) -> bool {
@@ -40,29 +40,28 @@ fn draw_lines_of_rectangle_thread(
     match alpha_method {
         // No alpha blending — just overwrite pixels
         None => {
-
             for line in 0..total_lines {
                 let base = line * line_length;
                 // Ensure we don't go beyond the edge of the screen on the right and on the bottom
                 // to avoid unwanted glitches and buffer overflow.
-                let line_end = (base + color_end).min(base + line_length).min(rectangle_slice.len());
+                let line_end = (base + color_end)
+                    .min(base + line_length)
+                    .min(rectangle_slice.len());
                 let line_start = (base + color_start).min(line_end); // Ensure we don’t go backwards
                 for idx in line_start..line_end {
                     rectangle_slice[idx] = color;
                 }
             }
-
-
         }
         // Integer-based alpha blending
         Some(AlphaMethod::Int) => {
-
-
             for line in 0..total_lines {
                 let base = line * line_length;
                 // Ensure we don't go beyond the edge of the screen on the right and on the bottom
                 // to avoid unwanted glitches and buffer overflow.
-                let line_end = (base + color_end).min(base + line_length).min(rectangle_slice.len());
+                let line_end = (base + color_end)
+                    .min(base + line_length)
+                    .min(rectangle_slice.len());
                 let line_start = (base + color_start).min(line_end); // Ensure we don’t go backwards
                 for idx in line_start..line_end {
                     rectangle_slice[idx] = blend_pixel_int(rectangle_slice[idx], color);
@@ -75,7 +74,9 @@ fn draw_lines_of_rectangle_thread(
                 let base = line * line_length;
                 // Ensure we don't go beyond the edge of the screen on the right and on the bottom
                 // to avoid unwanted glitches and buffer overflow.
-                let line_end = (base + color_end).min(base + line_length).min(rectangle_slice.len());
+                let line_end = (base + color_end)
+                    .min(base + line_length)
+                    .min(rectangle_slice.len());
                 let line_start = (base + color_start).min(line_end); // Ensure we don’t go backwards
                 for idx in line_start..line_end {
                     rectangle_slice[idx] = blend_pixel_f32(rectangle_slice[idx], color);
@@ -91,7 +92,24 @@ fn draw_lines_of_rectangle_thread(
 /// # Arguments
 /// * `ctx` - The graph context
 /// * `rect` - The rectangle to draw
-pub fn filled<UserData, T:Numeric>(ctx: &mut GraphContext<UserData>, rect: &RectArea<T>) {
+pub fn filled<UserData, T: Numeric>(ctx: &mut GraphContext<UserData>, rect: &RectArea<T>) {
+    // ==[ GPU / OpenCL ]=======================================================================
+    #[cfg(feature = "gpu")]
+    {
+        let mut gpu_context: Option<&mut crate::core::context::gpu::GpuContext> = None;
+        if ctx.gpu_context.enabled {
+            gpu_context = Some(&mut ctx.gpu_context);
+            // Use GPU/OpenCL to fill the buffer
+            buffer_op::gpu::draw::rectangle::draw_rectangle_gpu(
+                &mut ctx.frame_buf,
+                &ctx.win.dimensions,
+                &rect.convert::<u32>(),
+                gpu_context
+                    .expect("gpu::draw_rectangle() failed, something went wrong with GPU context"),
+            );
+        }
+    }
+
     // Do nothing if threading is not enabled
     if ctx.num_threads == 0 {
         return;
@@ -158,7 +176,6 @@ pub fn filled<UserData, T:Numeric>(ctx: &mut GraphContext<UserData>, rect: &Rect
             });
         }
     }); // The scope for the scoped threads ends here. All the threads are expected to be joined automagically at this point.
-
 }
 
 /// Draws outline of the given rectangle using settings from `LineContext` (`ctx.line`).
@@ -168,8 +185,12 @@ pub fn filled<UserData, T:Numeric>(ctx: &mut GraphContext<UserData>, rect: &Rect
 /// * `rect_area` - The rectangle area to draw the outline for
 ///
 /// This function draws four sides (top, bottom, left, right) of the rectangle.
-pub fn outline<UserData, T:Numeric>(ctx: &mut GraphContext<UserData>, rect_area: &RectArea<T>) {
-    let RectArea { top_left, dimensions, color } = rect_area;
+pub fn outline<UserData, T: Numeric>(ctx: &mut GraphContext<UserData>, rect_area: &RectArea<T>) {
+    let RectArea {
+        top_left,
+        dimensions,
+        color,
+    } = rect_area;
     let color = *color;
 
     let x = T::to_i32(top_left.x);

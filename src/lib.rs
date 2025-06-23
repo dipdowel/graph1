@@ -1,5 +1,29 @@
-//-=[ C }=------------------------------------------------------------------------------------------
+//-=[ B }=------------------------------------------------------------------------------------------
+pub mod buffer_op {
 
+    pub(crate) mod fill {
+        pub(crate) mod buffer;
+        pub(crate) mod flood;
+        pub(crate) mod scanline_wavefront;
+    }
+    use crate::buffer_op;
+
+    pub use fill::buffer::fill;
+    pub use fill::flood::flood;
+    pub use fill::scanline_wavefront::scanline_wavefront;
+
+    //--[ start GPU, experimental ]--------------
+    #[cfg(feature = "gpu")]
+    pub(crate) mod gpu {
+        pub(crate) mod fill;
+        pub(crate) mod draw {
+            pub(crate) mod rectangle;
+        }
+    }
+    //--[ end GPU, experimental ]----------------
+}
+
+//-=[ C }=------------------------------------------------------------------------------------------
 
 #[macro_use]
 mod macros; // <-- Graph1 provides macros!
@@ -12,7 +36,12 @@ pub mod core {
 
         pub mod alpha;
         mod bezier;
-        mod gpu;
+
+        //--[ start GPU, experimental ]--------------
+        #[cfg(feature = "gpu")]
+        pub(crate) mod gpu;
+        //--[ end GPU, experimental ]----------------
+
         mod graph;
         mod line_context;
 
@@ -20,30 +49,25 @@ pub mod core {
             pub(crate) mod window;
             pub(crate) mod window_quadrants;
         }
-        
-        
 
         pub use alpha::AlphaContext;
         // pub use alpha::AlphaMethod;
         pub use bezier::BezierContext;
-        pub use graph::GraphContext;
         pub use graph::FrameBuffer;
-        pub use window::window::WindowContext;
-        pub use window::window_quadrants::Quadrants;
+        pub use graph::GraphContext;
         pub use line_context::AntiAliasingConfig;
         pub use line_context::AntiAliasingMethod;
         pub use line_context::LineContext;
         pub use line_context::RasterizationMethod;
-        
-
+        pub use window::window::WindowContext;
+        pub use window::window_quadrants::Quadrants;
     }
 
     pub mod context_utils {
+        pub mod context_snapshot;
         pub mod line_clipping_style;
-        pub mod context_snapshot;       
-
     }
-    
+
     /// Default colors used in the library if no custom colors specified
     pub mod default_colors;
     pub(crate) mod default_rng_seeds;
@@ -53,25 +77,22 @@ pub mod core {
 /// Drawing tools and operations
 pub mod draw {
 
-    pub(crate) mod helpers{
+    pub(crate) mod helpers {
         pub(crate) mod write_pixel;
     }
     /// Draw circles
     pub mod circle;
 
-    pub mod curve{
+    pub mod curve {
         /// Draw Bezier curves
         mod bezier;
         pub use bezier::bezier;
 
         pub mod bezier_segment;
-        
     }
-    
+
     /// Draw lines
     pub mod line;
-
-
 
     /// Various closed shapes with multiple vertices
     pub mod polygons {
@@ -99,26 +120,25 @@ pub mod draw {
     pub mod tools {
         /// Fill a shape or a buffer with a color
         pub mod fill {
-            mod buffer;
-            mod flood;
-            mod scanline_wavefront;
+            mod frame_buffer;
+
+            mod paint_bucket;
+
             /// Fill a buffer with a color
-            pub use buffer::buffer;
+            pub use frame_buffer::frame_buffer;
             /// Fill a shape with a color
-            pub use flood::flood;
-            pub use scanline_wavefront::scanline_wavefront;
+            pub use paint_bucket::paint_bucket;
         }
 
         /// spray paint-like tools
         pub mod spray {
-            mod simple_spray;
-            mod rectangular;
             mod circular;
+            mod rectangular;
+            mod simple_spray;
             pub use simple_spray::simple;
         }
 
         pub mod brush;
-
     }
 }
 
@@ -126,7 +146,6 @@ pub mod draw {
 
 pub mod filters {
     pub mod image;
-
 }
 
 /// Filters and effects to apply to images, animation frames, etc.
@@ -134,10 +153,9 @@ pub mod fx {
 
     /// Glitch effects to simulate various visual artifacts
     pub mod glitch;
-    
-    
+
     mod fade;
-    
+
     pub use fade::fade;
 
     /// Scanline effects to simulate CRT screens, old TVs, etc.
@@ -183,18 +201,16 @@ pub mod primitives {
     /// Unlike `Pixel`, it can have negative and fractional coordinates.
     pub mod point;
 
-
     /// `Ratio` - a representation of a ratio of two numbers and operations on it.
     pub mod ratio;
-
 }
 
 //-=[ S }=------------------------------------------------------------------------------------------
 pub mod sprites {
     pub mod axonometric {
         mod bar_3d;
-        pub use bar_3d::Bar3DProps;
         pub use bar_3d::bar_3d;
+        pub use bar_3d::Bar3DProps;
     }
 }
 
@@ -221,8 +237,7 @@ pub mod utils {
     mod common;
     pub use common::clear_screen;
 
-
-    pub mod clip{
+    pub mod clip {
         pub mod line;
     }
 
@@ -248,8 +263,6 @@ pub mod utils {
             pub use single_pixel::rgba_color_to_abgr;
         }
 
-        
-        
         /// Functions to blend colors taking into account the alpha channel
         pub mod alpha;
         /// Conversions between RGBA and 1-bit image
@@ -261,7 +274,6 @@ pub mod utils {
             mod rgba_operation;
             pub use rgba_operation::rgba_operation;
             pub use rgba_operation::ColorOperation;
-            
         }
 
         /// Generators of color gradients
@@ -306,14 +318,13 @@ pub mod utils {
     pub mod grid {
 
         pub mod uniform {
+            mod neighbors;
             mod render;
             mod uniform_grid;
-            mod neighbors;
+            pub use neighbors::*;
             pub use render::*;
             pub use uniform_grid::*;
-            pub use neighbors::*;
         }
-
     }
 
     /// Various math utilities and constants
@@ -325,12 +336,12 @@ pub mod utils {
             pub mod mersenne;
             pub mod misc_math;
         }
-        /// Greatest Common Divisor (GCD) [ TODO: and Least Common Multiple (LCM) calculations ] 
+        /// Greatest Common Divisor (GCD) [ TODO: and Least Common Multiple (LCM) calculations ]
         pub mod gcd;
-        
-        pub mod geometry{
-            pub mod region;
+
+        pub mod geometry {
             mod approximate_center;
+            pub mod region;
             pub use approximate_center::approximate_center;
         }
 
@@ -342,17 +353,15 @@ pub mod utils {
 
         /// Generators of periodic values
         pub mod oscillator {
-            mod sine;
-            mod sine_discrete;
             mod linear;
             mod linear_fast;
+            mod sine;
+            mod sine_discrete;
 
-
-            pub use sine::sine;
-            pub use sine_discrete::sine_discrete;
             pub use linear::linear;
             pub use linear_fast::linear_fast;
-
+            pub use sine::sine;
+            pub use sine_discrete::sine_discrete;
         }
 
         /// Random number generators
@@ -361,7 +370,6 @@ pub mod utils {
                 pub(crate) mod normalize_min_max;
                 pub(crate) mod normalize_xor_shift_input;
             }
-
 
             /// Generates random RGBA colors in given ranges
             pub mod color;
@@ -377,8 +385,6 @@ pub mod utils {
     pub mod pixel_copy {
         pub mod image_data;
     }
-
-
 }
 
 // pub mod draw;

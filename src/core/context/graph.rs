@@ -5,7 +5,11 @@ use crate::core::default_rng_seeds::{DEFAULT_SEED, DEFAULT_SEED_64};
 use crate::draw::tools::brush::Brush;
 use crate::utils::math::rng::XorShiftRng;
 use std::ptr;
+
+#[cfg(feature = "gpu")]
 use crate::core::context::gpu::GpuContext;
+
+
 
 #[derive(Debug, PartialEq, Eq)]
 pub enum FrameBuffer {
@@ -41,10 +45,6 @@ pub struct GraphContext<UserData = Vec<i32>> {
     /// If `0`, Graph1 will not perform those operations, that support multithreading. Not recommended for usage.
     pub num_threads: usize,
 
-    /// Experimental GPU rendering context.
-    /// **NB:** Use only if you know what you are doing.
-    pub gpu_context: GpuContext,
-
     /// A random number generator (XorShiftRng) seeded with default values.
     /// If needed, reseed using:
     /// - `rng.set_seed_32(seed_u32)`
@@ -64,6 +64,12 @@ pub struct GraphContext<UserData = Vec<i32>> {
     /// and auto-switch to single-threaded mode and then back to multithreaded mode, once the operation is finished.
     pub num_threads_autoadjust:bool,
      */
+
+    /// Experimental GPU rendering context.
+    /// **NB:** Use only if you know what you are doing.
+    #[cfg(feature = "gpu")]
+    pub gpu_context: GpuContext,
+
 }
 
 impl<UserData: Default> GraphContext<UserData> {
@@ -115,11 +121,13 @@ impl<UserData: Default> GraphContext<UserData> {
                 method: AlphaMethod::Int,
             },
             num_threads,
-            gpu_context: GpuContext::create().expect("Failed to create gpu context"),            
             rng: XorShiftRng::new(DEFAULT_SEED, DEFAULT_SEED_64),
             line: line.unwrap_or_default(),
             brush: Brush::default(),
             cur_buf_type: FrameBuffer::Primary,
+
+            #[cfg(feature = "gpu")]
+            gpu_context: GpuContext::create(true).expect("Failed to create gpu context"),
         }
     }
 
@@ -182,6 +190,27 @@ impl<UserData> GraphContext<UserData> {
         }
         std::mem::swap(&mut self.frame_buf, &mut self.draft_buf);
         self.cur_buf_type = buf_type;
+    }
+
+
+    /// Sets the GPU state to enabled or disabled. **!EXPERIMENTAL!**
+    /// If the `gpu` feature is not enabled, this function does nothing and returns `None`.
+    /// # Arguments
+    /// * `enabled` - A boolean indicating whether to enable or disable the GPU context
+    /// # Returns
+    /// An `Option<bool>` indicating the previous state of the GPU context.
+    /// If the `gpu` feature is not enabled, returns `None`.
+    pub fn set_gpu_state(&mut self, enabled: bool) -> Option<bool> {
+
+        #[allow(unused_mut)]
+        let mut result:Option<bool> = None;
+
+        #[cfg(feature = "gpu")]
+        {
+            self.gpu_context.enabled = enabled;
+            result = Some(enabled)
+        }
+        result
     }
 
     /// Copies data between the primary and draft frame buffers.

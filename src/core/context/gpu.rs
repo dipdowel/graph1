@@ -1,3 +1,4 @@
+
 use ocl::{Context, Device, Platform, Queue, Program, Kernel};
 use std::sync::Arc;
 use std::collections::HashMap;
@@ -32,9 +33,9 @@ impl GpuContext{
     /// # Returns
     /// * `Ok(GpuContext)` if OpenCL initialization succeeded and the context is ready.
     /// * `Err(String)` if initialization failed.
-    pub fn create() -> Result<Self, String> {
+    pub fn create(enabled:bool) -> Result<Self, String> {
         let mut gpu_ctx = GpuContext {
-            enabled: false,
+            enabled,
             platform: None,
             device: None,
             context: None,
@@ -64,20 +65,20 @@ impl GpuContext{
 
         let platforms = Platform::list();
 
-        println!("Available OpenCL platforms: {:?}", platforms);
+        // println!("Available OpenCL platforms: {:?}", platforms);
 
         if platforms.is_empty() {
             return Err("No OpenCL platforms found. Is the driver installed?".to_string());
         }
         let platform = platforms[0];
 
-        println!("Using platrofm: {:?}. Name: {:?}", platform, platform.name());
+        // println!("Using platrofm: {:?}. Name: {:?}", platform, platform.name());
 
         // 2. Choose GPU device if available, else fall back to CPU
         let device = Device::first(platform)
             .map_err(|e| format!("Failed to get device: {e}"))?;
 
-        println!("OpenCL device: {:?}. Name: {:?}", device, device.name());
+        // println!("OpenCL device: {:?}. Name: {:?}", device, device.name());
 
 
         // 3. Create OpenCL context

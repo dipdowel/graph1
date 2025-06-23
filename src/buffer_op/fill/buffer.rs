@@ -1,4 +1,7 @@
 use std::thread;
+use crate::buffer_op;
+#[cfg(feature = "gpu")]
+use crate::core::context::gpu::GpuContext;
 
 /// Buffer fill logic to be executed by each thread in the multithreaded buffer operation
 /// Unsafely fills a buffer with a given color
@@ -40,39 +43,42 @@ fn buffer_fill_thread(buffer: &mut [u32], color: u32) {
 /// * `buffer` - A mutable buffer to fill
 /// * `color` - The color to fill the buffer with
 /// * `num_threads` - The number of threads to spawn.
-pub fn buffer(buffer: &mut [u32], color: u32, num_threads: usize) {
+/// * `gpu_context` - Optional GPU context. If provided, will try to use GPU/OpenCL.
+pub fn fill(
+    buffer: &mut [u32],
+    color: u32,
+    num_threads: usize,
+    #[cfg(feature = "gpu")] gpu_context: Option<&mut GpuContext>,
+) {
+    ///  metadata: String,
+
     // let start = Instant::now();
+
+    // ==[ GPU OpenCL ]=======================================================================
+    
+    #[cfg(feature = "gpu")]
+    if gpu_context.is_some() {
+
+        let len = buffer.len();
+        buffer_op::gpu::fill::fill(
+            buffer,
+            len,
+            color,
+            gpu_context.expect("gpu::fill() failed, something went wrong with GPU context"),
+        );
+    }
 
     // We were instructed not to do anything
     if num_threads < 1 {
-        // #[cfg(debug_assertions)]
-        // {
-        //     let duration = start.elapsed();
-        //     println!(
-        //         "[ threads: {} | fill::buffer() ] Execution time: {} ms, buffer len:{} ",
-        //         num_threads,
-        //         duration.as_millis(),
-        //         buffer.len()
-        //     );
-        // }
         return;
     }
+
+    // ==[ SINGLE THREAD ]=======================================================================
 
     // If there are no threads to spawn, just run the logic in the main thread and return
     if num_threads == 1 {
         // No extra threads to spawn
         buffer_fill_thread(buffer, color);
-
-        // #[cfg(debug_assertions)]
-        // {
-        //     let duration = start.elapsed();
-        //     println!(
-        //         "[ threads: {} | fill::buffer() ] Execution time: {} ms, buffer len:{} ",
-        //         num_threads,
-        //         duration.as_millis(),
-        //         buffer.len()
-        //     );
-        // }
         return;
     }
 
@@ -90,15 +96,4 @@ pub fn buffer(buffer: &mut [u32], color: u32, num_threads: usize) {
             s.spawn(move || buffer_fill_thread(chunk, color));
         }
     }); // The scope for the scoped threads ends here. All the threads are expected to be joined automagically at this point.
-
-    // #[cfg(debug_assertions)]
-    // {
-    //     let duration = start.elapsed();
-    //     println!(
-    //         "[ threads: {} | fill::buffer() ] Execution time: {} ms, buffer len:{} ",
-    //         num_threads,
-    //         duration.as_millis(),
-    //         buffer.len()
-    //     );
-    // }
 }
