@@ -4,9 +4,13 @@ use crate::primitives::numeric::Numeric;
 use crate::primitives::plane::RectArea;
 use crate::primitives::point::Point;
 use crate::utils::color::alpha::{blend_pixel_f32, blend_pixel_int};
-use crate::{buffer_op, draw};
+
+use crate::draw;
 use std::cmp::PartialEq;
 use std::thread;
+
+#[cfg(feature = "gpu")]
+use crate::buffer_op;
 
 impl PartialEq for AlphaMethod {
     fn eq(&self, other: &Self) -> bool {

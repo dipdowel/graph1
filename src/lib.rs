@@ -341,8 +341,13 @@ pub mod utils {
 
         pub mod geometry {
             mod approximate_center;
+            pub mod rectangles {
+                mod subtract_rect;
+            }
             pub mod region;
             pub use approximate_center::approximate_center;
+
+            pub mod resolve_rectangles;
         }
 
         /// Power functions

@@ -14,7 +14,6 @@ ocl = { version = "0.19.7", optional = true }
 
 [features]
 gpu = ["ocl"]
-
 #default = ["gpu"]
 default = []
 

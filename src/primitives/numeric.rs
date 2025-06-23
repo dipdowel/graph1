@@ -118,6 +118,26 @@ pub trait Numeric:
 
     /// Returns the corresponding `NumericType` enum variant for the implementing type.
     fn get_type() -> NumericType;
+
+    /// TODO: Verify that it actually works as expected!
+    fn mini(&self, rhs:Self) -> Self {
+        if *self < rhs {
+            *self
+        } else {
+            rhs
+        }
+    }
+
+    /// TODO: Verify that it actually works as expected!
+    fn maxi(&self, rhs: Self) -> Self {
+        if *self > rhs {
+            *self
+        } else {
+            rhs
+        }
+    }
+
+
 }
 // TODO: unit tests for u8!
 // TODO: unit tests for u8!

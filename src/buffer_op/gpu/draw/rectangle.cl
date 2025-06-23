@@ -8,12 +8,13 @@ __kernel void draw_rectangle(
     const uint rect_h,
     const uint color
 ) {
-    uint x = get_global_id(0);
-    uint y = get_global_id(1);
+    uint local_x = get_global_id(0);
+    uint local_y = get_global_id(1);
 
-    if (x >= rect_x && x < rect_x + rect_w &&
-        y >= rect_y && y < rect_y + rect_h) {
+    uint x = rect_x + local_x;
+    uint y = rect_y + local_y;
 
+    if (x < buf_width && y < buf_height) {
         uint idx = y * buf_width + x;
         buf[idx] = color;
     }
