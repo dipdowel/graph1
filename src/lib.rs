@@ -210,6 +210,7 @@ pub mod sprites {
     pub mod axonometric {
         mod bar_3d;
         pub use bar_3d::bar_3d;
+        pub use bar_3d::bars_3d;
         pub use bar_3d::Bar3DProps;
     }
 }

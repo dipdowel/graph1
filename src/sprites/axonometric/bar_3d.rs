@@ -6,6 +6,8 @@ use crate::primitives::plane::RectArea;
 use crate::primitives::point::Point;
 use crate::utils::math::geometry::approximate_center;
 use crate::{buffer_op, draw};
+use crate::draw::tools::fill;
+use crate::utils::math::geometry;
 
 /// Struct holding customizable properties of the 3D bar
 /// @See `bar_3d()`.
@@ -112,6 +114,79 @@ pub fn bar_3d<UserData>(ctx: &mut GraphContext<UserData>, props: &Bar3DProps) {
     closed_perimeter(ctx, &side, Some(color_side));
     let flood_fill_point = approximate_center(&side).unwrap_or(side[0].clone() + Point::new(1, 1));
     buffer_op::scanline_wavefront(&mut ctx.frame_buf, &ctx.win.dimensions, &flood_fill_point.to_pixel(color_side),);
+}
+
+///
+///
+///
+///
+///
+/// Draws multiple pseudo-3D bars in isometric projection using batch rectangle drawing for the front face.
+///
+/// Uses `draw::rectangle::filled_multiple()` for better performance when rendering many bars.
+///
+/// # Arguments
+/// * `ctx` - Mutable reference to the GraphContext
+/// * `props` - Vector of bar configurations
+pub fn bars_3d<UserData>(ctx: &mut GraphContext<UserData>, props: &Vec<Bar3DProps>) {
+    use crate::draw::rectangle::filled_multiple;
+    use crate::primitives::plane::RectArea;
+
+    // Gather references to all front faces for batch rendering.
+    let mut fronts: Vec<RectArea<i32>> = Vec::with_capacity(props.len());
+
+    // Draw top and side faces individually
+    for bar in props {
+        // --- Top face ---
+        let Bar3DProps { x, y, width, height, depth, color_top, color_side, slant, project_to_right, .. } = *bar;
+        let slant_x = slant.x as i32;
+        let slant_y = slant.y as i32;
+
+        // Draw the top face as before
+        let line_ctx_state = ctx.line.get_context();
+        ctx.line.set_int_no_aa(Some(1));
+        let total_steps = (depth + 1) * slant_y;
+        for n in 0..total_steps {
+            let i = n / slant_y;
+            let j = n % slant_y;
+            let dx = if project_to_right { x + i * slant_x } else { x - i * slant_x };
+            let dy = y - height - i * slant_y + j;
+            let start = Point::new(dx, dy);
+            crate::draw::line::horizontal(ctx, &start, i32::to_u32(width), Some(color_top));
+        }
+        ctx.line.set_context(line_ctx_state);
+
+        // --- Side face (right or left) ---
+        let side = if project_to_right {
+            vec![
+                Point::new(x + width, y - height),
+                Point::new(x + width + depth * slant_x, y - height - depth * slant_y),
+                Point::new(x + width + depth * slant_x, y - depth * slant_y),
+                Point::new(x + width, y),
+            ]
+        } else {
+            vec![
+                Point::new(x, y - height),
+                Point::new(x - depth * slant_x, y - height - depth * slant_y),
+                Point::new(x - depth * slant_x, y - depth * slant_y),
+                Point::new(x, y),
+            ]
+        };
+        crate::draw::polygons::closed_perimeter(ctx, &side, Some(color_side));
+        let flood_fill_point = geometry::approximate_center(&side)
+            .unwrap_or(side[0].clone() + Point::new(1, 1));
+
+        buffer_op::scanline_wavefront(&mut ctx.frame_buf, &ctx.win.dimensions, &flood_fill_point.to_pixel(color_side),);
+        let Bar3DProps { x, y, width, height, color_front, .. } = *bar;
+        let front = RectArea::new(x, y - height, width, height + 1, Some(color_front));
+        fronts.push(front);
+    }
 
 
+   
+
+    
+    let front_refs: Vec<&RectArea<i32>> = fronts.iter().collect();
+    filled_multiple(ctx, &front_refs);
+    
 }
