@@ -1,7 +1,7 @@
 use crate::primitives::plane::Dimensions2d;
 
 
-//// Draws horizontal lines on a buffer.
+/// Draws horizontal lines on a buffer.
 /// Each line is represented by  four consecutive elements: `x_start`, `x_end`, `y`, and `color`.
 /// These 4 elements in exactly that order are expected in the `lines` vector.
 /// # Parameters
@@ -27,7 +27,7 @@ pub fn horizontal_lines_x4(buf: &mut [u32], buf_dimensions: &Dimensions2d, lines
         if y > max_y {
             continue;
         }
-        
+
         // Draw the horizontal line
         for x in x_start..=x_end {
             if x < buf_dimensions.w {
@@ -38,10 +38,10 @@ pub fn horizontal_lines_x4(buf: &mut [u32], buf_dimensions: &Dimensions2d, lines
     
 }
 
-//// Draws horizontal lines on a buffer.
+/// Draws horizontal lines on a buffer.
 /// Each line is represented by a vector of `u32` where the first element is the color,
 /// followed by triplets of `x_start`, `x_end`, and `y` coordinates.
-/// 
+///
 /// /// # Parameters
 /// /// - `buf`: The buffer of pixels to draw the lines on
 /// /// - `buf_dimensions`: Dimensions of the buffer (width, height)
