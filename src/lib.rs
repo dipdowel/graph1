@@ -5,7 +5,7 @@ pub mod buffer_op {
         pub(crate) mod buffer;
         pub(crate) mod flood;
         pub(crate) mod scanline_wavefront;
-        
+
     }
     use crate::buffer_op;
     pub(crate) mod lines {
@@ -214,9 +214,8 @@ pub mod primitives {
 //-=[ S }=------------------------------------------------------------------------------------------
 pub mod sprites {
     pub mod axonometric {
-        mod bar_3d;
-        pub use bar_3d::bar_3d;
-        pub use bar_3d::bars_3d;
+        mod bar_3d;        
+        pub use bar_3d::*;
         pub use bar_3d::Bar3DProps;
     }
 }

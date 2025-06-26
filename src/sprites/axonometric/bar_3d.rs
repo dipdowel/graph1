@@ -128,7 +128,7 @@ pub fn bar_3d<UserData>(ctx: &mut GraphContext<UserData>, props: &Bar3DProps) {
 /// # Arguments
 /// * `ctx` - Mutable reference to the GraphContext
 /// * `props` - Vector of bar configurations
-pub fn bars_3d<UserData>(ctx: &mut GraphContext<UserData>, props: &Vec<Bar3DProps>) {
+pub fn bars_3d_old<UserData>(ctx: &mut GraphContext<UserData>, props: &Vec<Bar3DProps>) {
     use crate::draw;
     use crate::primitives::plane::RectArea;
 
@@ -185,4 +185,148 @@ pub fn bars_3d<UserData>(ctx: &mut GraphContext<UserData>, props: &Vec<Bar3DProp
     let front_refs: Vec<&RectArea<i32>> = fronts.iter().collect();
     draw::rectangle::filled_multiple(ctx, &front_refs);
     
+}
+
+
+
+
+
+///
+///
+///
+///
+///
+/// Draws multiple pseudo-3D bars in isometric projection using batch rectangle drawing for the front face.
+///
+/// Uses `draw::rectangle::filled_multiple()` for better performance when rendering many bars.
+///
+/// # Arguments
+/// * `ctx` - Mutable reference to the GraphContext
+/// * `props` - Vector of bar configurations
+pub fn bars_3d<UserData>(ctx: &mut GraphContext<UserData>, props: &Vec<Bar3DProps>) {
+    use crate::draw;
+    use crate::primitives::plane::RectArea;
+
+    // Helper: Collect all horizontal spans for a convex quadrilateral (parallelogram)
+    fn parallelogram_horizontal_spans(
+        p0: Point<i32>,
+        p1: Point<i32>,
+        p2: Point<i32>,
+        p3: Point<i32>,
+        color: u32,
+    ) -> Vec<u32> {
+        // The points should be in order (top-left, top-right, bottom-right, bottom-left)
+        let mut spans: Vec<u32> = Vec::new();
+        // Find min/max y
+        let min_y = p0.y.min(p1.y).min(p2.y).min(p3.y);
+        let max_y = p0.y.max(p1.y).max(p2.y).max(p3.y);
+
+        // For each scanline, find intersection with left and right edges
+        for y in min_y..=max_y {
+            // Left edge: (p0 to p3)
+            let x_left = if p3.y != p0.y {
+                p0.x + ((p3.x - p0.x) as f32 * (y - p0.y) as f32 / (p3.y - p0.y) as f32).round() as i32
+            } else {
+                p0.x
+            };
+            // Right edge: (p1 to p2)
+            let x_right = if p2.y != p1.y {
+                p1.x + ((p2.x - p1.x) as f32 * (y - p1.y) as f32 / (p2.y - p1.y) as f32).round() as i32
+            } else {
+                p1.x
+            };
+            let x_start = x_left.min(x_right);
+            let x_end = x_left.max(x_right);
+            spans.push(x_start as u32);
+            spans.push(x_end as u32);
+            spans.push(y as u32);
+        }
+        // Prepend color as first element for horizontal_lines_x3_threaded
+        let mut batch = Vec::with_capacity(1 + spans.len());
+        batch.push(color);
+        batch.extend(spans);
+        batch
+    }
+
+    // Batch all top faces and side faces as lines
+    let mut top_face_lines: Vec<Vec<u32>> = Vec::with_capacity(props.len());
+    let mut side_face_lines: Vec<Vec<u32>> = Vec::with_capacity(props.len());
+    let mut fronts: Vec<RectArea<i32>> = Vec::with_capacity(props.len());
+
+    for bar in props {
+        let Bar3DProps {
+            x, y, width, height, depth,
+            color_front, color_top, color_side,
+            slant, project_to_right,
+            ..
+        } = *bar;
+        let slant_x = slant.x as i32;
+        let slant_y = slant.y as i32;
+
+        // --- Top face as parallelogram ---
+        let (p0, p1, p2, p3) = if project_to_right {
+            // Right-projected: p0 = top-left, p1 = top-right, p2 = bottom-right, p3 = bottom-left
+            (
+                Point::new(x, y - height), // top-left
+                Point::new(x + width, y - height), // top-right
+                Point::new(x + width + depth * slant_x, y - height - depth * slant_y), // bottom-right
+                Point::new(x + depth * slant_x, y - height - depth * slant_y), // bottom-left
+            )
+        } else {
+            // Left-projected
+            (
+                Point::new(x, y - height), // top-left
+                Point::new(x + width, y - height), // top-right
+                Point::new(x + width - depth * slant_x, y - height - depth * slant_y), // bottom-right
+                Point::new(x - depth * slant_x, y - height - depth * slant_y), // bottom-left
+            )
+        };
+        top_face_lines.push(parallelogram_horizontal_spans(p0, p1, p2, p3, color_top));
+
+        // --- Side face as parallelogram ---
+        let (s0, s1, s2, s3) = if project_to_right {
+            // Right side face
+            (
+                Point::new(x + width, y - height),                        // top-left
+                Point::new(x + width + depth * slant_x, y - height - depth * slant_y), // top-right
+                Point::new(x + width + depth * slant_x, y - depth * slant_y),          // bottom-right
+                Point::new(x + width, y),                                 // bottom-left
+            )
+        } else {
+            // Left side face
+            (
+                Point::new(x, y - height),                       // top-left
+                Point::new(x - depth * slant_x, y - height - depth * slant_y), // top-right
+                Point::new(x - depth * slant_x, y - depth * slant_y),          // bottom-right
+                Point::new(x, y),                                 // bottom-left
+            )
+        };
+        side_face_lines.push(parallelogram_horizontal_spans(s0, s1, s2, s3, color_side));
+
+        // --- Front face batch collect (rectangles) ---
+        let front = RectArea::new(x, y - height, width, height + 1, Some(color_front));
+        fronts.push(front);
+    }
+
+
+    // Draw all side faces in parallel
+    buffer_op::lines::horizontal_batch_threaded::horizontal_lines_x3_threaded(
+        &mut ctx.frame_buf,
+        &ctx.win.dimensions,
+        &side_face_lines,
+        ctx.num_threads
+    );
+
+    // Draw all top faces in parallel
+    buffer_op::lines::horizontal_batch_threaded::horizontal_lines_x3_threaded(
+        &mut ctx.frame_buf,
+        &ctx.win.dimensions,
+        &top_face_lines,
+        ctx.num_threads
+    );
+
+
+    // Draw all front faces as rectangles (batch)
+    let front_refs: Vec<&RectArea<i32>> = fronts.iter().collect();
+    draw::rectangle::filled_multiple(ctx, &front_refs);
 }
