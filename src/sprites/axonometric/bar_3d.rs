@@ -1,9 +1,8 @@
-use std::thread;
 use crate::core::context::GraphContext;
 use crate::core::context_utils::context_snapshot::ContextSnapshot;
 use crate::draw::polygons::closed_perimeter;
 use crate::primitives::numeric::Numeric;
-use crate::primitives::plane::{Dimensions2d, RectArea};
+use crate::primitives::plane::RectArea;
 use crate::primitives::point::Point;
 use crate::utils::math::geometry::approximate_center;
 use crate::{buffer_op, draw};
@@ -117,7 +116,6 @@ pub fn bar_3d<UserData>(ctx: &mut GraphContext<UserData>, props: &Bar3DProps) {
     buffer_op::scanline_wavefront(&mut ctx.frame_buf, &ctx.win.dimensions, &flood_fill_point.to_pixel(color_side),);
 }
 
-
 ///
 ///
 ///
@@ -131,11 +129,7 @@ pub fn bar_3d<UserData>(ctx: &mut GraphContext<UserData>, props: &Bar3DProps) {
 /// * `ctx` - Mutable reference to the GraphContext
 /// * `props` - Vector of bar configurations
 pub fn bars_3d<UserData>(ctx: &mut GraphContext<UserData>, props: &Vec<Bar3DProps>) {
-
-    render_bars_3d_parallel_bands(ctx, props);
-    return;
-
-    use crate::draw::rectangle::filled_multiple;
+    use crate::draw;
     use crate::primitives::plane::RectArea;
 
     // Gather references to all front faces for batch rendering.
@@ -158,7 +152,7 @@ pub fn bars_3d<UserData>(ctx: &mut GraphContext<UserData>, props: &Vec<Bar3DProp
             let dx = if project_to_right { x + i * slant_x } else { x - i * slant_x };
             let dy = y - height - i * slant_y + j;
             let start = Point::new(dx, dy);
-            crate::draw::line::horizontal(ctx, &start, i32::to_u32(width), Some(color_top));
+            draw::line::horizontal(ctx, &start, i32::to_u32(width), Some(color_top));
         }
         ctx.line.set_context(line_ctx_state);
 
@@ -178,7 +172,7 @@ pub fn bars_3d<UserData>(ctx: &mut GraphContext<UserData>, props: &Vec<Bar3DProp
                 Point::new(x, y),
             ]
         };
-        crate::draw::polygons::closed_perimeter(ctx, &side, Some(color_side));
+        draw::polygons::closed_perimeter(ctx, &side, Some(color_side));
         let flood_fill_point = geometry::approximate_center(&side)
             .unwrap_or(side[0].clone() + Point::new(1, 1));
 
@@ -188,218 +182,7 @@ pub fn bars_3d<UserData>(ctx: &mut GraphContext<UserData>, props: &Vec<Bar3DProp
         fronts.push(front);
     }
 
-
-   
-
-    
     let front_refs: Vec<&RectArea<i32>> = fronts.iter().collect();
-    filled_multiple(ctx, &front_refs);
+    draw::rectangle::filled_multiple(ctx, &front_refs);
     
-}
-
-
-
-//*************************************
-//*************************************
-//*************************************
-//*************************************
-//*************************************
-//*************************************
-//*************************************
-//*************************************
-//*************************************
-
-
-/// Helper: get min/max y of a polygon
-fn polygon_y_range(poly: &[Point<i32>]) -> (i32, i32) {
-    let mut min_y = poly[0].y;
-    let mut max_y = poly[0].y;
-    for pt in poly.iter() {
-        if pt.y < min_y { min_y = pt.y; }
-        if pt.y > max_y { max_y = pt.y; }
-    }
-    (min_y, max_y)
-}
-
-
-/// Main function: 3-pass parallelized bar rendering
-pub fn render_bars_3d_parallel_bands<UserData>(ctx: &mut GraphContext<UserData>, bars: &Vec<Bar3DProps>) {
-    let num_threads = ctx.num_threads.max(1) as usize;
-    let dimensions = ctx.win.dimensions;
-    let band_height = (dimensions.h as usize + num_threads - 1) / num_threads;
-
-
-    // ===== PASS 1: Draw all side contours (one thread, safe & quick) =====
-    for bar in bars.iter() {
-        let Bar3DProps { x, y, width, height, depth, color_side, slant, project_to_right, .. } = *bar;
-        let slant_x = slant.x as i32;
-        let slant_y = slant.y as i32;
-        let side = if project_to_right {
-            vec![
-                Point::new(x + width, y - height),
-                Point::new(x + width + depth * slant_x, y - height - depth * slant_y),
-                Point::new(x + width + depth * slant_x, y - depth * slant_y),
-                Point::new(x + width, y),
-            ]
-        } else {
-            vec![
-                Point::new(x, y - height),
-                Point::new(x - depth * slant_x, y - height - depth * slant_y),
-                Point::new(x - depth * slant_x, y - depth * slant_y),
-                Point::new(x, y),
-            ]
-        };
-        if let Some(first_vertex) = side.first() {
-            let mut previous_vertex = first_vertex;
-            for vertex in side.iter().skip(1) {
-                crate::draw::line::between_two_points(ctx, previous_vertex, vertex, Some(color_side));
-                previous_vertex = vertex;
-            }
-            crate::draw::line::between_two_points(ctx, previous_vertex, first_vertex, Some(color_side));
-        }
-    }
-
-    // ===== PASS 2: Parallel fill side faces (bands) =====
-    let mut side_face_seeds_per_band: Vec<Vec<(Point<i32>, u32)>> = vec![vec![]; num_threads];
-    for bar in bars.iter() {
-        let Bar3DProps { x, y, width, height, depth, color_side, slant, project_to_right, .. } = *bar;
-        let slant_x = slant.x as i32;
-        let slant_y = slant.y as i32;
-        let side = if project_to_right {
-            vec![
-                Point::new(x + width, y - height),
-                Point::new(x + width + depth * slant_x, y - height - depth * slant_y),
-                Point::new(x + width + depth * slant_x, y - depth * slant_y),
-                Point::new(x + width, y),
-            ]
-        } else {
-            vec![
-                Point::new(x, y - height),
-                Point::new(x - depth * slant_x, y - height - depth * slant_y),
-                Point::new(x - depth * slant_x, y - depth * slant_y),
-                Point::new(x, y),
-            ]
-        };
-        let (min_y, max_y) = polygon_y_range(&side);
-        for band in 0..num_threads {
-            let band_start = (band * band_height) as i32;
-            let band_end = ((band + 1) * band_height).min(dimensions.h as usize) as i32;
-            if max_y < band_start || min_y >= band_end { continue; }
-            if let Some(center) = geometry::approximate_center(&side) {
-                let cy = center.y.clamp(band_start, band_end-1);
-                let seed = Point::new(center.x.min(ctx.win.w_i32 - 1), cy);
-                side_face_seeds_per_band[band].push((seed, color_side));
-            } else {
-                let p = side[0];
-                let py = p.y.clamp(band_start, band_end-1);
-                let seed = Point::new(p.x.min(ctx.win.w_i32 - 1), py);
-
-
-                side_face_seeds_per_band[band].push((seed, color_side));
-            }
-        }
-    }
-    thread::scope(|s| {
-
-        //------------------------------------------------------------------------------------------
-        //------------------------------------------------------------------------------------------
-
-        // println!("PASS 2: Parallel fill side faces (bands) {:?}",side_face_seeds_per_band);
-
-        for band in 0..num_threads {
-            let seeds = side_face_seeds_per_band[band].clone();
-            let band_start = (band * band_height) as usize;
-            let band_end = ((band + 1) * band_height).min(dimensions.h as usize);
-            let w = dimensions.w as usize;
-            // let band_buf = &mut ctx.frame_buf[band_start * w .. band_end * w];
-            let frame_buf_ptr = ctx.frame_buf.as_mut_ptr();
-            let band_offset = band_start * w;
-            let band_len = (band_end - band_start) * w;
-            let band_buf = unsafe { std::slice::from_raw_parts_mut(frame_buf_ptr.add(band_offset), band_len) };
-
-            let dims = Dimensions2d {
-                w: dimensions.w,
-                h: (band_end - band_start) as u32,
-            };
-            s.spawn(move || {
-                for (seed, color) in seeds {
-                    let local_seed = {
-                        let mut p = seed.to_pixel(color);
-                        p.y  = (p.y as i32 -  band_start as i32).max(0) as u32;
-                        p
-                    };
-                    buffer_op::flood(
-                        band_buf,
-                        &dims,
-                        &local_seed,
-                    );
-
-                    // eprintln!("dims: {:?}, local_seed: {:?}, band_buf.len(): {}", dims, local_seed, band_buf.len());
-
-                    // buffer_op::scanline_wavefront(
-                    //     band_buf,
-                    //     &dims,
-                    //     &local_seed,
-                    // );
-                }
-            });
-        }
-    });
-
-    // ===== PASS 3: Parallel draw top faces as lines (per band) =====
-    let mut lines_per_band: Vec<Vec<(Point<i32>, u32, u32)>> = vec![vec![]; num_threads];
-    for bar in bars.iter() {
-        let Bar3DProps { x, y, width, height, depth, color_top, slant, project_to_right, .. } = *bar;
-        let slant_x = slant.x as i32;
-        let slant_y = slant.y as i32;
-        let total_steps = (depth + 1) * slant_y;
-        for n in 0..total_steps {
-            let i = n / slant_y;
-            let j = n % slant_y;
-            let dx = if project_to_right { x + i * slant_x } else { x - i * slant_x };
-            let dy = y - height - i * slant_y + j;
-            let band = (dy as usize).saturating_div(band_height).min(num_threads-1);
-            lines_per_band[band].push((Point::new(dx, dy), width as u32, color_top));
-        }
-    }
-    thread::scope(|s| {
-        for band in 0..num_threads {
-            let lines = lines_per_band[band].clone();
-            let band_start = (band * band_height) as usize;
-            let band_end = ((band + 1) * band_height).min(dimensions.h as usize);
-            let w = dimensions.w as usize;
-            // let band_buf = &mut ctx.frame_buf[band_start * w .. band_end * w];
-            let frame_buf_ptr = ctx.frame_buf.as_mut_ptr();
-            let band_offset = band_start * w;
-            let band_len = (band_end - band_start) * w;
-            let band_buf = unsafe { std::slice::from_raw_parts_mut(frame_buf_ptr.add(band_offset), band_len) };
-
-            s.spawn(move || {
-                for (start, len, color) in lines {
-                    let y = start.y;
-                    let x = start.x;
-                    if y < 0 { continue; }
-                    let y_local = (y as usize).saturating_sub(band_start);
-                    let x_usize = x.max(0) as usize;
-                    let idx = y_local * w + x_usize;
-                    for k in 0..(len as usize) {
-                        let off = idx + k;
-                        if y_local < (band_end - band_start) && x_usize + k < w && off < band_buf.len() {
-                            band_buf[off] = color;
-                        }
-                    }
-                }
-            });
-        }
-    });
-
-    // ===== FINAL: batch draw all front faces (parallelized inside) =====
-    let mut fronts: Vec<RectArea<i32>> = Vec::with_capacity(bars.len());
-    for bar in bars.iter() {
-        let Bar3DProps { x, y, width, height, color_front, .. } = *bar;
-        let front = RectArea::new(x, y - height, width, height + 1, Some(color_front));
-        fronts.push(front);
-    }
-    let front_refs: Vec<&RectArea<i32>> = fronts.iter().collect();
-    crate::draw::rectangle::filled_multiple(ctx, &front_refs);
 }
