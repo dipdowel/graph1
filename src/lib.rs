@@ -5,9 +5,13 @@ pub mod buffer_op {
         pub(crate) mod buffer;
         pub(crate) mod flood;
         pub(crate) mod scanline_wavefront;
+        
     }
     use crate::buffer_op;
-
+    pub(crate) mod lines {
+        pub(crate) mod horizontal_batch;
+    }
+    pub use lines::horizontal_batch::*;
     pub use fill::buffer::fill;
     pub use fill::flood::flood;
     pub use fill::scanline_wavefront::scanline_wavefront;
