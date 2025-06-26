@@ -1,6 +1,15 @@
 use crate::primitives::numeric::Numeric;
 use crate::primitives::point::Point;
 
+
+#[derive(Debug, Clone, Copy, PartialEq)]
+/// A line segment defined by its start and end points, with an optional color.
+pub struct LineSegment<T: Numeric = u32> {
+    pub start: Point<T>,
+    pub end: Point<T>,
+    pub color: Option<u32>,
+}
+
 #[derive(Debug, Clone, Copy, PartialEq)]
 /// A combination of width and height on a 2D plane.
 pub struct Dimensions2d<T: Numeric = u32> {
