@@ -24,7 +24,6 @@ struct YGroup {
 /// followed by triplets (x_start, x_end, y).
 /// Returns Vec<LineMeta>, only keeping valid and clamped lines.
 #[inline(always)]
-#[inline(always)]
 fn parse_lines_x3(lines: &Vec<Vec<u32>>, width: u32, height: u32) -> Vec<LineMeta> {
     let mut result = Vec::new();
     if width == 0 || height == 0 {
@@ -262,4 +261,129 @@ pub fn horizontal_lines_x3_threaded(
             });
         }
     });
+}
+
+
+
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn blank_buffer(w: u32, h: u32) -> Vec<u32> {
+        vec![0xFF000000; (w * h) as usize]
+    }
+
+    #[test]
+    fn test_parse_lines_x4_filters_and_clamps() {
+        // Buffer is 10x5, lines: in bounds, partially out of bounds, reversed, negative, etc
+        let lines = vec![
+            0, 9, 2, 0xFFAA0000,     // valid, full width, y in bounds
+            5, 12, 1, 0xFF00BB00,    // x_end clamps to 9
+            8, 4, 0, 0xFF00BBFF,     // x_start > x_end, should be filtered out
+            1, 5, 10, 0xFFFFFF00,    // y out of bounds, filtered
+            0, 2, 3, 0xFFFF00FF,     // valid
+        ];
+        let parsed = parse_lines_x4(&lines, 10, 5);
+        assert_eq!(parsed.len(), 3);
+        assert_eq!(parsed[0].x_end, 9);
+        assert_eq!(parsed[1].x_end, 9);
+        assert_eq!(parsed[2].y, 3);
+    }
+
+    #[test]
+    fn test_parse_lines_x3_batch_and_colors() {
+        // Buffer is 6x4, each batch is a different color
+        let lines = vec![
+            vec![0xFF0000FF, 1, 3, 1, 4, 5, 1], // two lines at y=1, blue
+            vec![0xFF00FF00, 2, 4, 2],          // one line at y=2, green
+        ];
+        let parsed = parse_lines_x3(&lines, 6, 4);
+        assert_eq!(parsed.len(), 3);
+        assert_eq!(parsed[0].color, 0xFF0000FF);
+        assert_eq!(parsed[2].color, 0xFF00FF00);
+        assert_eq!(parsed[2].x_start, 2);
+        assert_eq!(parsed[2].x_end, 4);
+    }
+
+    #[test]
+    fn test_group_by_y_correct_runs() {
+        let mut lines = vec![
+            LineMeta { x_start: 0, x_end: 1, y: 2, color: 0 },
+            LineMeta { x_start: 2, x_end: 3, y: 2, color: 1 },
+            LineMeta { x_start: 0, x_end: 2, y: 3, color: 2 },
+        ];
+        lines.sort_by_key(|l| l.y);
+        let groups = group_by_y(&lines);
+        assert_eq!(groups.len(), 2);
+        assert_eq!(groups[0].y, 2);
+        assert_eq!(groups[0].len, 2);
+        assert_eq!(groups[1].y, 3);
+        assert_eq!(groups[1].len, 1);
+    }
+
+    #[test]
+    fn test_partition_bands_even_split() {
+        // 4 groups, 2 lines each, 2 threads
+        let y_groups = vec![
+            YGroup { y: 0, start: 0, len: 2 },
+            YGroup { y: 1, start: 2, len: 2 },
+            YGroup { y: 2, start: 4, len: 2 },
+            YGroup { y: 3, start: 6, len: 2 },
+        ];
+        let bands = partition_bands(&y_groups, 2, 8);
+        assert_eq!(bands.len(), 2);
+        assert_eq!(bands[0].len() + bands[1].len(), 4);
+        // Each band should have 4 lines in total
+        let band0_count: usize = bands[0].iter().map(|&i| y_groups[i].len).sum();
+        let band1_count: usize = bands[1].iter().map(|&i| y_groups[i].len).sum();
+        assert_eq!(band0_count + band1_count, 8);
+    }
+
+    #[test]
+    fn test_draw_band_lines_draws_correct_pixels() {
+        let mut buf = blank_buffer(5, 2);
+        let lines = vec![
+            LineMeta { x_start: 1, x_end: 3, y: 0, color: 0xFF00FF00 },
+            LineMeta { x_start: 2, x_end: 4, y: 1, color: 0xFFFF0000 },
+        ];
+        let band_lines: Vec<&LineMeta> = lines.iter().collect();
+        draw_band_lines(&band_lines, &mut buf, 0, 5, 2);
+        // Row 0: buf[1], buf[2], buf[3] should be green
+        assert_eq!(buf[1], 0xFF00FF00);
+        assert_eq!(buf[2], 0xFF00FF00);
+        assert_eq!(buf[3], 0xFF00FF00);
+        // Row 1: buf[5+2], buf[5+3], buf[5+4] should be red
+        assert_eq!(buf[7], 0xFFFF0000);
+        assert_eq!(buf[8], 0xFFFF0000);
+        assert_eq!(buf[9], 0xFFFF0000);
+    }
+
+    #[test]
+    fn test_horizontal_lines_x4_threaded_simple() {
+        let mut buf = blank_buffer(8, 3);
+        let dims = Dimensions2d { w: 8, h: 3 };
+        let lines = vec![
+            1, 4, 0, 0xFF00FF00, // y=0, green
+            3, 7, 1, 0xFFFF0000, // y=1, red
+        ];
+        horizontal_lines_x4_threaded(&mut buf, &dims, &lines, 2);
+        // Check that row 0, buf[1..=4] is green
+        assert_eq!(&buf[1..=4], &[0xFF00FF00; 4]);
+        // Check that row 1, buf[3..=7] is red
+        assert_eq!(&buf[8+3..=8+7], &[0xFFFF0000; 5]);
+    }
+
+    #[test]
+    fn test_horizontal_lines_x3_threaded_simple() {
+        let mut buf = blank_buffer(6, 2);
+        let dims = Dimensions2d { w: 6, h: 2 };
+        let lines = vec![
+            vec![0xFFFF00FF, 1, 4, 0],     // y=0, magenta
+            vec![0xFF00FFFF, 2, 5, 1],     // y=1, cyan
+        ];
+        horizontal_lines_x3_threaded(&mut buf, &dims, &lines, 2);
+        assert_eq!(&buf[1..=4], &[0xFFFF00FF; 4]); // row 0
+        assert_eq!(&buf[6+2..=6+5], &[0xFF00FFFF; 4]); // row 1
+    }
 }
