@@ -1,4 +1,5 @@
 use std::thread;
+use crate::buffer_op::gpu;
 use crate::core::context::GraphContext;
 use crate::utils::color::math::{rgba_operation, ColorOperation};
 
@@ -41,6 +42,19 @@ fn buffer_scanline_fx_thread(buffer: &mut [u32], intensity: u32, line_flipper: u
 /// * `size` - The size of the scanline effect. Must be greater than 0.
 /// * `intensity` - The intensity of the scanline effect. Must be between 0 and 255.
 pub fn window<UserData>(ctx: &mut GraphContext<UserData>, size: u8, intensity: u8) {
+
+    if ctx.gpu_context.is_enabled() {
+        gpu::scanline::scanline_fx(
+            &mut ctx.frame_buf,
+            ctx.win.w,
+            size,
+            intensity,
+            &mut ctx.gpu_context,
+        ).expect("GPU scanline failed");
+        return;
+    }
+
+
 
     if ctx.num_threads < 1 {
         return;

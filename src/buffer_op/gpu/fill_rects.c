@@ -1,9 +1,8 @@
 __kernel void fill_rects(
     __global uint *out_buf,
     uint width, uint height,
-    __global const uint *rects, // packed: [x, y, w, h, color, x, y, ...]
-    uint num_rects,
-    uint default_color
+    __global const uint *rects,
+    uint num_rects
 ) {
     uint gid = get_global_id(0);
     if (gid >= width * height) return;
@@ -11,7 +10,8 @@ __kernel void fill_rects(
     uint x = gid % width;
     uint y = gid / width;
 
-    uint color = default_color;
+    // Start with the existing value, not a default fill
+    uint color = out_buf[gid];
     for (uint i = 0; i < num_rects; ++i) {
         uint rx = rects[i*5+0];
         uint ry = rects[i*5+1];

@@ -6,7 +6,6 @@ use crate::primitives::plane::RectArea;
 use crate::primitives::point::Point;
 use crate::utils::math::geometry::approximate_center;
 use crate::{buffer_op, draw};
-use crate::draw::tools::fill;
 use crate::utils::math::geometry;
 
 /// Struct holding customizable properties of the 3D bar
@@ -302,6 +301,8 @@ pub fn bars_3d<UserData>(ctx: &mut GraphContext<UserData>, props: &Vec<Bar3DProp
             )
         };
         side_face_lines.push(parallelogram_horizontal_spans(s0, s1, s2, s3, color_side));
+
+        // println!("color_front: {color_front:#010x}, color_top: {color_top:#010x}, color_side: {color_side:#010x}");
 
         // --- Front face batch collect (rectangles) ---
         let front = RectArea::new(x, y - height, width, height + 1, Some(color_front));

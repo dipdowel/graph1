@@ -9,7 +9,7 @@ use crate::draw;
 use std::cmp::PartialEq;
 
 use std::thread;
-
+use crate::buffer_op::gpu::fill_rects::filled_multiple_gpu;
 
 impl PartialEq for AlphaMethod {
     fn eq(&self, other: &Self) -> bool {
@@ -249,6 +249,21 @@ pub fn filled_multiple<DemoUserData, T: Numeric + Copy + std::ops::Add<Output = 
     ctx: &mut GraphContext<DemoUserData>,
     rects: &Vec<&RectArea<T>>,
 ) {
+    
+
+    if ctx.gpu_context.is_enabled() {
+        // flatten & pass the needed fields
+        return filled_multiple_gpu(
+            &mut ctx.frame_buf,
+            ctx.win.w,
+            ctx.win.h,
+            rects,
+            ctx.win.foreground_color,            
+            &mut ctx.gpu_context
+        ).expect("GPU rect fill failed");
+    }
+    
+    
     // Nothing to do here...
     if ctx.num_threads < 1 {
         return;

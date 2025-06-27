@@ -20,9 +20,9 @@ pub mod buffer_op {
 
     pub(crate) mod gpu {
         pub(crate) mod fill;
-        pub(crate) mod draw {
-            pub(crate) mod rectangle;
-        }
+        pub(crate) mod scanline;
+        pub(crate) mod fill_rects;
+
     }
 }
 
