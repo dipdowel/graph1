@@ -1,5 +1,5 @@
 #[cfg(feature = "gpu")]
-use ocl::{Context, Device, Kernel, Platform, Program, Queue};
+use ocl::{Buffer, Context, Device, Platform, Program, Queue};
 
 use std::collections::HashMap;
 use std::sync::Arc;
@@ -30,6 +30,10 @@ pub struct GpuContext {
     #[cfg(feature = "gpu")]
     /// Program cache for compiled OpenCL kernels
     pub programs: HashMap<String, Arc<Program>>,
+
+    #[cfg(feature = "gpu")]
+    pub buffer_pool: HashMap<usize, Buffer<u32>>,
+
     /// Status of the GPU context, e.g. "Initialized", "Not Initialized", "Error"
     pub status: String,
 }
@@ -101,6 +105,7 @@ impl GpuContext {
                 context: None,
                 queue: None,
                 programs: HashMap::new(),
+                buffer_pool: HashMap::new(),
                 status: String::from("Created, not Initialized"),
             };
 
@@ -125,7 +130,30 @@ impl GpuContext {
         }
 
     }
-
+    #[cfg(feature = "gpu")]
+    pub fn get_or_create_buffer<'a>(
+        &mut self,
+        len: usize,
+        queue: &ocl::Queue,
+        host_slice: &'a mut [u32],
+    ) -> Result<Buffer<u32>, String> {
+        use std::collections::hash_map::Entry;
+        match self.buffer_pool.entry(len) {
+            Entry::Occupied(o) => Ok(o.get().clone()),
+            Entry::Vacant(v) => {
+                let buf = unsafe {
+                    Buffer::<u32>::builder()
+                        .queue(queue.clone())
+                        .len(len)
+                        .use_host_slice(host_slice)
+                        .build()
+                        .map_err(|e| format!("Failed to create OpenCL buffer: {e}"))?
+                };
+                v.insert(buf.clone());
+                Ok(buf)
+            }
+        }
+    }
     pub fn is_initialized(&self) -> bool {
         #[cfg(feature = "gpu")]{
             self.context.is_some() && self.device.is_some() && self.queue.is_some()

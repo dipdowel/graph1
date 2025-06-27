@@ -8,7 +8,7 @@ pub fn fill(
 ) -> Result<(), String> {
     #[cfg(feature = "gpu")]
     {
-        use ocl::{Buffer, Kernel, flags};
+        use ocl::Kernel;
 
         if !gpu_context.is_enabled() {
             return Err("GPU context is not enabled".to_string());
@@ -25,30 +25,28 @@ pub fn fill(
                 .load_program(&kernel_src, program_name)
                 .map_err(|e| format!("Failed to build OpenCL program: {e}"))?;
         }
-        let program = gpu_context.get_program(program_name)
+        // Get everything by immutable borrow up front
+        let program = gpu_context
+            .get_program(program_name)
             .ok_or("Program not loaded (unknown error)")?;
-
-        let queue = gpu_context.queue.as_ref()
+        let queue = gpu_context
+            .queue
+            .as_ref()
             .ok_or("No OpenCL queue in context")?
-            .as_ref();
+            .clone(); // Arc<Queue>
+        let queue_ref = queue.as_ref();
 
-        
-        let frame_buf = unsafe {
-            Buffer::<u32>::builder()
-                .queue(queue.clone())
-                .len(buf_len)
-                .use_host_slice(buffer) // This sets MEM_USE_HOST_PTR under the hood
-                .build()
-                .map_err(|e| format!("Failed to create OpenCL buffer: {e}"))?
-        };
 
-        // println!("GPU filling! Using OpenCL buffer of size: {} bytes", buf_len * std::mem::size_of::<u32>());
+        let frame_buf = gpu_context.get_or_create_buffer(buf_len, queue_ref, buffer)?;
+
+        println!("GPU filling! Using OpenCL buffer of size: {} bytes", buf_len * std::mem::size_of::<u32>());
+        let queue_value = queue.as_ref().clone();
 
         // Prepare kernel
         let kernel = Kernel::builder()
             .program(&program)
             .name(kernel_name)
-            .queue(queue.clone())
+            .queue(queue_value)
             .global_work_size(buf_len)
             .arg(&frame_buf)
             .arg(color)
@@ -57,10 +55,16 @@ pub fn fill(
             .map_err(|e| format!("Failed to build kernel: {e}"))?;
 
         // Launch kernel
-        unsafe { kernel.enq().map_err(|e| format!("Failed to enqueue kernel: {e}"))?; }
+        unsafe {
+            kernel
+                .enq()
+                .map_err(|e| format!("Failed to enqueue kernel: {e}"))?;
+        }
 
         // Synchronize to make sure host buffer is up to date (blocking read, no copy if mapped)
-        frame_buf.read(buffer).enq()
+        frame_buf
+            .read(buffer)
+            .enq()
             .map_err(|e| format!("Failed to read GPU buffer back to host: {e}"))?;
 
         Ok(())
