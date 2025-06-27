@@ -18,15 +18,12 @@ pub mod buffer_op {
     pub use fill::flood::flood;
     pub use fill::scanline_wavefront::scanline_wavefront;
 
-    //--[ start GPU, experimental ]--------------
-    #[cfg(feature = "gpu")]
     pub(crate) mod gpu {
         pub(crate) mod fill;
         pub(crate) mod draw {
             pub(crate) mod rectangle;
         }
     }
-    //--[ end GPU, experimental ]----------------
 }
 
 //-=[ C }=------------------------------------------------------------------------------------------
@@ -42,11 +39,8 @@ pub mod core {
 
         pub mod alpha;
         mod bezier;
-
-        //--[ start GPU, experimental ]--------------
-        #[cfg(feature = "gpu")]
+        
         pub(crate) mod gpu;
-        //--[ end GPU, experimental ]----------------
 
         mod graph;
         mod line_context;

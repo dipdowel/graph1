@@ -1,6 +1,6 @@
 use std::thread;
 use crate::buffer_op;
-#[cfg(feature = "gpu")]
+
 use crate::core::context::gpu::GpuContext;
 
 /// Buffer fill logic to be executed by each thread in the multithreaded buffer operation
@@ -48,24 +48,25 @@ pub fn fill(
     buffer: &mut [u32],
     color: u32,
     num_threads: usize,
-    #[cfg(feature = "gpu")] gpu_context: Option<&mut GpuContext>,
+    gpu_context: &mut GpuContext,
 ) {
-    ///  metadata: String,
+    
 
     // let start = Instant::now();
 
     // ==[ GPU OpenCL ]=======================================================================
     
-    #[cfg(feature = "gpu")]
-    if gpu_context.is_some() {
+
+    if gpu_context.is_enabled() {
 
         let len = buffer.len();
         buffer_op::gpu::fill::fill(
             buffer,
             len,
             color,
-            gpu_context.expect("gpu::fill() failed, something went wrong with GPU context"),
+            gpu_context
         );
+        return;
     }
 
     // We were instructed not to do anything

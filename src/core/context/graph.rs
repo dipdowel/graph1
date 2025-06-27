@@ -6,7 +6,7 @@ use crate::draw::tools::brush::Brush;
 use crate::utils::math::rng::XorShiftRng;
 use std::ptr;
 
-#[cfg(feature = "gpu")]
+
 use crate::core::context::gpu::GpuContext;
 
 
@@ -65,9 +65,8 @@ pub struct GraphContext<UserData = Vec<i32>> {
     pub num_threads_autoadjust:bool,
      */
 
-    /// Experimental GPU rendering context.
-    /// **NB:** Use only if you know what you are doing.
-    #[cfg(feature = "gpu")]
+    /// Context for very experimental GPU rendering.
+    /// **NB:** Use only if you know what you are doing!
     pub gpu_context: GpuContext,
 
 }
@@ -126,8 +125,7 @@ impl<UserData: Default> GraphContext<UserData> {
             brush: Brush::default(),
             cur_buf_type: FrameBuffer::Primary,
 
-            #[cfg(feature = "gpu")]
-            gpu_context: GpuContext::create(true).expect("Failed to create gpu context"),
+            gpu_context: GpuContext::create(),
         }
     }
 
@@ -193,25 +191,6 @@ impl<UserData> GraphContext<UserData> {
     }
 
 
-    /// Sets the GPU state to enabled or disabled. **!EXPERIMENTAL!**
-    /// If the `gpu` feature is not enabled, this function does nothing and returns `None`.
-    /// # Arguments
-    /// * `enabled` - A boolean indicating whether to enable or disable the GPU context
-    /// # Returns
-    /// An `Option<bool>` indicating the previous state of the GPU context.
-    /// If the `gpu` feature is not enabled, returns `None`.
-    pub fn set_gpu_state(&mut self, enabled: bool) -> Option<bool> {
-
-        #[allow(unused_mut)]
-        let mut result:Option<bool> = None;
-
-        #[cfg(feature = "gpu")]
-        {
-            self.gpu_context.enabled = enabled;
-            result = Some(enabled)
-        }
-        result
-    }
 
     /// Copies data between the primary and draft frame buffers.
     /// This function allows you to copy `ctx.frame_buf` to `ctx.draft_buf` or vice versa.

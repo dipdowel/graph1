@@ -10,9 +10,6 @@ use std::cmp::PartialEq;
 
 use std::thread;
 
-#[cfg(feature = "gpu")]
-use crate::buffer_op;
-
 
 impl PartialEq for AlphaMethod {
     fn eq(&self, other: &Self) -> bool {
@@ -99,22 +96,6 @@ fn draw_lines_of_rectangle_thread(
 /// * `ctx` - The graph context
 /// * `rect` - The rectangle to draw
 pub fn filled<UserData, T: Numeric>(ctx: &mut GraphContext<UserData>, rect: &RectArea<T>) {
-    // ==[ GPU / OpenCL ]=======================================================================
-    #[cfg(feature = "gpu")]
-    {
-        let mut gpu_context: Option<&mut crate::core::context::gpu::GpuContext> = None;
-        if ctx.gpu_context.enabled {
-            gpu_context = Some(&mut ctx.gpu_context);
-            // Use GPU/OpenCL to fill the buffer
-            buffer_op::gpu::draw::rectangle::draw_rectangle_gpu(
-                &mut ctx.frame_buf,
-                &ctx.win.dimensions,
-                &rect.convert::<u32>(),
-                gpu_context
-                    .expect("gpu::draw_rectangle() failed, something went wrong with GPU context"),
-            );
-        }
-    }
 
     // Do nothing if threading is not enabled
     if ctx.num_threads == 0 {
@@ -325,52 +306,3 @@ pub fn filled_multiple<DemoUserData, T: Numeric + Copy + std::ops::Add<Output = 
         }
     });
 }
-
-
-
-
-
-
-
-
-
-
-
-
-// /// Renders rectangles from `rects` in a more efficient manner compared to rendering the rectangles one by one.
-// ///
-// /// # Parameters
-// /// - `ctx`: The rendering context with a writable frame buffer.
-// /// - `rects`: A vector of rectangle references.
-// pub fn filled_multiple_old<UserData, T: Numeric + Copy + std::ops::Add<Output = T>>(
-//     ctx: &mut GraphContext<UserData>,
-//     rects: &Vec<&RectArea<T>>,
-// ) {
-//     // Sort rectangles by their top-left corner to ensure consistent rendering order
-//     let mut sorted_rects = rects.clone();
-//     sorted_rects.sort_by_key(|rect| (T::to_u32(rect.top_left.y), T::to_u32(rect.top_left.x)));
-//
-//     let width = ctx.win.w;
-//     let height = ctx.win.h;
-//
-//     for rect in sorted_rects {
-//         let y_start = T::to_u32(rect.top_left.y);
-//         let y_end = T::to_u32(rect.top_left.y + rect.dimensions.h);
-//         let x_start = T::to_u32(rect.top_left.x);
-//         let x_end = T::to_u32(rect.top_left.x + rect.dimensions.w);
-//         let color = rect.color.unwrap_or(ctx.win.foreground_color);
-//
-//         for y in y_start..y_end {
-//             if y >= height {
-//                 continue;
-//             }
-//             let base_index = (y * width) as usize;
-//
-//             for x in x_start..x_end {
-//                 if x < width {
-//                     ctx.frame_buf[base_index + x as usize] = color;
-//                 }
-//             }
-//         }
-//     }
-// }

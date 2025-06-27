@@ -1,9 +1,12 @@
 use std::fs;
 
 use crate::core::context::gpu::GpuContext;
-use ocl::{Buffer, Kernel};
+
 pub fn fill(buffer: &mut [u32], buf_len:usize,  color: u32, gpu_context: &mut GpuContext) {
-    
+    #[cfg(feature = "gpu")]{
+    use ocl::{Buffer, Kernel};
+
+    println!("!!!! Filling a buffer with color on GPU using OpenCL !!!!");
     let mut buffer:Vec<u32>  = Vec::from(buffer);
 
     let kernel_src = include_str!("fill_buffer.cl");
@@ -28,7 +31,7 @@ pub fn fill(buffer: &mut [u32], buf_len:usize,  color: u32, gpu_context: &mut Gp
 
 
     let  frame_buf = unsafe {Buffer::<u32>::builder().queue(queue.clone())
-        .flags(ocl::flags::MEM_WRITE_ONLY)
+        .flags(ocl::flags::MEM_READ_WRITE)
         .len(buf_len)
         .use_host_slice(&mut buffer) // <- this enables zero-copy
         .build()
@@ -51,5 +54,5 @@ pub fn fill(buffer: &mut [u32], buf_len:usize,  color: u32, gpu_context: &mut Gp
 
     // Ensure the host buffer is synchronized (may be a no-op on iGPU, but good for safety)
     frame_buf.read(&mut buffer).enq().ok();
-
+    }
 }
