@@ -57,19 +57,3 @@ pub fn fade<UserData>(ctx: &mut GraphContext<UserData>, color_operand: u32, op: 
     });
     // All threads joined here.
 }
-
-// pub fn fade_region<UserData>(ctx: &mut GraphContext<UserData>, region: &RectArea, fade_out: bool) {
-//
-//
-//     // Dereference the options
-//     let start_x = region.top_left.x;
-//     let start_y = region.top_left.y;
-//     let width = region.dimensions.w;
-//     let height = region.dimensions.h;
-//
-//     // Nothing to draw here
-//     if width == 0 || height == 0 {
-//         return;
-//     }
-//
-// }
