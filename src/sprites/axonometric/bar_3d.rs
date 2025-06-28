@@ -4,9 +4,9 @@ use crate::draw::polygons::closed_perimeter;
 use crate::primitives::numeric::Numeric;
 use crate::primitives::plane::RectArea;
 use crate::primitives::point::Point;
+use crate::utils::math::geometry;
 use crate::utils::math::geometry::approximate_center;
 use crate::{buffer_op, draw};
-use crate::utils::math::geometry;
 
 /// Struct holding customizable properties of the 3D bar
 /// @See `bar_3d()`.
@@ -280,7 +280,9 @@ pub fn bars_3d<UserData>(ctx: &mut GraphContext<UserData>, props: &Vec<Bar3DProp
                 Point::new(x - depth * slant_x, y - height - depth * slant_y), // bottom-left
             )
         };
-        top_face_lines.push(parallelogram_horizontal_spans(p0, p1, p2, p3, color_top));
+
+        let spans_top:Vec<u32> = parallelogram_horizontal_spans(p0, p1, p2, p3, color_top);
+        top_face_lines.push(spans_top);
 
         // --- Side face as parallelogram ---
         let (s0, s1, s2, s3) = if project_to_right {
@@ -300,31 +302,21 @@ pub fn bars_3d<UserData>(ctx: &mut GraphContext<UserData>, props: &Vec<Bar3DProp
                 Point::new(x, y),                                 // bottom-left
             )
         };
-        side_face_lines.push(parallelogram_horizontal_spans(s0, s1, s2, s3, color_side));
 
+        let spans_side = parallelogram_horizontal_spans(s0, s1, s2, s3, color_side);
+        side_face_lines.push(spans_side);
+        
         // println!("color_front: {color_front:#010x}, color_top: {color_top:#010x}, color_side: {color_side:#010x}");
 
         // --- Front face batch collect (rectangles) ---
         let front = RectArea::new(x, y - height, width, height + 1, Some(color_front));
         fronts.push(front);
     }
+        // Draw all side faces in parallel
+        draw::lines_batches::horizontal_lines_x3_threaded(ctx, &side_face_lines);
 
-
-    // Draw all side faces in parallel
-    buffer_op::lines::horizontal_batch_threaded::horizontal_lines_x3_threaded(
-        &mut ctx.frame_buf,
-        &ctx.win.dimensions,
-        &side_face_lines,
-        ctx.num_threads
-    );
-
-    // Draw all top faces in parallel
-    buffer_op::lines::horizontal_batch_threaded::horizontal_lines_x3_threaded(
-        &mut ctx.frame_buf,
-        &ctx.win.dimensions,
-        &top_face_lines,
-        ctx.num_threads
-    );
+        // Draw all top faces in parallel
+        draw::lines_batches::horizontal_lines_x3_threaded(ctx, &top_face_lines);
 
 
     // Draw all front faces as rectangles (batch)

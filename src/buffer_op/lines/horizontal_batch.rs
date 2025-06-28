@@ -3,6 +3,9 @@ use crate::primitives::plane::Dimensions2d;
 /// Draws horizontal lines on a buffer. **Single-threaded!**
 /// Each line is represented by  four consecutive elements: `x_start`, `x_end`, `y`, and `color`.
 /// These 4 elements in exactly that order are expected in the `lines` vector.
+///  **NB:** This function is CPU-only!
+///  **NB:**  If you need GPU-powered line drawing, either check low-level functions under `src/buffer_op/gpu`,
+///  **NB:**  Or use the high-level functions from `draw::lines_batches`
 /// # Parameters
 /// - `buf`: The buffer of pixels to draw the lines on
 /// - `buf_dimensions`: Dimensions of the buffer (width, height)
@@ -45,13 +48,15 @@ pub fn horizontal_lines_x4(buf: &mut [u32], buf_dimensions: &Dimensions2d, lines
 /// Draws horizontal lines on a buffer. **Single-threaded!**
 /// Each line is represented by a vector of `u32` where the first element is the color,
 /// followed by triplets of `x_start`, `x_end`, and `y` coordinates.
-///
-/// /// # Parameters
-/// /// - `buf`: The buffer of pixels to draw the lines on
-/// /// - `buf_dimensions`: Dimensions of the buffer (width, height)
-/// /// - `lines`: A vector of vectors, where each inner vector contains a color in RGBA, followed by triplets of `x_start`, `x_end`, and `y`
+///  **NB:** This function is CPU-only!
+///  **NB:**  If you need GPU-powered line drawing, either check low-level functions under `src/buffer_op/gpu`,
+///  **NB:**  Or use the high-level functions from `draw::lines_batches`
+/// # Parameters
+/// - `buf`: The buffer of pixels to draw the lines on
+/// - `buf_dimensions`: Dimensions of the buffer (width, height)
+/// - `lines`: A vector of vectors, where each inner vector contains a color in RGBA, followed by triplets of `x_start`, `x_end`, and `y`
 pub fn horizontal_lines_x3(buf: &mut [u32], buf_dimensions: &Dimensions2d, lines: &Vec<Vec<u32>>) {
-    let max_y = buf_dimensions.h as u32 - 1;
+    let max_y = buf_dimensions.h  - 1;
 
     for color_batch in lines.iter() {
         // The first element is the color, the rest are triplets of `x_start, x_end, y`.

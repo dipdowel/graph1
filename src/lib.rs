@@ -22,7 +22,8 @@ pub mod buffer_op {
         pub(crate) mod fill;
         pub(crate) mod scanline;
         pub(crate) mod fill_rects;
-
+        pub(crate) mod horizontal_lines_x4;
+        pub(crate) mod horizontal_lines_x3;
     }
 }
 
@@ -93,6 +94,7 @@ pub mod draw {
 
     /// Draw lines
     pub mod line;
+    pub mod lines_batches;
 
     /// Various closed shapes with multiple vertices
     pub mod polygons {

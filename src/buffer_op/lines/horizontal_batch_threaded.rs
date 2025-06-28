@@ -172,7 +172,9 @@ fn draw_band_lines(band_lines: &[&LineMeta], band_slice: &mut [u32], y_start: u3
 
 /// Draws horizontal lines on a buffer using multiple threads, with load balancing by line count.
 /// Each line is represented by four consecutive elements: `x_start`, `x_end`, `y`, and `color`.
-///
+///  **NB:** This function is CPU-only!
+///  **NB:**  If you need GPU-powered line drawing, either check low-level functions under `src/buffer_op/gpu`,
+///  **NB:**  Or use the high-level functions from `draw::lines_batches`
 /// # Parameters
 /// - `buf`: The buffer of pixels to draw the lines on (will be split among threads)
 /// - `buf_dimensions`: Dimensions of the buffer (width, height)
@@ -219,8 +221,16 @@ pub fn horizontal_lines_x4_threaded(buf: &mut [u32], buf_dimensions: &Dimensions
 }
 
 
-/// Multithreaded horizontal_lines_x3 implementation.
-/// See the description for horizontal_lines_x4_threaded for details.
+/// Draws horizontal lines on a buffer. **Multi-threaded!**
+/// Each line is represented by a vector of `u32` where the first element is the color,
+/// followed by triplets of `x_start`, `x_end`, and `y` coordinates.
+///  **NB:** This function is CPU-only!
+///  **NB:**  If you need GPU-powered line drawing, either check low-level functions under `src/buffer_op/gpu`,
+///  **NB:**  Or use the high-level functions from `draw::lines_batches`
+/// # Parameters
+/// - `buf`: The buffer of pixels to draw the lines on
+/// - `buf_dimensions`: Dimensions of the buffer (width, height)
+/// - `lines`: A vector of vectors, where each inner vector contains a color in RGBA, followed by triplets of `x_start`, `x_end`, and `y`
 pub fn horizontal_lines_x3_threaded(
     buf: &mut [u32],
     buf_dimensions: &Dimensions2d,
