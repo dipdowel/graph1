@@ -247,79 +247,83 @@ pub fn bars_3d<UserData>(ctx: &mut GraphContext<UserData>, props: &Vec<Bar3DProp
         batch
     }
 
-    // Batch all top faces and side faces as lines
-    let mut top_face_lines: Vec<Vec<u32>> = Vec::with_capacity(props.len());
-    let mut side_face_lines: Vec<Vec<u32>> = Vec::with_capacity(props.len());
-    let mut fronts: Vec<RectArea<i32>> = Vec::with_capacity(props.len());
+        // Batch all top faces and side faces as lines
+        let mut top_face_lines: Vec<Vec<u32>> = Vec::with_capacity(props.len());
+        let mut side_face_lines: Vec<Vec<u32>> = Vec::with_capacity(props.len());
+        let mut fronts: Vec<RectArea<i32>> = Vec::with_capacity(props.len());
 
-    for bar in props {
-        let Bar3DProps {
-            x, y, width, height, depth,
-            color_front, color_top, color_side,
-            slant, project_to_right,
-            ..
-        } = *bar;
-        let slant_x = slant.x as i32;
-        let slant_y = slant.y as i32;
+          for bar in props {
+              let Bar3DProps {
+                  x, y, width, height, depth,
+                  color_front, color_top, color_side,
+                  slant, project_to_right,
+                  ..
+              } = *bar;
+              let slant_x = slant.x as i32;
+              let slant_y = slant.y as i32;
 
-        // --- Top face as parallelogram ---
-        let (p0, p1, p2, p3) = if project_to_right {
-            // Right-projected: p0 = top-left, p1 = top-right, p2 = bottom-right, p3 = bottom-left
-            (
-                Point::new(x, y - height), // top-left
-                Point::new(x + width, y - height), // top-right
-                Point::new(x + width + depth * slant_x, y - height - depth * slant_y), // bottom-right
-                Point::new(x + depth * slant_x, y - height - depth * slant_y), // bottom-left
-            )
-        } else {
-            // Left-projected
-            (
-                Point::new(x, y - height), // top-left
-                Point::new(x + width, y - height), // top-right
-                Point::new(x + width - depth * slant_x, y - height - depth * slant_y), // bottom-right
-                Point::new(x - depth * slant_x, y - height - depth * slant_y), // bottom-left
-            )
-        };
+              // --- Top face as parallelogram ---
+              let (p0, p1, p2, p3) = if project_to_right {
+                  // Right-projected: p0 = top-left, p1 = top-right, p2 = bottom-right, p3 = bottom-left
+                  (
+                      Point::new(x, y - height), // top-left
+                      Point::new(x + width, y - height), // top-right
+                      Point::new(x + width + depth * slant_x, y - height - depth * slant_y), // bottom-right
+                      Point::new(x + depth * slant_x, y - height - depth * slant_y), // bottom-left
+                  )
+              } else {
+                  // Left-projected
+                  (
+                      Point::new(x, y - height), // top-left
+                      Point::new(x + width, y - height), // top-right
+                      Point::new(x + width - depth * slant_x, y - height - depth * slant_y), // bottom-right
+                      Point::new(x - depth * slant_x, y - height - depth * slant_y), // bottom-left
+                  )
+              };
 
-        let spans_top:Vec<u32> = parallelogram_horizontal_spans(p0, p1, p2, p3, color_top);
-        top_face_lines.push(spans_top);
+              let spans_top:Vec<u32> = parallelogram_horizontal_spans(p0, p1, p2, p3, color_top);
+              top_face_lines.push(spans_top);
 
-        // --- Side face as parallelogram ---
-        let (s0, s1, s2, s3) = if project_to_right {
-            // Right side face
-            (
-                Point::new(x + width, y - height),                        // top-left
-                Point::new(x + width + depth * slant_x, y - height - depth * slant_y), // top-right
-                Point::new(x + width + depth * slant_x, y - depth * slant_y),          // bottom-right
-                Point::new(x + width, y),                                 // bottom-left
-            )
-        } else {
-            // Left side face
-            (
-                Point::new(x, y - height),                       // top-left
-                Point::new(x - depth * slant_x, y - height - depth * slant_y), // top-right
-                Point::new(x - depth * slant_x, y - depth * slant_y),          // bottom-right
-                Point::new(x, y),                                 // bottom-left
-            )
-        };
+              // --- Side face as parallelogram ---
+              let (s0, s1, s2, s3) = if project_to_right {
+                  // Right side face
+                  (
+                      Point::new(x + width, y - height),                        // top-left
+                      Point::new(x + width + depth * slant_x, y - height - depth * slant_y), // top-right
+                      Point::new(x + width + depth * slant_x, y - depth * slant_y),          // bottom-right
+                      Point::new(x + width, y),                                 // bottom-left
+                  )
+              } else {
+                  // Left side face
+                  (
+                      Point::new(x, y - height),                       // top-left
+                      Point::new(x - depth * slant_x, y - height - depth * slant_y), // top-right
+                      Point::new(x - depth * slant_x, y - depth * slant_y),          // bottom-right
+                      Point::new(x, y),                                 // bottom-left
+                  )
+              };
 
-        let spans_side = parallelogram_horizontal_spans(s0, s1, s2, s3, color_side);
-        side_face_lines.push(spans_side);
-        
-        // println!("color_front: {color_front:#010x}, color_top: {color_top:#010x}, color_side: {color_side:#010x}");
+              let spans_side = parallelogram_horizontal_spans(s0, s1, s2, s3, color_side);
+              side_face_lines.push(spans_side);
 
-        // --- Front face batch collect (rectangles) ---
-        let front = RectArea::new(x, y - height, width, height + 1, Some(color_front));
-        fronts.push(front);
-    }
-        // Draw all side faces in parallel
-        draw::lines_batches::horizontal_lines_x3_threaded(ctx, &side_face_lines);
+              // println!("color_front: {color_front:#010x}, color_top: {color_top:#010x}, color_side: {color_side:#010x}");
 
-        // Draw all top faces in parallel
-        draw::lines_batches::horizontal_lines_x3_threaded(ctx, &top_face_lines);
+              // --- Front face batch collect (rectangles) ---
+              let front = RectArea::new(x, y - height, width, height + 1, Some(color_front));
+              fronts.push(front);
+          }
 
 
-    // Draw all front faces as rectangles (batch)
-    let front_refs: Vec<&RectArea<i32>> = fronts.iter().collect();
-    draw::rectangle::filled_multiple(ctx, &front_refs);
+          // Draw all side faces in parallel
+          draw::lines_batches::horizontal_lines_x3_threaded(ctx, &side_face_lines);
+    
+          // Draw all top faces in parallel
+          draw::lines_batches::horizontal_lines_x3_threaded(ctx, &top_face_lines);
+
+    
+
+      // Draw all front faces as rectangles (batch)
+      let front_refs: Vec<&RectArea<i32>> = fronts.iter().collect();
+      draw::rectangle::filled_multiple(ctx, &front_refs);
+
 }

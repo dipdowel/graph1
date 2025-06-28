@@ -1,5 +1,6 @@
 use crate::primitives::plane::Dimensions2d;
 use std::thread;
+use crate::buffer_op::{horizontal_lines_x3, horizontal_lines_x4};
 
 /// Struct describing a single horizontal line to be drawn.
 #[derive(Debug, Clone, Copy)]
@@ -185,6 +186,11 @@ pub fn horizontal_lines_x4_threaded(buf: &mut [u32], buf_dimensions: &Dimensions
         return;
     }
 
+    if num_threads == 1 {
+        horizontal_lines_x4(buf, buf_dimensions, lines);
+        return;
+    }
+
     // 1. Parse and sort
     let mut parsed_lines = parse_lines_x4(lines, buf_dimensions.w, buf_dimensions.h);
     parsed_lines.sort_by_key(|line| line.y);
@@ -240,6 +246,12 @@ pub fn horizontal_lines_x3_threaded(
     if lines.is_empty() || num_threads == 0 {
         return;
     }
+
+    if num_threads == 1 {
+        horizontal_lines_x3(buf, buf_dimensions, lines);
+        return;
+    }
+    
 
     let mut parsed_lines = parse_lines_x3(lines, buf_dimensions.w, buf_dimensions.h);
     parsed_lines.sort_by_key(|line| line.y);

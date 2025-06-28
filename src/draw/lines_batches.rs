@@ -28,7 +28,7 @@ pub fn horizontal_lines_x4<UserData>(
         ).expect("Failed to use the GPU for horizontal lines x4");
         return;
     }
-    horizontal_batch::horizontal_lines_x4(&mut ctx.frame_buf, &ctx.win.dimensions, lines)    
+    horizontal_batch::horizontal_lines_x4(&mut ctx.frame_buf, &ctx.win.dimensions, lines)
 }
 
 
@@ -78,7 +78,7 @@ pub fn horizontal_lines_x3<UserData>(
         ).expect("Failed to use the GPU for horizontal lines x4");
         return;
     }
-    
+
     horizontal_batch::horizontal_lines_x3(&mut ctx.frame_buf, &ctx.win.dimensions, lines)
 }
 
@@ -104,8 +104,8 @@ pub fn horizontal_lines_x3_threaded<UserData>(
         ).expect("Failed to use the GPU for horizontal lines x4");
         return;
     }
-    
+
     horizontal_batch_threaded::horizontal_lines_x3_threaded(&mut ctx.frame_buf, &ctx.win.dimensions, lines, ctx.num_threads)
-    
-    
+
+
 }
