@@ -24,6 +24,8 @@ pub mod buffer_op {
         pub(crate) mod fill_rects;
         pub(crate) mod horizontal_lines_x4;
         pub(crate) mod horizontal_lines_x3;
+        pub(crate) mod kernel_executor;
+        pub(crate) mod kernel_bundle;
     }
 }
 

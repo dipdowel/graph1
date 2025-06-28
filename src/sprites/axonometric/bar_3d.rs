@@ -7,6 +7,11 @@ use crate::primitives::point::Point;
 use crate::utils::math::geometry;
 use crate::utils::math::geometry::approximate_center;
 use crate::{buffer_op, draw};
+use crate::buffer_op::gpu::fill::fill_get_kernel;
+use crate::buffer_op::gpu::fill_rects::fill_rects_get_kernel;
+use crate::buffer_op::gpu::horizontal_lines_x3::horizontal_lines_x3_get_kernel;
+use crate::buffer_op::gpu::kernel_bundle::KernelBundle;
+use crate::buffer_op::gpu::kernel_executor::execute_kernels_and_read;
 
 /// Struct holding customizable properties of the 3D bar
 /// @See `bar_3d()`.
@@ -315,15 +320,38 @@ pub fn bars_3d<UserData>(ctx: &mut GraphContext<UserData>, props: &Vec<Bar3DProp
 
 
           // Draw all side faces in parallel
-          draw::lines_batches::horizontal_lines_x3_threaded(ctx, &side_face_lines);
+
     
           // Draw all top faces in parallel
           draw::lines_batches::horizontal_lines_x3_threaded(ctx, &top_face_lines);
 
-    
+    let front_refs: Vec<&RectArea<i32>> = fronts.iter().collect();
 
-      // Draw all front faces as rectangles (batch)
-      let front_refs: Vec<&RectArea<i32>> = fronts.iter().collect();
-      draw::rectangle::filled_multiple(ctx, &front_refs);
+    // Build all kernels operating on the same frame buffer
+        let kernel1_res = horizontal_lines_x3_get_kernel(&mut ctx.frame_buf, &ctx.win.dimensions, &side_face_lines, &mut ctx.gpu_context);
+        let kernel2_res = horizontal_lines_x3_get_kernel(&mut ctx.frame_buf, &ctx.win.dimensions, &top_face_lines, &mut ctx.gpu_context);
+        let kernel3_res = fill_rects_get_kernel(&mut ctx.frame_buf, &ctx.win.dimensions, &front_refs, ctx.win.foreground_color, &mut ctx.gpu_context);
+
+    // If any kernel creation fails, fallback to CPU rendering
+    if kernel1_res.is_err() || kernel2_res.is_err() || kernel3_res.is_err() {
+        draw::lines_batches::horizontal_lines_x3_threaded(ctx, &side_face_lines);
+        draw::lines_batches::horizontal_lines_x3_threaded(ctx, &top_face_lines);
+        draw::rectangle::filled_multiple(ctx, &front_refs);
+        return;
+    }
+
+    // If all kernels are created successfully, execute them
+    let KernelBundle{kernel: kernel1, buffers,..} = kernel1_res.expect("kernel1 failed");
+    let buffer = buffers.get(0).expect("No frame buffer in kernel bundle");
+
+    let KernelBundle{kernel:kernel2,..} = kernel2_res.expect("kernel2 failed");
+    let KernelBundle{kernel:kernel3,..} = kernel3_res.expect("kernel3 failed");
+
+    let kernels = vec![kernel1, kernel2, kernel3];
+    let gpu_result = execute_kernels_and_read(&kernels,  &buffer, &mut ctx.frame_buf);
+
+    if gpu_result.is_err() {
+        eprintln!("GPU execution failed :( {}", gpu_result.unwrap_err());
+    }
 
 }

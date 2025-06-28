@@ -255,8 +255,7 @@ pub fn filled_multiple<DemoUserData, T: Numeric + Copy + std::ops::Add<Output = 
         // flatten & pass the needed fields
         return filled_multiple_gpu(
             &mut ctx.frame_buf,
-            ctx.win.w,
-            ctx.win.h,
+            &ctx.win.dimensions,
             rects,
             ctx.win.foreground_color,            
             &mut ctx.gpu_context
