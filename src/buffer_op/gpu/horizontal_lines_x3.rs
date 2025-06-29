@@ -78,7 +78,9 @@ pub fn horizontal_lines_x3_get_kernel(
         let num_lines = flat_lines.len() / 4;
         if num_lines == 0 { return Err("No lines to process.".into()); }
         let buf_len = cpu_frame_buf.len();
-
+        
+        //println!("num_lines: {num_lines}, buf_len: {buf_len}, flat_lines.len(): {}", flat_lines.len());
+        
         // Load/cached program
         if gpu_context.get_program(program_name).is_none() {
             gpu_context
