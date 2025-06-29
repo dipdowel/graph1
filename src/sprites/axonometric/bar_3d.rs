@@ -318,6 +318,10 @@ pub fn bars_3d<UserData>(ctx: &mut GraphContext<UserData>, props: &Vec<Bar3DProp
     let mut all_scanlines: Vec<u32> = Vec::new();
     let mut scanline_ptrs: Vec<usize> = Vec::new();
 
+    let mut scanline_dict: Vec<Vec<usize>> = Vec::with_capacity(ctx.win.h_usize);
+    scanline_dict.resize(ctx.win.h_usize, vec![0_usize]);
+
+
     let mut fronts: Vec<RectArea<i32>> = Vec::with_capacity(props.len());
 
     for bar in props {
@@ -350,8 +354,12 @@ pub fn bars_3d<UserData>(ctx: &mut GraphContext<UserData>, props: &Vec<Bar3DProp
         };
         let side_lines = parallelogram_horizontal_scanlines(s0, s1, s2, s3, color_side);
         for line in &side_lines {
-            scanline_ptrs.push(all_scanlines.len());
+            let scanline_ptr = all_scanlines.len();
+            scanline_ptrs.push(scanline_ptr);
             all_scanlines.extend(line);
+            let y = line[0] as usize;            
+            scanline_dict[y][0] += 1; // Increment count for this y
+            scanline_dict[y].push(scanline_ptr); // save a copy of the pointer for this y
         }
 
         // --- Top face as parallelogram ---
@@ -372,8 +380,12 @@ pub fn bars_3d<UserData>(ctx: &mut GraphContext<UserData>, props: &Vec<Bar3DProp
         };
         let top_lines = parallelogram_horizontal_scanlines(p0, p1, p2, p3, color_top);
         for line in &top_lines {
-            scanline_ptrs.push(all_scanlines.len());
+            let scanline_ptr = all_scanlines.len();
+            scanline_ptrs.push(scanline_ptr);
             all_scanlines.extend(line);
+            let y = line[0] as usize;            
+            scanline_dict[y][0] += 1; // Increment count for this y
+            scanline_dict[y].push(scanline_ptr); // save a copy of the pointer for this y
         }
 
 
@@ -390,6 +402,7 @@ pub fn bars_3d<UserData>(ctx: &mut GraphContext<UserData>, props: &Vec<Bar3DProp
         &ctx.win.dimensions,
         all_scanlines,
         scanline_ptrs,
+        scanline_dict,
         ctx.num_threads
     );
 

@@ -13,13 +13,17 @@ use std::thread;
 /// - `scanline_data`: A vector of `u32` where the 0th element is the `y` coordinate,
 ///   the 1st element is the color in RGBA, and the rest are pairs of `x_start` and `x_end` values
 ///   of line segments on that scanline.
-/// - `scanline_pointers`: A vector  pointers into `scanline_data` that mark the start and end
-/// of each scanline.
+/// - `scanline_pointers`: A vector  pointers into `scanline_data` that mark the start and end of each scanline.
+/// - `scanline_dict`: A speed look-up table: 
+///       - `[y][0]` - how many scanlines are there for `y` 
+///       - `[y][1]` - the first pointer into `scanline_data` for that `y`
+///       - `[y][n]` - the nth pointer into `scanline_data` for that `y`
 pub fn horizontal_lines_y_grouped_threaded(
     buf: &mut [u32],
     buf_dimensions: &Dimensions2d,
     scanline_data: Vec<u32>,   // TAKE OWNERSHIP
     scanline_pointers: Vec<usize>, // TAKE OWNERSHIP
+    scanline_dict: Vec<Vec<usize>>, // TAKE OWNERSHIP
     num_threads: usize
 ) {
     if scanline_data.is_empty() || scanline_pointers.len() < 2 || num_threads == 0 {
@@ -34,6 +38,7 @@ pub fn horizontal_lines_y_grouped_threaded(
             buf_dimensions,
             &scanline_data,
             &scanline_pointers,
+            &scanline_dict
         );
         return;
     }
