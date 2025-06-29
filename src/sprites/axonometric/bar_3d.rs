@@ -4,14 +4,8 @@ use crate::draw::polygons::closed_perimeter;
 use crate::primitives::numeric::Numeric;
 use crate::primitives::plane::RectArea;
 use crate::primitives::point::Point;
-use crate::utils::math::geometry;
 use crate::utils::math::geometry::approximate_center;
 use crate::{buffer_op, draw};
-use crate::buffer_op::gpu::fill::fill_get_kernel;
-use crate::buffer_op::gpu::fill_rects::fill_rects_get_kernel;
-use crate::buffer_op::gpu::horizontal_lines_x3::horizontal_lines_x3_get_kernel;
-use crate::buffer_op::gpu::kernel_bundle::KernelBundle;
-use crate::buffer_op::gpu::kernel_executor::execute_kernels_and_read;
 
 
 /// Struct holding customizable properties of the 3D bar
@@ -321,11 +315,8 @@ pub fn bars_3d<UserData>(ctx: &mut GraphContext<UserData>, props: &Vec<Bar3DProp
         result
     }
 
-    let mut all_top_scanlines: Vec<u32> = Vec::new();
-    let mut top_scanline_ptrs: Vec<usize> = Vec::new();
-
-    let mut all_side_scanlines: Vec<u32> = Vec::new();
-    let mut side_scanline_ptrs: Vec<usize> = Vec::new();
+    let mut all_scanlines: Vec<u32> = Vec::new();
+    let mut scanline_ptrs: Vec<usize> = Vec::new();
 
     let mut fronts: Vec<RectArea<i32>> = Vec::with_capacity(props.len());
 
@@ -339,27 +330,7 @@ pub fn bars_3d<UserData>(ctx: &mut GraphContext<UserData>, props: &Vec<Bar3DProp
         let slant_x = slant.x as i32;
         let slant_y = slant.y as i32;
 
-        // --- Top face as parallelogram ---
-        let (p0, p1, p2, p3) = if project_to_right {
-            (
-                Point::new(x, y - height),
-                Point::new(x + width, y - height),
-                Point::new(x + width + depth * slant_x, y - height - depth * slant_y),
-                Point::new(x + depth * slant_x, y - height - depth * slant_y),
-            )
-        } else {
-            (
-                Point::new(x, y - height),
-                Point::new(x + width, y - height),
-                Point::new(x + width - depth * slant_x, y - height - depth * slant_y),
-                Point::new(x - depth * slant_x, y - height - depth * slant_y),
-            )
-        };
-        let top_lines = parallelogram_horizontal_scanlines(p0, p1, p2, p3, color_top);
-        for line in &top_lines {
-            top_scanline_ptrs.push(all_top_scanlines.len());
-            all_top_scanlines.extend(line);
-        }
+
 
         // --- Side face as parallelogram ---
         let (s0, s1, s2, s3) = if project_to_right {
@@ -379,57 +350,50 @@ pub fn bars_3d<UserData>(ctx: &mut GraphContext<UserData>, props: &Vec<Bar3DProp
         };
         let side_lines = parallelogram_horizontal_scanlines(s0, s1, s2, s3, color_side);
         for line in &side_lines {
-            side_scanline_ptrs.push(all_side_scanlines.len());
-            all_side_scanlines.extend(line);
+            scanline_ptrs.push(all_scanlines.len());
+            all_scanlines.extend(line);
         }
+
+        // --- Top face as parallelogram ---
+        let (p0, p1, p2, p3) = if project_to_right {
+            (
+                Point::new(x, y - height),
+                Point::new(x + width, y - height),
+                Point::new(x + width + depth * slant_x, y - height - depth * slant_y),
+                Point::new(x + depth * slant_x, y - height - depth * slant_y),
+            )
+        } else {
+            (
+                Point::new(x, y - height),
+                Point::new(x + width, y - height),
+                Point::new(x + width - depth * slant_x, y - height - depth * slant_y),
+                Point::new(x - depth * slant_x, y - height - depth * slant_y),
+            )
+        };
+        let top_lines = parallelogram_horizontal_scanlines(p0, p1, p2, p3, color_top);
+        for line in &top_lines {
+            scanline_ptrs.push(all_scanlines.len());
+            all_scanlines.extend(line);
+        }
+
 
         // --- Front face batch collect (rectangles) ---
         let front = RectArea::new(x, y - height, width, height + 1, Some(color_front));
         fronts.push(front);
     }
+
     // Add one more pointer past the last line for correct windowing
-    top_scanline_ptrs.push(all_top_scanlines.len());
+    scanline_ptrs.push(all_scanlines.len());
 
-    side_scanline_ptrs.push(all_side_scanlines.len());
-
-    // // Draw side and top faces using horizontal_lines_y_grouped
-    // buffer_op::horizontal_lines_y_grouped(
-    //     &mut ctx.frame_buf,
-    //     &ctx.win.dimensions,
-    //     &all_side_scanlines,
-    //     &side_scanline_ptrs,
-    // );
-    // buffer_op::horizontal_lines_y_grouped(
-    //     &mut ctx.frame_buf,
-    //     &ctx.win.dimensions,
-    //     &all_top_scanlines,
-    //     &top_scanline_ptrs,
-    // );
-
-    
-
-
-    // Draw side and top faces using horizontal_lines_y_grouped
     buffer_op::horizontal_lines_y_grouped_threaded(
         &mut ctx.frame_buf,
         &ctx.win.dimensions,
-        &all_side_scanlines,
-        &side_scanline_ptrs,
+        all_scanlines,
+        scanline_ptrs,
         ctx.num_threads
     );
-    
-    
-    
-    buffer_op::horizontal_lines_y_grouped_threaded(
-        &mut ctx.frame_buf,
-        &ctx.win.dimensions,
-        &all_top_scanlines,
-        &top_scanline_ptrs,
-        ctx.num_threads
-    );
-    
-    
-    
+
+
     let front_refs: Vec<&RectArea<i32>> = fronts.iter().collect();
     draw::rectangle::filled_multiple(ctx, &front_refs);
 }
