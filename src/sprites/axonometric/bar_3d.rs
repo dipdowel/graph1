@@ -120,11 +120,9 @@ pub fn bar_3d<UserData>(ctx: &mut GraphContext<UserData>, props: &Bar3DProps) {
     buffer_op::scanline_wavefront(&mut ctx.frame_buf, &ctx.win.dimensions, &flood_fill_point.to_pixel(color_side),);
 }
 
-///
-///
-///
-///
-///
+
+
+/*
 /// Draws multiple pseudo-3D bars in isometric projection using batch rectangle drawing for the front face.
 ///
 /// Uses `draw::rectangle::filled_multiple()` for better performance when rendering many bars.
@@ -133,81 +131,6 @@ pub fn bar_3d<UserData>(ctx: &mut GraphContext<UserData>, props: &Bar3DProps) {
 /// * `ctx` - Mutable reference to the GraphContext
 /// * `props` - Vector of bar configurations
 pub fn bars_3d_old<UserData>(ctx: &mut GraphContext<UserData>, props: &Vec<Bar3DProps>) {
-    use crate::draw;
-    use crate::primitives::plane::RectArea;
-
-    // Gather references to all front faces for batch rendering.
-    let mut fronts: Vec<RectArea<i32>> = Vec::with_capacity(props.len());
-
-    // Draw top and side faces individually
-    for bar in props {
-        // --- Top face ---
-        let Bar3DProps { x, y, width, height, depth, color_top, color_side, slant, project_to_right, .. } = *bar;
-        let slant_x = slant.x as i32;
-        let slant_y = slant.y as i32;
-
-        // Draw the top face as before
-        let line_ctx_state = ctx.line.get_context();
-        ctx.line.set_int_no_aa(Some(1));
-        let total_steps = (depth + 1) * slant_y;
-        for n in 0..total_steps {
-            let i = n / slant_y;
-            let j = n % slant_y;
-            let dx = if project_to_right { x + i * slant_x } else { x - i * slant_x };
-            let dy = y - height - i * slant_y + j;
-            let start = Point::new(dx, dy);
-            draw::line::horizontal(ctx, &start, i32::to_u32(width), Some(color_top));
-        }
-        ctx.line.set_context(line_ctx_state);
-
-        // --- Side face (right or left) ---
-        let side = if project_to_right {
-            vec![
-                Point::new(x + width, y - height),
-                Point::new(x + width + depth * slant_x, y - height - depth * slant_y),
-                Point::new(x + width + depth * slant_x, y - depth * slant_y),
-                Point::new(x + width, y),
-            ]
-        } else {
-            vec![
-                Point::new(x, y - height),
-                Point::new(x - depth * slant_x, y - height - depth * slant_y),
-                Point::new(x - depth * slant_x, y - depth * slant_y),
-                Point::new(x, y),
-            ]
-        };
-        draw::polygons::closed_perimeter(ctx, &side, Some(color_side));
-        let flood_fill_point = geometry::approximate_center(&side)
-            .unwrap_or(side[0].clone() + Point::new(1, 1));
-
-        buffer_op::scanline_wavefront(&mut ctx.frame_buf, &ctx.win.dimensions, &flood_fill_point.to_pixel(color_side),);
-        let Bar3DProps { x, y, width, height, color_front, .. } = *bar;
-        let front = RectArea::new(x, y - height, width, height + 1, Some(color_front));
-        fronts.push(front);
-    }
-
-    let front_refs: Vec<&RectArea<i32>> = fronts.iter().collect();
-    draw::rectangle::filled_multiple(ctx, &front_refs);
-    
-}
-
-
-
-
-
-///
-///
-///
-///
-///
-/// Draws multiple pseudo-3D bars in isometric projection using batch rectangle drawing for the front face.
-///
-/// Uses `draw::rectangle::filled_multiple()` for better performance when rendering many bars.
-///
-/// # Arguments
-/// * `ctx` - Mutable reference to the GraphContext
-/// * `props` - Vector of bar configurations
-pub fn bars_3d<UserData>(ctx: &mut GraphContext<UserData>, props: &Vec<Bar3DProps>) {
     use crate::draw;
     use crate::primitives::plane::RectArea;
 
@@ -354,4 +277,134 @@ pub fn bars_3d<UserData>(ctx: &mut GraphContext<UserData>, props: &Vec<Bar3DProp
         eprintln!("GPU execution failed :( {}", gpu_result.unwrap_err());
     }
 
+}
+*/
+
+
+
+
+pub fn bars_3d<UserData>(ctx: &mut GraphContext<UserData>, props: &Vec<Bar3DProps>) {
+    use crate::draw;
+    use crate::primitives::plane::RectArea;
+
+    /// Generates scanlines for a convex quadrilateral (parallelogram) in the form:
+    /// Each scanline is a Vec<u32>: [y, color, x_start, x_end]
+    /// Returns a Vec<Vec<u32>>: one inner Vec per scanline
+    fn parallelogram_horizontal_scanlines(
+        p0: Point<i32>,
+        p1: Point<i32>,
+        p2: Point<i32>,
+        p3: Point<i32>,
+        color: u32,
+    ) -> Vec<Vec<u32>> {
+        let mut result = Vec::new();
+        let min_y = p0.y.min(p1.y).min(p2.y).min(p3.y);
+        let max_y = p0.y.max(p1.y).max(p2.y).max(p3.y);
+
+        for y in min_y..max_y {
+            let x_left = if p3.y != p0.y {
+                p0.x + ((p3.x - p0.x) as f32 * (y - p0.y) as f32 / (p3.y - p0.y) as f32).round() as i32
+            } else {
+                p0.x
+            };
+            let x_right = if p2.y != p1.y {
+                p1.x + ((p2.x - p1.x) as f32 * (y - p1.y) as f32 / (p2.y - p1.y) as f32).round() as i32
+            } else {
+                p1.x
+            };
+
+            let x_start = x_left.min(x_right) as u32;
+            let x_end = x_left.max(x_right) as u32;
+            result.push(vec![y as u32, color, x_start, x_end]);
+        }
+        result
+    }
+
+    let mut all_top_scanlines: Vec<u32> = Vec::new();
+    let mut top_scanline_ptrs: Vec<usize> = Vec::new();
+
+    let mut all_side_scanlines: Vec<u32> = Vec::new();
+    let mut side_scanline_ptrs: Vec<usize> = Vec::new();
+
+    let mut fronts: Vec<RectArea<i32>> = Vec::with_capacity(props.len());
+
+    for bar in props {
+        let Bar3DProps {
+            x, y, width, height, depth,
+            color_front, color_top, color_side,
+            slant, project_to_right,
+            ..
+        } = *bar;
+        let slant_x = slant.x as i32;
+        let slant_y = slant.y as i32;
+
+        // --- Top face as parallelogram ---
+        let (p0, p1, p2, p3) = if project_to_right {
+            (
+                Point::new(x, y - height),
+                Point::new(x + width, y - height),
+                Point::new(x + width + depth * slant_x, y - height - depth * slant_y),
+                Point::new(x + depth * slant_x, y - height - depth * slant_y),
+            )
+        } else {
+            (
+                Point::new(x, y - height),
+                Point::new(x + width, y - height),
+                Point::new(x + width - depth * slant_x, y - height - depth * slant_y),
+                Point::new(x - depth * slant_x, y - height - depth * slant_y),
+            )
+        };
+        let top_lines = parallelogram_horizontal_scanlines(p0, p1, p2, p3, color_top);
+        for line in &top_lines {
+            top_scanline_ptrs.push(all_top_scanlines.len());
+            all_top_scanlines.extend(line);
+        }
+
+        // --- Side face as parallelogram ---
+        let (s0, s1, s2, s3) = if project_to_right {
+            (
+                Point::new(x + width, y - height),
+                Point::new(x + width + depth * slant_x, y - height - depth * slant_y),
+                Point::new(x + width + depth * slant_x, y - depth * slant_y),
+                Point::new(x + width, y),
+            )
+        } else {
+            (
+                Point::new(x, y - height),
+                Point::new(x - depth * slant_x, y - height - depth * slant_y),
+                Point::new(x - depth * slant_x, y - depth * slant_y),
+                Point::new(x, y),
+            )
+        };
+        let side_lines = parallelogram_horizontal_scanlines(s0, s1, s2, s3, color_side);
+        for line in &side_lines {
+            side_scanline_ptrs.push(all_side_scanlines.len());
+            all_side_scanlines.extend(line);
+        }
+
+        // --- Front face batch collect (rectangles) ---
+        let front = RectArea::new(x, y - height, width, height + 1, Some(color_front));
+        fronts.push(front);
+    }
+    // Add one more pointer past the last line for correct windowing
+    top_scanline_ptrs.push(all_top_scanlines.len());
+
+    side_scanline_ptrs.push(all_side_scanlines.len());
+
+    // Draw side and top faces using horizontal_lines_y_grouped
+    buffer_op::horizontal_lines_y_grouped(
+        &mut ctx.frame_buf,
+        &ctx.win.dimensions,
+        &all_side_scanlines,
+        &side_scanline_ptrs,
+    );
+    buffer_op::horizontal_lines_y_grouped(
+        &mut ctx.frame_buf,
+        &ctx.win.dimensions,
+        &all_top_scanlines,
+        &top_scanline_ptrs,
+    );
+
+    let front_refs: Vec<&RectArea<i32>> = fronts.iter().collect();
+    draw::rectangle::filled_multiple(ctx, &front_refs);
 }
