@@ -286,6 +286,173 @@ pub fn horizontal_lines_x3_threaded(
 }
 
 
+//++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+//++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+//++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+/// Parses grouped scanline format into LineMeta.
+/// Each scanline starts at scanline_pointers[i] in scanline_data and goes to scanline_pointers[i+1].
+/// The data per scanline: [y, color, x_start, x_end, x_start2, x_end2, ...]
+fn parse_lines_y_grouped(scanline_data: &Vec<u32>, scanline_pointers: &Vec<usize>, width: u32, height: u32) -> Vec<LineMeta> {
+    let mut result = Vec::new();
+    if width == 0 || height == 0 || scanline_pointers.len() < 2 {
+        return result;
+    }
+    let max_x = width - 1;
+    for window in scanline_pointers.windows(2) {
+        let start = window[0];
+        let end = window[1];
+        let scanline = &scanline_data[start..end];
+        if scanline.len() < 4 {
+            continue; // needs at least y, color, x_start, x_end
+        }
+        let y = scanline[0];
+        if y >= height {
+            continue;
+        }
+        let color = scanline[1];
+        for x_pair in scanline[2..].chunks(2) {
+            if x_pair.len() != 2 { continue; }
+            let mut x_start = x_pair[0];
+            let mut x_end = x_pair[1];
+            x_start = x_start.clamp(0, max_x);
+            x_end = x_end.clamp(0, max_x);
+            if x_start > x_end {
+                continue;
+            }
+            result.push(LineMeta { x_start, x_end, y, color });
+        }
+    }
+    result
+}
+//
+// /// Groups sorted lines into runs of identical y, returning Vec<YGroup>.
+// fn group_by_y(parsed_lines: &[LineMeta]) -> Vec<YGroup> {
+//     let mut y_groups = Vec::new();
+//     let mut i = 0;
+//     while i < parsed_lines.len() {
+//         let y = parsed_lines[i].y;
+//         let start = i;
+//         let mut len = 1;
+//         while i + len < parsed_lines.len() && parsed_lines[i + len].y == y {
+//             len += 1;
+//         }
+//         y_groups.push(YGroup { y, start, len });
+//         i += len;
+//     }
+//     y_groups
+// }
+//
+// /// Partitions y_groups into bands for balanced threading.
+// fn partition_bands(y_groups: &[YGroup], num_threads: usize, total_lines: usize) -> Vec<Vec<usize>> {
+//     let min_lines_per_band = total_lines / num_threads;
+//     let mut bands = Vec::with_capacity(num_threads);
+//     let mut current_band = Vec::new();
+//     let mut group_idx = 0;
+//     for t in 0..num_threads {
+//         let mut band_count = 0;
+//         while group_idx < y_groups.len()
+//             && (band_count < min_lines_per_band || t == num_threads - 1 && group_idx < y_groups.len() - (num_threads - t - 1))
+//         {
+//             band_count += y_groups[group_idx].len;
+//             current_band.push(group_idx);
+//             group_idx += 1;
+//         }
+//         bands.push(std::mem::take(&mut current_band));
+//     }
+//     bands
+// }
+//
+// fn band_y_range(band: &[usize], y_groups: &[YGroup]) -> Option<(u32, u32)> {
+//     if band.is_empty() {
+//         None
+//     } else {
+//         let first = &y_groups[*band.first().unwrap()];
+//         let last = &y_groups[*band.last().unwrap()];
+//         Some((first.y, last.y))
+//     }
+// }
+//
+// fn collect_band_lines<'a>(band: &[usize], y_groups: &'a [YGroup], parsed_lines: &'a [LineMeta]) -> Vec<&'a LineMeta> {
+//     band.iter()
+//         .flat_map(|&gidx| {
+//             let g = &y_groups[gidx];
+//             parsed_lines[g.start .. g.start + g.len].iter()
+//         })
+//         .collect()
+// }
+//
+// fn draw_band_lines(band_lines: &[&LineMeta], band_slice: &mut [u32], y_start: u32, width: u32, _height: u32) {
+//     for line in band_lines {
+//         let row_offset = ((line.y - y_start) * width) as usize;
+//         for x in line.x_start..=line.x_end {
+//             band_slice[row_offset + x as usize] = line.color;
+//         }
+//     }
+// }
+
+/// Draws horizontal lines on a buffer using multiple threads, with load balancing by line count.
+/// Scanlines are grouped, as in horizontal_lines_y_grouped (see crate::buffer_op::lines::horizontal_batch).
+/// Each scanline is described in `scanline_data` (flattened) and its start indices in `scanline_pointers`.
+///
+/// # Parameters
+/// - `buf`: The buffer of pixels to draw the lines on (will be split among threads)
+/// - `buf_dimensions`: Dimensions of the buffer (width, height)
+/// - `scanline_data`: Flattened line info: [y, color, x_start, x_end, ...] per scanline
+/// - `scanline_pointers`: Start indices in `scanline_data` for each scanline, last pointer is past-the-end
+/// - `num_threads`: Number of threads to use for rendering
+pub fn horizontal_lines_y_grouped_threaded(
+    buf: &mut [u32],
+    buf_dimensions: &Dimensions2d,
+    scanline_data: &Vec<u32>,
+    scanline_pointers: &Vec<usize>,
+    num_threads: usize
+) {
+
+
+    if scanline_data.is_empty() || scanline_pointers.len() < 2 || num_threads == 0 {
+        return;
+    }
+
+    let mut parsed_lines = parse_lines_y_grouped(scanline_data, scanline_pointers, buf_dimensions.w, buf_dimensions.h);
+    if parsed_lines.is_empty() {
+        return;
+    }
+    parsed_lines.sort_by_key(|line| line.y);
+
+    let y_groups = group_by_y(&parsed_lines);
+    let total_lines = parsed_lines.len();
+    let bands = partition_bands(&y_groups, num_threads, total_lines);
+
+    let width = buf_dimensions.w;
+    let height = buf_dimensions.h;
+    let buf_ptr = buf.as_mut_ptr();
+
+    thread::scope(|scope| {
+        for band in &bands {
+            let y_range_opt = band_y_range(band, &y_groups);
+            if band.is_empty() || y_range_opt.is_none() { continue; }
+            let (y_start, y_end) = y_range_opt.unwrap();
+            let band_lines = collect_band_lines(band, &y_groups, &parsed_lines);
+            let n_rows = y_end - y_start + 1;
+            let band_slice_len = (n_rows as usize) * (width as usize);
+            let band_slice = unsafe {
+                std::slice::from_raw_parts_mut(
+                    buf_ptr.add((y_start * width) as usize),
+                    band_slice_len
+                )
+            };
+            scope.spawn(move || {
+                draw_band_lines(&band_lines, band_slice, y_start, width, height);
+            });
+        }
+    });
+}
+
+//++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+//++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+//++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+
 
 
 #[cfg(test)]

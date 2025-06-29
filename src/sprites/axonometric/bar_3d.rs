@@ -13,6 +13,7 @@ use crate::buffer_op::gpu::horizontal_lines_x3::horizontal_lines_x3_get_kernel;
 use crate::buffer_op::gpu::kernel_bundle::KernelBundle;
 use crate::buffer_op::gpu::kernel_executor::execute_kernels_and_read;
 
+
 /// Struct holding customizable properties of the 3D bar
 /// @See `bar_3d()`.
 #[derive(Debug, Clone, Copy)]
@@ -391,20 +392,44 @@ pub fn bars_3d<UserData>(ctx: &mut GraphContext<UserData>, props: &Vec<Bar3DProp
 
     side_scanline_ptrs.push(all_side_scanlines.len());
 
+    // // Draw side and top faces using horizontal_lines_y_grouped
+    // buffer_op::horizontal_lines_y_grouped(
+    //     &mut ctx.frame_buf,
+    //     &ctx.win.dimensions,
+    //     &all_side_scanlines,
+    //     &side_scanline_ptrs,
+    // );
+    // buffer_op::horizontal_lines_y_grouped(
+    //     &mut ctx.frame_buf,
+    //     &ctx.win.dimensions,
+    //     &all_top_scanlines,
+    //     &top_scanline_ptrs,
+    // );
+
+    
+
+
     // Draw side and top faces using horizontal_lines_y_grouped
-    buffer_op::horizontal_lines_y_grouped(
+    buffer_op::horizontal_lines_y_grouped_threaded(
         &mut ctx.frame_buf,
         &ctx.win.dimensions,
         &all_side_scanlines,
         &side_scanline_ptrs,
+        ctx.num_threads
     );
-    buffer_op::horizontal_lines_y_grouped(
+    
+    
+    
+    buffer_op::horizontal_lines_y_grouped_threaded(
         &mut ctx.frame_buf,
         &ctx.win.dimensions,
         &all_top_scanlines,
         &top_scanline_ptrs,
+        ctx.num_threads
     );
-
+    
+    
+    
     let front_refs: Vec<&RectArea<i32>> = fronts.iter().collect();
     draw::rectangle::filled_multiple(ctx, &front_refs);
 }
