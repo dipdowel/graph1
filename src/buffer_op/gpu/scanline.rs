@@ -6,7 +6,7 @@ use crate::buffer_op::gpu::kernel_bundle::KernelBundle;
 
 /// Apply scanline FX using the GPU, downloads result to host buffer after.
 pub fn scanline_fx(
-    buffer: &mut [u32],
+    cpu_frame_buf: &mut [u32],
     width: u32,
     size: u8,
     intensity: u8,
@@ -14,18 +14,26 @@ pub fn scanline_fx(
 ) -> Result<(), String> {
     #[cfg(feature = "gpu")]
     {
-        let bundle = scanline_get_kernel(buffer, width, size, intensity, gpu_context)?;
+        let bundle = scanline_get_kernel(cpu_frame_buf, width, size, intensity, gpu_context)?;
         let kernel = bundle.kernel;
-        let frame_buf = bundle.buffers.get(0)
+        let gpu_frame_buf = bundle.buffers.get(0)
             .ok_or("No frame buffer in kernel bundle")?;
-        
+
+        // Upload current ctx.frame_buf to the GPU
+        gpu_frame_buf.write(cpu_frame_buf.as_ref()).enq().map_err(|e| format!("Failed to upload frame buffer: {e}"))?;
+
         unsafe { kernel.enq().map_err(|e| format!("Failed to enqueue kernel: {e}"))?; }
         // Download result
-        frame_buf.read(buffer).enq().map_err(|e| format!("Failed to read GPU buffer: {e}"))?;
+        gpu_frame_buf.read(cpu_frame_buf).enq().map_err(|e| format!("Failed to read GPU buffer: {e}"))?;
         Ok(())
     }
     #[cfg(not(feature = "gpu"))]
     {
+        let _ = cpu_frame_buf;
+        let _ = width;
+        let _ = size;
+        let _ = intensity;
+        let _ = gpu_context;
         Err("GPU support is not enabled at compile time.".to_string())
     }
 }
@@ -34,7 +42,7 @@ pub fn scanline_fx(
 /// Use with the kernel executor for pipelined/multi-effect GPU workflows.
 /// Returns the kernel and frame buffer (so it lives long enough).
 pub fn scanline_get_kernel(
-    buffer: &mut [u32],
+    cpu_frame_buf: &mut [u32],
     width: u32,
     size: u8,
     intensity: u8,
@@ -46,7 +54,7 @@ pub fn scanline_get_kernel(
         let kernel_name = "scanline_fx";
         let program_name = "scanline_fx_program";
 
-        let buf_len = buffer.len();
+        let buf_len = cpu_frame_buf.len();
 
         // Load or cache the program
         if gpu_context.get_program(program_name).is_none() {
@@ -66,10 +74,9 @@ pub fn scanline_get_kernel(
         let queue_value = queue.as_ref().clone();
 
         // Frame buffer (pooled)
-        let frame_buf = gpu_context.get_or_create_buffer(buf_len, queue_ref, buffer)?;
+        let gpu_frame_buf = gpu_context.get_or_create_buffer(buf_len, queue_ref, cpu_frame_buf)?;
 
-        // (Optional) upload current frame buffer to device
-        frame_buf.write(buffer.as_ref()).enq().map_err(|e| format!("Failed to upload frame buffer: {e}"))?;
+
 
         // Build (do not enqueue)
         let kernel = Kernel::builder()
@@ -77,7 +84,7 @@ pub fn scanline_get_kernel(
             .name(kernel_name)
             .queue(queue_value)
             .global_work_size(buf_len)
-            .arg(&frame_buf)
+            .arg(&gpu_frame_buf)
             .arg((intensity as u32) << 24 | (intensity as u32) << 16 | (intensity as u32) << 8 | 0xff)
             .arg(width * size as u32)
             .arg(buf_len as u32)
@@ -86,10 +93,15 @@ pub fn scanline_get_kernel(
             .map_err(|e| format!("Failed to build kernel: {e}"))?;
 
 
-        Ok(KernelBundle::new(kernel, vec![frame_buf]))
+        Ok(KernelBundle::new(kernel, vec![gpu_frame_buf]))
     }
     #[cfg(not(feature = "gpu"))]
     {
+        let _ = cpu_frame_buf;
+        let _ = width;
+        let _ = size;
+        let _ = intensity;
+        let _ = gpu_context;
         Err("GPU support is not enabled at compile time.".to_string())
     }
 }

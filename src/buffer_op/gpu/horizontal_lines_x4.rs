@@ -7,34 +7,37 @@ use crate::buffer_op::gpu::kernel_bundle::KernelBundle;
 
 ///  Draw a batch of horizontal lines with GPU, download result into host buffer.
 pub fn horizontal_lines_x4_gpu(
-    buf: &mut [u32],
+    cpu_frame_buf: &mut [u32],
     buf_dimensions: &Dimensions2d,
     lines: &Vec<u32>,
     gpu_context: &mut GpuContext,
 ) -> Result<(), String> {
     #[cfg(feature = "gpu")]
     {
-        
+
         let bundle = horizontal_lines_x4_get_kernel(
-            buf, buf_dimensions, lines, gpu_context,
+            cpu_frame_buf, buf_dimensions, lines, gpu_context,
         )?;
-        
+
         let kernel = bundle.kernel;
-        let frame_buf = bundle.buffers.get(0)
+        let gpu_frame_buf = bundle.buffers.get(0)
             .ok_or("No frame buffer in kernel bundle")?;
         let lines_buf = bundle.buffers.get(1)
             .ok_or("No lines buffer in kernel bundle")?;
-        
+
+        // Upload current ctx.frame_buf to the GPU
+        gpu_frame_buf.write(cpu_frame_buf.as_ref()).enq().map_err(|e| format!("Failed to upload frame buffer: {e}"))?;
+
         unsafe { kernel.enq().map_err(|e| format!("Failed to enqueue kernel: {e}"))?; }
-        frame_buf.read(buf).enq().map_err(|e| format!("Failed to read GPU buffer back to host: {e}"))?;
+        gpu_frame_buf.read(cpu_frame_buf).enq().map_err(|e| format!("Failed to read GPU buffer back to host: {e}"))?;
         Ok(())
     }
     #[cfg(not(feature = "gpu"))]
     {
-        let _ = buf;
+        let _ = cpu_frame_buf;
         let _ = buf_dimensions;
         let _ = lines;
-        let _ = gpu_context;        
+        let _ = gpu_context;
         Err("GPU support is not enabled at compile time.".to_string())
     }
 }
@@ -42,7 +45,7 @@ pub fn horizontal_lines_x4_gpu(
 /// Build and return the ready-to-enqueue kernel for batch horizontal lines.
 /// Use with the kernel executor for GPU pipelines. Returns kernel and all relevant buffers.
 pub fn horizontal_lines_x4_get_kernel(
-    buf: &mut [u32],
+    cpu_frame_buf: &mut [u32],
     buf_dimensions: &Dimensions2d,
     lines: &Vec<u32>,
     gpu_context: &mut GpuContext,
@@ -55,7 +58,7 @@ pub fn horizontal_lines_x4_get_kernel(
 
         let num_lines = lines.len() / 4;
         if num_lines == 0 { return Err("No lines to process.".into()); }
-        let buf_len = buf.len();
+        let buf_len = cpu_frame_buf.len();
 
         // Load/cached program
         if gpu_context.get_program(program_name).is_none() {
@@ -83,10 +86,9 @@ pub fn horizontal_lines_x4_get_kernel(
             .map_err(|e| format!("Failed to create OpenCL lines buffer: {e}"))?;
 
         // Upload frame buffer (pooled)
-        let frame_buf = gpu_context.get_or_create_buffer(buf_len, queue_ref, buf)?;
+        let gpu_frame_buf = gpu_context.get_or_create_buffer(buf_len, queue_ref, cpu_frame_buf)?;
 
-        // (Optional) upload current frame buffer to device
-        frame_buf.write(buf.as_ref()).enq().map_err(|e| format!("Failed to upload frame buffer: {e}"))?;
+
 
         // Build (but do not enqueue) the kernel
         let kernel = Kernel::builder()
@@ -94,7 +96,7 @@ pub fn horizontal_lines_x4_get_kernel(
             .name(kernel_name)
             .queue(queue_value)
             .global_work_size(num_lines)
-            .arg(&frame_buf)
+            .arg(&gpu_frame_buf)
             .arg(buf_dimensions.w)
             .arg(buf_dimensions.h)
             .arg(&lines_buf)
@@ -102,15 +104,15 @@ pub fn horizontal_lines_x4_get_kernel(
             .build()
             .map_err(|e| format!("Failed to build kernel: {e}"))?;
 
-        
+
         Ok(KernelBundle {
             kernel,
-            buffers: vec![frame_buf, lines_buf],
+            buffers: vec![gpu_frame_buf, lines_buf],
         })
     }
     #[cfg(not(feature = "gpu"))]
     {
-        let _ = buf;
+        let _ = cpu_frame_buf;
         let _ = buf_dimensions;
         let _ = lines;
         let _ = gpu_context;

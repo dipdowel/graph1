@@ -7,26 +7,29 @@ use crate::buffer_op::gpu::kernel_bundle::KernelBundle;
 
 /// Fill the GPU buffer with a color (in-place, downloads to host after).
 pub fn fill(
-    buffer: &mut [u32],
+    cpu_frame_buf: &mut [u32],
     buf_len: usize,
     color: u32,
     gpu_context: &mut GpuContext,
 ) -> Result<(), String> {
     #[cfg(feature = "gpu")]
     {
-        let bundle = fill_get_kernel(buffer, buf_len, color, gpu_context)?;
+        let bundle = fill_get_kernel(cpu_frame_buf, buf_len, color, gpu_context)?;
         let kernel = bundle.kernel;
-        let frame_buf = bundle.buffers.get(0)
+        let gpu_frame_buf = bundle.buffers.get(0)
             .ok_or("No frame buffer in kernel bundle")?;
         
+        // Upload current ctx.frame_buf to the GPU
+        gpu_frame_buf.write(cpu_frame_buf.as_ref()).enq().map_err(|e| format!("Failed to upload frame buffer: {e}"))?;
+
         unsafe { kernel.enq().map_err(|e| format!("Failed to enqueue kernel: {e}"))?; }
         // Download
-        frame_buf.read(buffer).enq().map_err(|e| format!("Failed to read GPU buffer back to host: {e}"))?;
+        gpu_frame_buf.read(cpu_frame_buf).enq().map_err(|e| format!("Failed to read GPU buffer back to host: {e}"))?;
         Ok(())
     }
     #[cfg(not(feature = "gpu"))]
     {
-        let _ = buffer;
+        let _ = cpu_frame_buf;
         let _ = buf_len;
         let _ = color;
         let _ = gpu_context;
@@ -38,7 +41,7 @@ pub fn fill(
 /// Use with the kernel executor for multi-effect GPU pipelines.
 /// Returns the kernel and frame buffer (so it lives long enough).
 pub fn fill_get_kernel(
-    buffer: &mut [u32],
+    cpu_frame_buf: &mut [u32],
     buf_len: usize,
     color: u32,
     gpu_context: &mut GpuContext,
@@ -67,10 +70,9 @@ pub fn fill_get_kernel(
         let queue_value = queue.as_ref().clone();
 
         // Frame buffer (pooled)
-        let frame_buf = gpu_context.get_or_create_buffer(buf_len, queue_ref, buffer)?;
+        let gpu_frame_buf = gpu_context.get_or_create_buffer(buf_len, queue_ref, cpu_frame_buf)?;
 
-        // (Optional) upload current buffer to device
-        frame_buf.write(buffer.as_ref()).enq().map_err(|e| format!("Failed to upload frame buffer: {e}"))?;
+
 
         // Build (do not enqueue)
         let kernel = Kernel::builder()
@@ -78,17 +80,17 @@ pub fn fill_get_kernel(
             .name(kernel_name)
             .queue(queue_value)
             .global_work_size(buf_len)
-            .arg(&frame_buf)
+            .arg(&gpu_frame_buf)
             .arg(color)
             .arg(buf_len as u32)
             .build()
             .map_err(|e| format!("Failed to build kernel: {e}"))?;
 
-        Ok(KernelBundle::new(kernel, vec![frame_buf]))
+        Ok(KernelBundle::new(kernel, vec![gpu_frame_buf]))
     }
     #[cfg(not(feature = "gpu"))]
     {
-        let _ = buffer;
+        let _ = cpu_frame_buf;
         let _ = buf_len;
         let _ = color;
         let _ = gpu_context;

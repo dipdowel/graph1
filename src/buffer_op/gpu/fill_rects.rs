@@ -8,7 +8,7 @@ use crate::buffer_op::gpu::kernel_bundle::KernelBundle;
 
 /// Fills multiple rectangles using the GPU. Will download result into the buffer.
 pub fn filled_multiple_gpu<T: Numeric + Copy + 'static>(
-    buffer: &mut [u32],
+    cpu_frame_buf: &mut [u32],
     buf_dimensions: &Dimensions2d<u32>,
     rects: &Vec<&RectArea<T>>,
     default_color: u32,
@@ -17,19 +17,23 @@ pub fn filled_multiple_gpu<T: Numeric + Copy + 'static>(
     #[cfg(feature = "gpu")]
     {
         let bundle = fill_rects_get_kernel(
-            buffer, buf_dimensions, rects, default_color, gpu_context,
+            cpu_frame_buf, buf_dimensions, rects, default_color, gpu_context,
         )?;
         let kernel = bundle.kernel;
-        let frame_buf = bundle.buffers.get(0)
+        let gpu_frame_buf = bundle.buffers.get(0)
             .ok_or("No frame buffer in kernel bundle")?;
-        
+
+
+        // Upload current ctx.frame_buf to the GPU
+        gpu_frame_buf.write(cpu_frame_buf.as_ref()).enq().map_err(|e| format!("Failed to upload frame buffer: {e}"))?;
+
         unsafe { kernel.enq().map_err(|e| format!("Failed to enqueue kernel: {e}"))?; }
-        frame_buf.read(buffer).enq().map_err(|e| format!("Failed to read GPU buffer: {e}"))?;
+        gpu_frame_buf.read(cpu_frame_buf).enq().map_err(|e| format!("Failed to read GPU buffer: {e}"))?;
         Ok(())
     }
     #[cfg(not(feature = "gpu"))]
     {
-        let _ = buffer;
+        let _ = cpu_frame_buf;
         let _ = buf_dimensions;
         let _ = rects;
         let _ = default_color;
@@ -41,7 +45,7 @@ pub fn filled_multiple_gpu<T: Numeric + Copy + 'static>(
 /// Build and return a ready-to-enqueue OpenCL kernel for filling multiple rectangles.
 /// Returns the kernel and all relevant buffer objects (to keep them alive for the kernel's duration).
 /// Use this when composing pipelines with the kernel executor.
-/// 
+///
 /// # Arguments
 /// * `buffer` - The host buffer to fill with rectangle colors.
 /// * `buf_dimensions` - Dimensions of the buffer.
@@ -49,9 +53,9 @@ pub fn filled_multiple_gpu<T: Numeric + Copy + 'static>(
 /// * `default_color` - Color to use for rectangles that do not have a specific color set.
 /// * `gpu_context` - The GPU context containing OpenCL resources.
 /// * `upload_fb2gpu` - Whether to upload the current Graph1  frame buffer to the GPU before running the kernel.
-/// 
+///
 pub fn fill_rects_get_kernel<T: Numeric + Copy + 'static>(
-    buffer: &mut [u32],
+    cpu_frame_buf: &mut [u32],
     buf_dimensions: &Dimensions2d<u32>,
     rects: &Vec<&RectArea<T>>,
     default_color: u32,
@@ -61,11 +65,11 @@ pub fn fill_rects_get_kernel<T: Numeric + Copy + 'static>(
     #[cfg(feature = "gpu")]
     {
         // println!("fill_rects_get_kernel!!!!");
-        
+
         let kernel_src = include_str!("fill_rects.c");
         let kernel_name = "fill_rects";
         let program_name = "fill_rects_program";
-        let buf_len = buffer.len();
+        let buf_len = cpu_frame_buf.len();
 
         // Prepare rectangles as [x, y, w, h, color, ...]
         let mut flat_rects: Vec<u32> = Vec::with_capacity(rects.len() * 5);
@@ -76,7 +80,7 @@ pub fn fill_rects_get_kernel<T: Numeric + Copy + 'static>(
             flat_rects.push(rect.dimensions.h.to_u32());
             flat_rects.push(rect.color.unwrap_or(default_color));
         }
-        
+
         // Load or cache the program
         if gpu_context.get_program(program_name).is_none() {
             gpu_context
@@ -103,10 +107,9 @@ pub fn fill_rects_get_kernel<T: Numeric + Copy + 'static>(
             .map_err(|e| format!("Failed to create OpenCL rects buffer: {e}"))?;
 
         // Upload frame buffer (pooled)
-        let frame_buf = gpu_context.get_or_create_buffer(buf_len, queue_ref, buffer)?;
+        let gpu_frame_buf = gpu_context.get_or_create_buffer(buf_len, queue_ref, cpu_frame_buf)?;
 
-        // Optional: upload current frame buffer if previous step was on CPU
-        // frame_buf.write(buffer.as_ref()).enq().map_err(|e| format!("Failed to upload frame buffer: {e}"))?;
+
 
         // Build (but do not enqueue) the kernel
         let kernel = Kernel::builder()
@@ -114,7 +117,7 @@ pub fn fill_rects_get_kernel<T: Numeric + Copy + 'static>(
             .name(kernel_name)
             .queue(queue_value)
             .global_work_size(buf_len)
-            .arg(&frame_buf)
+            .arg(&gpu_frame_buf)
             .arg(buf_dimensions.w)
             .arg(buf_dimensions.h)
             .arg(&rects_buf)
@@ -125,12 +128,12 @@ pub fn fill_rects_get_kernel<T: Numeric + Copy + 'static>(
         // Ok((kernel, frame_buf, rects_buf))
         Ok(KernelBundle {
             kernel,
-            buffers: vec![frame_buf, rects_buf],
+            buffers: vec![gpu_frame_buf, rects_buf],
         })
     }
     #[cfg(not(feature = "gpu"))]
     {
-        let _ = buffer;
+        let _ = cpu_frame_buf;
         let _ = buf_dimensions;
         let _ = rects;
         let _ = default_color;
