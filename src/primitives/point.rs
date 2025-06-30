@@ -90,6 +90,16 @@ impl<T: Numeric> Sub for Point<T> {
 }
 
 
+impl<T: Numeric> Point<T> {
+    pub fn saturating_sub(self, rhs: Point<T>) -> Point<T> {
+        Point {
+            x: self.x.saturating_sub(rhs.x),
+            y: self.y.saturating_sub(rhs.y),
+        }
+        
+    }
+}
+
 
 /// An often-used constant for a point at the origin (0, 0).
 pub const POINT_ZERO: Point = Point { x: 0, y: 0 };
