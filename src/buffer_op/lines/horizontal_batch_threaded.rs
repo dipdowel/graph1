@@ -2,7 +2,7 @@ use crate::buffer_op;
 use crate::primitives::plane::Dimensions2d;
 use std::collections::BTreeMap;
 use std::thread;
-
+use crate::core::context::gpu::GpuContext;
 
 /// Draws horizontal lines on a buffer. **Multi-threaded!**
 /// Ownership of scanline_data is passed in for efficient moves (not copies).
@@ -14,8 +14,8 @@ use std::thread;
 ///   the 1st element is the color in RGBA, and the rest are pairs of `x_start` and `x_end` values
 ///   of line segments on that scanline.
 /// - `scanline_pointers`: A vector  pointers into `scanline_data` that mark the start and end of each scanline.
-/// - `scanline_dict`: A speed look-up table: 
-///       - `[y][0]` - how many scanlines are there for `y` 
+/// - `scanline_dict`: A speed look-up table:
+///       - `[y][0]` - how many scanlines are there for `y`
 ///       - `[y][1]` - the first pointer into `scanline_data` for that `y`
 ///       - `[y][n]` - the nth pointer into `scanline_data` for that `y`
 pub fn horizontal_lines_y_grouped_threaded(
@@ -24,11 +24,34 @@ pub fn horizontal_lines_y_grouped_threaded(
     scanline_data: Vec<u32>,   // TAKE OWNERSHIP
     scanline_pointers: Vec<usize>, // TAKE OWNERSHIP
     scanline_dict: Vec<Vec<usize>>, // TAKE OWNERSHIP
-    num_threads: usize
+    num_threads: usize,
+    gpu_context: &mut GpuContext,
 ) {
-    if scanline_data.is_empty() || scanline_pointers.len() < 2 || num_threads == 0 {
+
+    if scanline_data.is_empty() || scanline_pointers.len() < 2 {
         return;
     }
+
+    // ==[ GPU OpenCL ]=======================================================================
+
+    if gpu_context.is_enabled() {
+        let len = buf.len();
+        buffer_op::gpu::horizontal_lines_y_grouped::horizontal_lines_y_grouped(
+            buf,
+            buf_dimensions,
+            &scanline_dict,
+            &scanline_data,
+            gpu_context,
+        )
+            .expect("Failed to draw horizontal lines using GPU OpenCL");
+    }
+
+    // ==[ CPU ]=======================================================================
+
+    if  num_threads == 0 {
+        return;
+    }
+
 
     // If only one thread is available, just use the single-threaded version
     if num_threads == 1 {
@@ -38,7 +61,8 @@ pub fn horizontal_lines_y_grouped_threaded(
             buf_dimensions,
             &scanline_data,
             &scanline_pointers,
-            &scanline_dict
+            &scanline_dict,
+            gpu_context,
         );
         return;
     }
