@@ -58,6 +58,7 @@ pub fn horizontal_lines_y_grouped<UserData>(
         &scanline_data,
         &scanline_pointers,
         &scanline_dict,
+        &mut ctx.gpu_context,
     );
 }
 
@@ -90,5 +91,6 @@ pub fn horizontal_lines_y_grouped_threaded<UserData>(
         scanline_pointers,
         scanline_dict,
         ctx.num_threads,
+        &mut ctx.gpu_context,
     );
 }

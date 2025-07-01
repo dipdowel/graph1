@@ -21,9 +21,11 @@ pub mod buffer_op {
     pub(crate) mod gpu {
         pub(crate) mod fill;
         pub(crate) mod scanline;
+        pub(crate) mod scanlines;
         pub(crate) mod fill_rects;
         pub(crate) mod horizontal_lines_x4;
         pub(crate) mod horizontal_lines_x3;
+        pub(crate) mod horizontal_lines_y_grouped;
         pub(crate) mod kernel_executor;
         pub(crate) mod kernel_bundle;
     }

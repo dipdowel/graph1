@@ -16,6 +16,7 @@ pub struct Buffer<T>(std::marker::PhantomData<T>);
 
 /// Holds a GPU kernel and the device buffers it needs to operate.
 /// Keeps buffers alive for the duration of the kernel's use.
+#[derive(Debug)]
 pub struct KernelBundle {
     pub kernel: Kernel,
     pub buffers: Vec<Buffer<u32>>,

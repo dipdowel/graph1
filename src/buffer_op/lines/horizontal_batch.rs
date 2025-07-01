@@ -88,7 +88,7 @@ pub fn horizontal_lines_y_grouped(
 }
 
 /// Draws horizontal lines on a buffer. **Single-threaded!**
-/// 
+///
 /// # Parameters
 /// - `buf`: A mutable slice of `u32` representing the pixel buffer.
 /// - `buf_dimensions`: Dimensions of the buffer.
@@ -97,7 +97,7 @@ pub fn horizontal_lines_y_grouped(
 /// - `flat_data_ptrs`: A vector of pointers into `flat_scanline_data` that mark the start of each scanline.
 /// - `scanline_sizes`: A vector of sizes of each scanline in `flat_scanline_data`.
 /// - `gpu_context`: A mutable reference to the GPU context.
-/// 
+///
 pub fn scanlines(
     buf: &mut [u32],
     buf_dimensions: &Dimensions2d,
@@ -107,6 +107,27 @@ pub fn scanlines(
     scanline_sizes: &Vec<u32>,
     gpu_context: &mut GpuContext,
 ) {
+
+    // ==[ GPU OpenCL ]=======================================================================
+
+    if gpu_context.is_enabled() {
+
+        // println!(">>>>>>>>>>>>> scanlines (no threads) Scanlines using GPU OpenCL");
+
+        buffer_op::gpu::scanlines::scanlines_gpu(
+            buf,
+            buf_dimensions,
+            // occupied_scanline_indices,
+            flat_scanline_data,
+            flat_data_ptrs,
+            scanline_sizes,
+            gpu_context,
+        )
+            .expect("Failed to draw horizontal lines using GPU OpenCL");
+        return;
+    }
+
+
     let x_max = buf_dimensions.w;
     let y_max = buf_dimensions.h - 1;
 
