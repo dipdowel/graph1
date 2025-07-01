@@ -65,7 +65,7 @@ pub fn fill(
             len,
             color,
             gpu_context
-        ).expect("TODO: panic message");
+        ).expect("gpu::fill::fill() failed :(");
         return;
     }
 

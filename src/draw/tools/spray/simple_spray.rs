@@ -10,10 +10,9 @@ pub fn simple<UserData>(
     density: u32,
     colors: &Vec<u32>,
 ) {
+    // TODO: Consider adding GPU support for spray!
     // TODO: Consider adding support for Alpha!
-    // TODO: Consider adding support for Alpha!
-    // TODO: Consider adding support for Alpha!
-    // TODO: Consider adding support for Alpha!
+
 
     match ctx.brush {
         Brush::Circle { radius } => {
@@ -38,12 +37,7 @@ pub fn simple<UserData>(
 //     density: u32,
 //     colors:&Vec<u32>
 // ) {
-// 
-//     // TODO: Consider adding support for Alpha!
-//     // TODO: Consider adding support for Alpha!
-//     // TODO: Consider adding support for Alpha!
-//     // TODO: Consider adding support for Alpha!
-// 
+//
 //     match ctx.brush {
 //         Brush::Circle { radius } => {
 //             println!("! NOT IMPLEMENTED ! Circle with radius: {}", radius);
