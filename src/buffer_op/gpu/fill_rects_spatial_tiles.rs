@@ -1,4 +1,3 @@
-use std::time::Instant;
 use crate::core::context::gpu::GpuContext;
 use crate::primitives::numeric::Numeric;
 use crate::primitives::plane::{Dimensions2d, RectArea};
@@ -9,7 +8,7 @@ use crate::buffer_op::gpu::kernel_bundle::KernelBundle;
 /// Returns (flat_rects, tile_offsets, tile_counts, tiles_x, tiles_y).
 
 
-pub fn filled_multiple_gpu_tiles<T: Numeric + Copy + 'static>(
+pub fn fill_rects_spatial_tiles<T: Numeric + Copy + 'static>(
     cpu_frame_buf: &mut [u32],
     buf_dimensions: &Dimensions2d<u32>,
     rects: &Vec<&RectArea<T>>,
@@ -23,7 +22,7 @@ pub fn filled_multiple_gpu_tiles<T: Numeric + Copy + 'static>(
         let tiles_x = tiles_x.unwrap_or(8).clamp(2, 32);
         let tiles_y = tiles_y.unwrap_or(8).clamp(2, 32);
 
-        let bundle = fill_rects_tiles_get_kernel(
+        let bundle = fill_rects_spatial_tiles_get_kernel(
             cpu_frame_buf, buf_dimensions, rects, default_color, tiles_x, tiles_y, gpu_context,
         )?;
         let kernel = bundle.kernel;
@@ -50,7 +49,7 @@ pub fn filled_multiple_gpu_tiles<T: Numeric + Copy + 'static>(
     }
 }
 
-pub fn fill_rects_tiles_get_kernel<T: Numeric + Copy + 'static>(
+pub fn fill_rects_spatial_tiles_get_kernel<T: Numeric + Copy + 'static>(
     cpu_frame_buf: &mut [u32],
     buf_dimensions: &Dimensions2d<u32>,
     rects: &Vec<&RectArea<T>>,

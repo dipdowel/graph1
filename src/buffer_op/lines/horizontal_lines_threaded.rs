@@ -28,7 +28,7 @@ use crate::primitives::plane::Dimensions2d;
 /// ```ignore
 /// scanlines_threaded(buf, &buf_dimensions, flat_scanline_data, occupied_indices, flat_ptrs, scanline_sizes, 4, &mut gpu_context);
 /// ```
-pub fn scanlines_threaded(
+pub fn horizontal_lines_threaded(
     buf: &mut [u32],
     buf_dimensions: &Dimensions2d,
     flat_scanline_data: Vec<u32>,
@@ -48,7 +48,7 @@ pub fn scanlines_threaded(
 
         println!(">>>>>>>>>>>>>. scanlines_threaded() Scanlines using GPU OpenCL");
 
-        buffer_op::gpu::scanlines::scanlines_gpu(
+        buffer_op::gpu::horizontal_lines::horizontal_lines(
             buf,
             buf_dimensions,
             // &occupied_scanline_indices,
@@ -63,7 +63,7 @@ pub fn scanlines_threaded(
 
     // ==[ Single-threaded fallback ]==
     if num_threads == 1 {
-        crate::buffer_op::lines::horizontal_batch::scanlines(
+        crate::buffer_op::lines::horizontal_lines::horizontal_lines(
             buf,
             buf_dimensions,
             &flat_scanline_data,

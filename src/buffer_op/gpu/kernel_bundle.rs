@@ -7,9 +7,11 @@
 #[cfg(feature = "gpu")]
 use ocl::{Kernel, Buffer};
 
+#[derive(Debug)]
 #[cfg(not(feature = "gpu"))]
 pub struct Kernel;
 
+#[derive(Debug)]
 #[cfg(not(feature = "gpu"))]
 pub struct Buffer<T>(std::marker::PhantomData<T>);
 

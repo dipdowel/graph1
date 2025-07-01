@@ -35,7 +35,7 @@ pub fn fill_rects_bucketed<T: Numeric + Copy + 'static>(
         let _ = buf_dimensions;
         let _ = rects;
         let _ = default_color;
-        let _ = n_buckets;
+        let _ = num_buckets;
         let _ = gpu_context;
         Err("GPU support is not enabled at compile time.".to_string())
     }
@@ -137,7 +137,7 @@ pub fn fill_rects_bucketed_get_kernel<T: Numeric + Copy + 'static>(
         let _ = buf_dimensions;
         let _ = rects;
         let _ = default_color;
-        let _ = n_buckets;
+        let _ = num_buckets;
         let _ = gpu_context;
         Err("GPU support is not enabled at compile time.".to_string())
     }

@@ -9,11 +9,11 @@ pub mod buffer_op {
     }
     use crate::buffer_op;
     pub(crate) mod lines {
-        pub(crate) mod horizontal_batch;
-        pub(crate) mod horizontal_batch_threaded;
+        pub(crate) mod horizontal_lines;
+        pub(crate) mod horizontal_lines_threaded;
     }
-    pub use lines::horizontal_batch::*;
-    pub use lines::horizontal_batch_threaded::*;
+    pub use lines::horizontal_lines::*;
+    pub use lines::horizontal_lines_threaded::*;
     pub use fill::buffer::fill;
     pub use fill::flood::flood;
     pub use fill::scanline_wavefront::scanline_wavefront;
@@ -21,7 +21,7 @@ pub mod buffer_op {
     pub(crate) mod gpu {
         pub(crate) mod fill;
         pub(crate) mod scanline;
-        pub(crate) mod scanlines;
+        pub(crate) mod horizontal_lines;
         pub(crate) mod fill_rects;
         pub(crate) mod fill_rects_bucketed;
         pub(crate) mod fill_rects_spatial_tiles;
@@ -96,9 +96,10 @@ pub mod draw {
         pub mod bezier_segment;
     }
 
-    /// Draw lines
+    /// Draw a line
     pub mod line;
-    pub mod lines_batches;
+    /// Draw lines in a more efficient manner
+    pub mod lines;
 
     /// Various closed shapes with multiple vertices
     pub mod polygons {
@@ -119,8 +120,11 @@ pub mod draw {
         pub use star::StarProperties;
     }
 
-    /// Draw rectangles
+    /// Draw a rectangle
     pub mod rectangle;
+
+    /// Draw multiple rectangles in a more efficient manner
+    pub mod rectangles;
 
     /// Drawing tools
     pub mod tools {

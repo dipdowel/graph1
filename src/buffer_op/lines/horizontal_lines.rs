@@ -14,7 +14,7 @@ use crate::primitives::plane::Dimensions2d;
 /// - `scanline_sizes`: A vector of sizes of each scanline in `flat_scanline_data`.
 /// - `gpu_context`: A mutable reference to the GPU context.
 ///
-pub fn scanlines(
+pub fn horizontal_lines(
     buf: &mut [u32],
     buf_dimensions: &Dimensions2d,
     flat_scanline_data: &Vec<u32>,
@@ -30,7 +30,7 @@ pub fn scanlines(
 
         // println!(">>>>>>>>>>>>> scanlines (no threads) Scanlines using GPU OpenCL");
 
-        buffer_op::gpu::scanlines::scanlines_gpu(
+        buffer_op::gpu::horizontal_lines::horizontal_lines(
             buf,
             buf_dimensions,
             // occupied_scanline_indices,

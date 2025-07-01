@@ -6,7 +6,7 @@ use ocl::{Kernel, Buffer};
 use crate::buffer_op::gpu::kernel_bundle::KernelBundle;
 
 /// GPU-accelerated scanlines drawing (using scanline_sizes as y lookup).
-pub fn scanlines_gpu(
+pub fn horizontal_lines(
     cpu_frame_buf: &mut [u32],
     buf_dimensions: &Dimensions2d,
     flat_scanline_data: &Vec<u32>,
@@ -16,7 +16,7 @@ pub fn scanlines_gpu(
 ) -> Result<(), String> {
     #[cfg(feature = "gpu")]
     {
-        let bundle = scanlines_get_kernel(
+        let bundle = horizontal_lines_get_kernel(
             cpu_frame_buf,
             buf_dimensions,
             flat_scanline_data,
@@ -48,7 +48,7 @@ pub fn scanlines_gpu(
 
 /// Returns ready-to-enqueue OpenCL kernel for scanlines operation.
 /// See scanlines.c for details.
-pub fn scanlines_get_kernel(
+pub fn horizontal_lines_get_kernel(
     cpu_frame_buf: &mut [u32],
     buf_dimensions: &Dimensions2d,
     flat_scanline_data: &Vec<u32>,
@@ -58,7 +58,7 @@ pub fn scanlines_get_kernel(
 ) -> Result<KernelBundle, String> {
     #[cfg(feature = "gpu")]
     {
-        let kernel_src = include_str!("scanlines.c");
+        let kernel_src = include_str!("horizontal_lines.c");
         let kernel_name = "scanlines";
         let program_name = "scanlines_program";
         let buf_len = cpu_frame_buf.len();
