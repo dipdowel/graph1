@@ -118,52 +118,109 @@ pub trait Numeric:
 
     /// Returns the corresponding `NumericType` enum variant for the implementing type.
     fn get_type() -> NumericType;
+
+    /// TODO: Verify that it actually works as expected!
+    fn mini(&self, rhs:Self) -> Self {
+        if *self < rhs {
+            *self
+        } else {
+            rhs
+        }
+    }
+
+    /// TODO: Verify that it actually works as expected!
+    fn maxi(&self, rhs: Self) -> Self {
+        if *self > rhs {
+            *self
+        } else {
+            rhs
+        }
+    }
+
+    /// Saturating subtraction.
+    /// For integers, saturates at the numeric bounds (never panics).
+    /// For floats, just plain subtraction (`self - rhs`).
+    fn saturating_sub(self, rhs: Self) -> Self;
+
+
 }
 // TODO: unit tests for u8!
 // TODO: unit tests for u8!
 // TODO: unit tests for u8!
 impl Numeric for u8 {
-fn to_f64(self) -> f64 { self as f64 }
-fn from_f64(value: f64) -> Self {
-    value.round().clamp(u8::MIN as f64, u8::MAX as f64) as u8
+    fn to_f64(self) -> f64 {
+        self as f64
+    }
+    fn from_f64(value: f64) -> Self {
+        value.round().clamp(u8::MIN as f64, u8::MAX as f64) as u8
+    }
+    fn to_u32(self) -> u32 {
+        self as u32
+    }
+    fn from_u32(value: u32) -> Self {
+        value.clamp(u8::MIN as u32, u8::MAX as u32) as u8
+    }
+    fn to_u64(self) -> u64 {
+        self as u64
+    }
+    fn from_u64(value: u64) -> Self {
+        value.clamp(u8::MIN as u64, u8::MAX as u64) as u8
+    }
+    fn zero() -> Self {
+        0
+    }
+    fn one() -> Self {
+        1
+    }
+    fn is_unsigned() -> bool {
+        true
+    }
+    fn get_type() -> NumericType {
+        NumericType::U8
+    }
+    fn saturating_sub(self, rhs: Self) -> Self {
+        u8::saturating_sub(self, rhs)
+    }
 }
-fn to_u32(self) -> u32 { self as u32 }
-fn from_u32(value: u32) -> Self {
-    value.clamp(u8::MIN as u32, u8::MAX as u32) as u8
-}
-fn to_u64(self) -> u64 { self as u64 }
-fn from_u64(value: u64) -> Self {
-    value.clamp(u8::MIN as u64, u8::MAX as u64) as u8
-}
-fn zero() -> Self { 0 }
-fn one() -> Self { 1 }
-fn is_unsigned() -> bool { true }
-fn get_type() -> NumericType { NumericType::U8 }  
-}
-
 
 // TODO: unit tests for u16!
 // TODO: unit tests for u16!
 // TODO: unit tests for u16!
 impl Numeric for u16 {
-    fn to_f64(self) -> f64 { self as f64 }
+    fn to_f64(self) -> f64 {
+        self as f64
+    }
     fn from_f64(value: f64) -> Self {
         value.round().clamp(u16::MIN as f64, u16::MAX as f64) as u16
     }
-    fn to_u32(self) -> u32 { self as u32 }
+    fn to_u32(self) -> u32 {
+        self as u32
+    }
     fn from_u32(value: u32) -> Self {
         value.clamp(u16::MIN as u32, u16::MAX as u32) as u16
     }
-    fn to_u64(self) -> u64 { self as u64 }
+    fn to_u64(self) -> u64 {
+        self as u64
+    }
     fn from_u64(value: u64) -> Self {
         value.clamp(u16::MIN as u64, u16::MAX as u64) as u16
     }
-    fn zero() -> Self { 0 }
-    fn one() -> Self { 1 }
-    fn is_unsigned() -> bool { true }
-    fn get_type() -> NumericType { NumericType::U16 }  
+    fn zero() -> Self {
+        0
+    }
+    fn one() -> Self {
+        1
+    }
+    fn is_unsigned() -> bool {
+        true
+    }
+    fn get_type() -> NumericType {
+        NumericType::U16
+    }
+    fn saturating_sub(self, rhs: Self) -> Self {
+        u16::saturating_sub(self, rhs)
+    }
 }
-
 
 impl Numeric for u32 {
     fn to_f64(self) -> f64 {
@@ -209,6 +266,9 @@ impl Numeric for u32 {
     fn get_type() -> NumericType {
         NumericType::U32
     }
+    fn saturating_sub(self, rhs: Self) -> Self {
+        u32::saturating_sub(self, rhs)
+    }
 }
 
 impl Numeric for u64 {
@@ -240,7 +300,6 @@ impl Numeric for u64 {
         self.min(i32::MAX as u64) as i32
     }
 
-
     fn zero() -> Self {
         0
     }
@@ -255,6 +314,10 @@ impl Numeric for u64 {
 
     fn get_type() -> NumericType {
         NumericType::U64
+    }
+
+    fn saturating_sub(self, rhs: Self) -> Self {
+        u64::saturating_sub(self, rhs)
     }
 }
 
@@ -301,6 +364,10 @@ impl Numeric for usize {
     fn get_type() -> NumericType {
         NumericType::Usize
     }
+
+    fn saturating_sub(self, rhs: Self) -> Self {
+        usize::saturating_sub(self, rhs)
+    }
 }
 
 impl Numeric for i32 {
@@ -336,7 +403,6 @@ impl Numeric for i32 {
 
     fn from_u64(value: u64) -> Self {
         value.min(i32::MAX as u64) as i32
-
     }
 
     fn to_i32(self) -> i32 {
@@ -357,6 +423,10 @@ impl Numeric for i32 {
 
     fn get_type() -> NumericType {
         NumericType::I32
+    }
+
+    fn saturating_sub(self, rhs: Self) -> Self {
+        i32::saturating_sub(self, rhs)
     }
 }
 
@@ -422,6 +492,10 @@ impl Numeric for f32 {
     fn get_type() -> NumericType {
         NumericType::F32
     }
+
+    fn saturating_sub(self, rhs: Self) -> Self {
+        self - rhs
+    }
 }
 
 impl Numeric for f64 {
@@ -485,6 +559,10 @@ impl Numeric for f64 {
 
     fn get_type() -> NumericType {
         NumericType::F64
+    }
+
+    fn saturating_sub(self, rhs: Self) -> Self {
+        self - rhs
     }
 }
 
@@ -662,7 +740,6 @@ mod tests {
         assert_eq!(result, u32::MAX as u64);
     }
 
-
     #[test]
     fn test_usize_from_overflows() {
         let high_f64 = (usize::MAX as f64) * 2.0;
@@ -743,12 +820,12 @@ mod tests {
         assert_eq!(i32::from_u64(u64::MAX), i32::MAX);
     }
 
- ///////////////////////////
- #[test]
- fn test_u32_from_f64_fails_without_clamp() {
-     let result = <u32 as Numeric>::from_f64(f64::MAX);
-     assert_eq!(result, u32::MAX); // without clamp, this returns 0 or garbage
- }
+    ///////////////////////////
+    #[test]
+    fn test_u32_from_f64_fails_without_clamp() {
+        let result = <u32 as Numeric>::from_f64(f64::MAX);
+        assert_eq!(result, u32::MAX); // without clamp, this returns 0 or garbage
+    }
 
     #[test]
     fn test_u32_from_u64_fails_without_clamp() {
@@ -786,6 +863,4 @@ mod tests {
         assert_eq!((123.8_f32).to_i32(), 124);
         assert_eq!((-1.9_f32).to_i32(), -2);
     }
-
-
 }

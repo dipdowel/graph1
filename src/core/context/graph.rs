@@ -6,6 +6,11 @@ use crate::draw::tools::brush::Brush;
 use crate::utils::math::rng::XorShiftRng;
 use std::ptr;
 
+
+use crate::core::context::gpu::GpuContext;
+
+
+
 #[derive(Debug, PartialEq, Eq)]
 pub enum FrameBuffer {
     /// The main frame buffer, used for rendering the final image
@@ -59,6 +64,11 @@ pub struct GraphContext<UserData = Vec<i32>> {
     /// and auto-switch to single-threaded mode and then back to multithreaded mode, once the operation is finished.
     pub num_threads_autoadjust:bool,
      */
+
+    /// Context for very experimental GPU rendering.
+    /// **NB:** Use only if you know what you are doing!
+    pub gpu_context: GpuContext,
+
 }
 
 impl<UserData: Default> GraphContext<UserData> {
@@ -114,6 +124,8 @@ impl<UserData: Default> GraphContext<UserData> {
             line: line.unwrap_or_default(),
             brush: Brush::default(),
             cur_buf_type: FrameBuffer::Primary,
+
+            gpu_context: GpuContext::create(),
         }
     }
 
@@ -177,6 +189,8 @@ impl<UserData> GraphContext<UserData> {
         std::mem::swap(&mut self.frame_buf, &mut self.draft_buf);
         self.cur_buf_type = buf_type;
     }
+
+
 
     /// Copies data between the primary and draft frame buffers.
     /// This function allows you to copy `ctx.frame_buf` to `ctx.draft_buf` or vice versa.

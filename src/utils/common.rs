@@ -1,6 +1,7 @@
+use crate::buffer_op;
 use crate::core::context::GraphContext;
 
-/// Fills the frame buffer with the background color of the window (`ctx.win.background_color`)
 pub fn clear_screen<UserData>(ctx: &mut GraphContext<UserData>) {
-    crate::draw::tools::fill::buffer(&mut ctx.frame_buf, ctx.win.background_color, ctx.num_threads);
+    let color = ctx.win.background_color;
+    buffer_op::fill(&mut ctx.frame_buf, color, ctx.num_threads, &mut ctx.gpu_context);
 }
