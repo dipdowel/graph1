@@ -155,9 +155,22 @@ A binary format optimized for small size and fast parsing. It contains:
 - The GPU is utilized by means of OpenCL (which may not be the optimal choice, but hey, an experiment is an experiment!).
 
 ### Prerequisites
+#### Linux, Intel iGPU
 ```sh
 sudo apt-get install intel-opencl-icd ocl-icd-opencl-dev clinfo ocl-icd-libopencl1 opencl-headers
 ```
+
+#### Linux, AMD iGPU
+1. [Find and install](https://www.amd.com/en/support/download/drivers.html) the latest AMD drivers for your system
+2. 
+```sh
+sudo amdgpu-install
+# or
+sudo amdgpu-install --opencl=legacy,rocr
+# then
+sudo apt-get install  ocl-icd-opencl-dev clinfo ocl-icd-libopencl1 opencl-headers 
+```
+
 ---
 
 ## 🎓 License
