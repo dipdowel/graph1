@@ -130,7 +130,7 @@ A binary format optimized for small size and fast parsing. It contains:
 
 ## ⚠️ Safety and Performance Notes
 
-- All rendering happens in system memory — no GPU.
+- All rendering happens in system memory — no GPU (unless you enable experimental GPU support via the `gpu` feature flag).
 - Unsafe operations are avoided unless performance requires it.
 - Custom numeric traits are used (`Numeric`) to support generic math.
 - Tests are included to verify precision and corner cases.
@@ -151,7 +151,9 @@ A binary format optimized for small size and fast parsing. It contains:
   - Compact bitmap font generator. Such fonts can be rendered by Graph1.
 
 ## Experimental GPU support.
-Support for GPU is experimental and not yet ready. 
+- There is a highly experimental GPU support in Graph1, which is enabled by the `gpu` feature flag.
+- The GPU is utilized by means of OpenCL (which may not be the optimal choice, but hey, an experiment is an experiment!).
+
 ### Prerequisites
 ```sh
 sudo apt-get install intel-opencl-icd ocl-icd-opencl-dev clinfo ocl-icd-libopencl1 opencl-headers
