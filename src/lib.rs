@@ -23,9 +23,9 @@ pub mod buffer_op {
         pub(crate) mod scanline;
         pub(crate) mod scanlines;
         pub(crate) mod fill_rects;
-        pub(crate) mod horizontal_lines_x4;
-        pub(crate) mod horizontal_lines_x3;
-        pub(crate) mod horizontal_lines_y_grouped;
+        pub(crate) mod fill_rects_bucketed;
+        pub(crate) mod fill_rects_spatial_tiles;
+
         pub(crate) mod kernel_executor;
         pub(crate) mod kernel_bundle;
     }

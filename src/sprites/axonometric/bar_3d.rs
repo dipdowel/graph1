@@ -1,5 +1,4 @@
 use crate::buffer_op::gpu::fill_rects::fill_rects_get_kernel;
-use crate::buffer_op::gpu::horizontal_lines_y_grouped;
 use crate::buffer_op::gpu::kernel_bundle::KernelBundle;
 use crate::buffer_op::gpu::kernel_executor::execute_kernels_and_read;
 use crate::buffer_op::lines::{horizontal_batch, horizontal_batch_threaded};
@@ -11,6 +10,8 @@ use crate::primitives::plane::RectArea;
 use crate::primitives::point::Point;
 use crate::utils::math::geometry::approximate_center;
 use crate::{buffer_op, draw};
+use crate::buffer_op::gpu::fill_rects_bucketed::{fill_rects_bucketed, fill_rects_bucketed_get_kernel};
+use crate::buffer_op::gpu::fill_rects_spatial_tiles::{fill_rects_tiles_get_kernel, filled_multiple_gpu_tiles};
 
 /// Struct holding customizable properties of the 3D bar
 /// @See `bar_3d()`.
@@ -297,14 +298,14 @@ pub fn bars_3d<UserData>(ctx: &mut GraphContext<UserData>, props: &Vec<Bar3DProp
     /// * `scanlines` - The scanline data itself
     ///
     fn parallelogram_horizontal_scanlines(
-        p0: Point<i32>,
-        p1: Point<i32>,
-        p2: Point<i32>,
-        p3: Point<i32>,
+        points:( Point<i32>, Point<i32>, Point<i32>, Point<i32>),
         color: u32,
         segments_per_scanline: &mut Vec<u32>,
         scanlines: &mut Vec<Vec<u32>>,
     ) {
+
+    let (p0,p1,p2,p3) = points;
+
         let min_y = p0.y.min(p1.y).min(p2.y).min(p3.y);
         let max_y = p0.y.max(p1.y).max(p2.y).max(p3.y);
 
@@ -409,10 +410,7 @@ pub fn bars_3d<UserData>(ctx: &mut GraphContext<UserData>, props: &Vec<Bar3DProp
         };
 
         parallelogram_horizontal_scanlines(
-            s0,
-            s1,
-            s2,
-            s3,
+            (s0,s1,s2,s3),
             color_side,
             &mut segments_per_scanline,
             &mut scanlines,
@@ -446,7 +444,7 @@ pub fn bars_3d<UserData>(ctx: &mut GraphContext<UserData>, props: &Vec<Bar3DProp
             )
         };
         parallelogram_horizontal_scanlines(
-            p0, p1, p2, p3,
+            (p0, p1, p2, p3,),
             color_top,
             &mut segments_per_scanline,
             &mut scanlines,
@@ -524,7 +522,15 @@ pub fn bars_3d<UserData>(ctx: &mut GraphContext<UserData>, props: &Vec<Bar3DProp
               &mut ctx.gpu_context,
           );
 
-      let kernel2_res = fill_rects_get_kernel(&mut ctx.frame_buf, &ctx.win.dimensions, &front_refs, ctx.win.foreground_color, &mut ctx.gpu_context);
+    let num_buckets:u32 = 8;
+
+    let tiles_horizontal = 16;
+
+    let tiles_vertical = 5;
+
+      // let kernel2_res = fill_rects_get_kernel(&mut ctx.frame_buf, &ctx.win.dimensions, &front_refs, ctx.win.foreground_color, &mut ctx.gpu_context);
+      // let kernel2_res = fill_rects_bucketed_get_kernel(&mut ctx.frame_buf, &ctx.win.dimensions, &front_refs, ctx.win.foreground_color, Some(num_buckets), &mut ctx.gpu_context);
+      let kernel2_res = fill_rects_tiles_get_kernel(&mut ctx.frame_buf, &ctx.win.dimensions, &front_refs, ctx.win.foreground_color, tiles_horizontal, tiles_vertical, &mut ctx.gpu_context);
 
       // If any kernel creation fails, fallback to CPU rendering
       if kernel1_res.is_err() || kernel2_res.is_err()  {
