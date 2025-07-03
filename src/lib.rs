@@ -23,16 +23,19 @@ pub mod buffer_op {
         pub mod blur {
             // pub(crate) mod gaussian;
             pub mod box_blur;
+            pub mod box_blur_threaded;
         }
     }
 
     pub(crate) mod gpu {
+        pub(crate) mod box_blur;
         pub(crate) mod fill;
         pub(crate) mod scanline;
         pub(crate) mod horizontal_lines;
         pub(crate) mod fill_rects;
         pub(crate) mod fill_rects_bucketed;
         pub(crate) mod fill_rects_spatial_tiles;
+
 
 
         pub(crate) mod kernel_executor;
