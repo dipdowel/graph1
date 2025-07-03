@@ -1,5 +1,3 @@
-use crate::primitives::numeric::Numeric;
-
 /// Integer-only fast triangle wave oscillator.
 ///
 /// This function does not use floating-point or frequency.
@@ -30,7 +28,7 @@ pub fn linear_fast(
 
 #[cfg(test)]
 mod tests {
-    use super::{ linear_fast};
+    use super::linear_fast;
 
 
     #[test]

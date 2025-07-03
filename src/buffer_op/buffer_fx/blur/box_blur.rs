@@ -20,8 +20,7 @@ pub fn box_blur(
 
     // ==[ GPU OpenCL ]=======================================================================
     if gpu_context.is_enabled() {
-
-        let len = buf.len();
+                
         buffer_op::gpu::box_blur::box_blur(
             buf,
             buf_dimensions,

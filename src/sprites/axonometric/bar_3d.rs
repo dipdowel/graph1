@@ -69,7 +69,7 @@ pub fn bar_3d<UserData>(ctx: &mut GraphContext<UserData>, props: &Bar3DProps) {
         color_top,
         color_side,
         slant,
-        project_to_right: draw_left_face,
+        project_to_right,
     } = *props;
     let slant_x = slant.x as i32; // how much the bar shifts right
     let slant_y = slant.y as i32; // how much the bar shifts up
@@ -92,7 +92,7 @@ pub fn bar_3d<UserData>(ctx: &mut GraphContext<UserData>, props: &Bar3DProps) {
         let i = n / slant_y;
         let j = n % slant_y;
 
-        let dx = if props.project_to_right {
+        let dx = if project_to_right {
             x + i * slant_x
         } else {
             x - i * slant_x
@@ -107,7 +107,7 @@ pub fn bar_3d<UserData>(ctx: &mut GraphContext<UserData>, props: &Bar3DProps) {
     ctx.line.set_context(line_ctx_state);
 
     // RIGHT-SIDE or LEFT-SIDE face (slanted parallelogram)
-    let side = if props.project_to_right {
+    let side = if project_to_right {
         vec![
             Point::new(x + width, y - height),
             Point::new(x + width + depth * slant_x, y - height - depth * slant_y),

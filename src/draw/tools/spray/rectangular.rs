@@ -132,7 +132,7 @@ pub fn rectangular_spray<UserData>(
                         for &i in &indices {
                             let (px, py, color_idx) = points[i];
                             if px >= 0 && px < w && py >= 0 && py < h {
-                                let rel_y = py - min_y;
+                                // let rel_y = py - min_y;
                                 let local_idx = ((px) + (py - (min_y + (band as i32 * band_height as i32))) * w) as usize;
                                 if local_idx < band_slice.len() {
                                     band_slice[local_idx] = colors[color_idx];

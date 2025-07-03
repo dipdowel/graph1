@@ -4,6 +4,7 @@ use crate::primitives::plane::{Dimensions2d, RectArea};
 
 #[cfg(feature = "gpu")]
 use ocl::{Kernel, Buffer};
+#[cfg(feature = "gpu")]
 use crate::buffer_op::gpu::kernel_bundle::KernelBundle;
 
 /// Fills multiple rectangles using the GPU. Will download result into the buffer.
@@ -54,6 +55,8 @@ pub fn filled_multiple_gpu<T: Numeric + Copy + 'static>(
 /// * `gpu_context` - The GPU context containing OpenCL resources.
 /// * `upload_fb2gpu` - Whether to upload the current Graph1  frame buffer to the GPU before running the kernel.
 ///
+/// 
+#[cfg(feature = "gpu")]
 pub fn fill_rects_get_kernel<T: Numeric + Copy + 'static>(
     cpu_frame_buf: &mut [u32],
     buf_dimensions: &Dimensions2d<u32>,

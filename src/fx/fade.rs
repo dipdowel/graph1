@@ -1,7 +1,8 @@
 use crate::core::context::GraphContext;
 use crate::utils::color::math::{rgba_operation, ColorOperation};
 use std::thread;
-use crate::buffer_op::gpu;
+// #[cfg(feature = "gpu")]
+// use crate::buffer_op::gpu;
 
 /// Fades the entire frame buffer by applying a color operation to each pixel.
 /// Multithreaded, if possible (per `ctx.num_threads`)

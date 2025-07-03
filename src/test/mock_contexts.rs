@@ -2,13 +2,13 @@ use crate::core::context::{GraphContext, WindowContext};
 
 #[derive(Debug)]
 pub struct MockUserData {
-    test_number: u32,
+    
 }
 
 impl Default for MockUserData {
     fn default() -> Self {
         Self {
-            test_number: 0,
+            
         }
     }
 }

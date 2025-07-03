@@ -40,13 +40,12 @@ mod tests {
 
     #[test]
     fn test_counter_progression() {
-        let mut prev = sine_discrete(0.0, 9.0, 33, true);
+
         for frame in 1..100 {
             let current = sine_discrete(frame as f32, 9.0, 33, true);
             // The value should oscillate over time, sometimes changing
             assert!(current >= 1 && current <= 33);
-            prev = current;
-        }
+         }
     }
 
     #[test]

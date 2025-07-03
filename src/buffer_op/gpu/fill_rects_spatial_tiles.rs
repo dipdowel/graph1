@@ -150,6 +150,7 @@ pub fn fill_rects_spatial_tiles_get_kernel<T: Numeric + Copy + 'static>(
 
 
 
+#[cfg(feature = "gpu")]
 pub fn tile_rects_grid<T: Numeric + Copy>(
     rects: &[&RectArea<T>],
     buf_width: u32,

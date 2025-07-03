@@ -108,7 +108,7 @@ pub fn rgba_region_intensity<UserData>(
     // Which pixel in the vector should be filled in next.
     let mut pixel_index: usize;
 
-    let mut resulting_color: u32 = 0;
+    let mut resulting_color: u32;
 
     loop {
         pixel_index = (y * ctx.win.w + x) as usize;

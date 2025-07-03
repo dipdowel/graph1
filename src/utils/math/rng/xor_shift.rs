@@ -1,6 +1,5 @@
 use crate::primitives::math::{MinMax, MIN_MAX_U32, MIN_MAX_U64};
-use crate::primitives::numeric::Numeric;
-use crate::utils::math::rng::helpers::normalize_xor_shift_input::{
+ use crate::utils::math::rng::helpers::normalize_xor_shift_input::{
     normalize_input, NormalizedInput,
 };
 
@@ -228,10 +227,10 @@ mod tests {
         for _ in 0..100 {
             let rand_u32 = rng.get_u32(&MinMax::new(0, 10));
             // println!("rand_u32: {:?}", rand_u32);
-            assert!(rand_u32 >= 0 && rand_u32 < 10);
+            assert!(rand_u32 > 0 && rand_u32 < 10);
 
-            let rand_u64 = rng.get_u32(&MinMax::new(0, 10));
-            assert!(rand_u64 >= 0 && rand_u64 < 10);
+            let rand_u32 = rng.get_u32(&MinMax::new(0, 10));
+            assert!(rand_u32 > 0 && rand_u32 < 10);
         }
     }
 

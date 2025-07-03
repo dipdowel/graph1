@@ -1,7 +1,8 @@
 use crate::core::context::gpu::GpuContext;
 
 #[cfg(feature = "gpu")]
-use ocl::{Kernel, Buffer};
+use ocl::{Kernel};
+#[cfg(feature = "gpu")]
 use crate::buffer_op::gpu::kernel_bundle::KernelBundle;
 
 /// Apply scanline FX using the GPU, downloads result to host buffer after.
@@ -41,6 +42,7 @@ pub fn scanline_fx(
 /// Build and return the ready-to-enqueue OpenCL kernel for scanline FX.
 /// Use with the kernel executor for pipelined/multi-effect GPU workflows.
 /// Returns the kernel and frame buffer (so it lives long enough).
+#[cfg(feature = "gpu")]
 pub fn scanline_get_kernel(
     cpu_frame_buf: &mut [u32],
     width: u32,

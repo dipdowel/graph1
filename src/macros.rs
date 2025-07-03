@@ -48,7 +48,7 @@ macro_rules! hash_random_u32 {
 mod tests {
     use std::collections::HashSet;
     // Import the macro from the crate root
-    use super::*;
+    // use super::*;
     use crate::hash_random_u32;
 
     #[test]

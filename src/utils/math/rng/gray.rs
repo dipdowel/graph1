@@ -184,7 +184,6 @@ impl GrayRng {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::time::Instant;
 
     #[test]
     fn test_grays_32_constant_alpha() {
@@ -198,8 +197,8 @@ mod tests {
             let a = grays_32[i] & 0xFF;
 
             assert!(r == g && g == b);
-            assert!(r >= 0x00 && r <= 0x44);
-            assert!(a == 0xff);
+            assert!(r > 0x00 && r <= 0x44);
+            assert_eq!(a, 0xff);
         }
     }
 
@@ -232,7 +231,7 @@ mod tests {
             let a = grays_64[i] & 0xFF;
 
             assert!(r == g && g == b, "r=g=b");
-            assert!(r >= 0x00 && r <= 0x44, "r in the expected range");
+            assert!(r > 0x00 && r <= 0x44, "r in the expected range");
             assert_eq!(a, 0xff, "alpha is 0xff");
         }
     }

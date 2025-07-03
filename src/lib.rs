@@ -7,7 +7,7 @@ pub mod buffer_op {
         pub(crate) mod scanline_wavefront;
 
     }
-    use crate::buffer_op;
+    
     pub(crate) mod lines {
         pub(crate) mod horizontal_lines;
         pub(crate) mod horizontal_lines_threaded;
@@ -344,7 +344,7 @@ pub mod utils {
             mod neighbors;
             mod render;
             mod uniform_grid;
-            pub use neighbors::*;
+            // pub use neighbors::*;
             pub use render::*;
             pub use uniform_grid::*;
         }

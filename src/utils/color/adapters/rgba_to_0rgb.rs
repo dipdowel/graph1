@@ -60,7 +60,7 @@ fn buffer_rgba_to_0rgb_thread(
     }
 
     // Lock the mutex and write the color totals of this thread to the shared results
-    let mut color_totals_ref = color_totals_ref.unwrap();
+    let color_totals_ref = color_totals_ref.unwrap();
     let mut color_totals_ref = color_totals_ref.lock().unwrap();
     color_totals_ref.red += total_r;
     color_totals_ref.green += total_g;

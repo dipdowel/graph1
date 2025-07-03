@@ -1,6 +1,7 @@
-use crate::primitives::numeric::Numeric;
-use crate::primitives::plane::RectArea;
+// use crate::primitives::numeric::Numeric;
+// use crate::primitives::plane::RectArea;
 
+/*
 /// Subtracts `cut` from `rect`, returning the visible regions of `rect` as smaller rectangles.
 fn subtract_rect<T: Numeric + std::ops::Add<Output = T> + PartialEq>(
     rect: &RectArea<T>,
@@ -8,7 +9,8 @@ fn subtract_rect<T: Numeric + std::ops::Add<Output = T> + PartialEq>(
 ) -> Vec<RectArea<T>> {
 
     panic!("subtract_rect() NEEDS TO BE TESTED BEFORE USE!");
-
+    
+  
     let mut result = Vec::new();
 
     let x1 = rect.top_left.x;
@@ -45,6 +47,8 @@ fn subtract_rect<T: Numeric + std::ops::Add<Output = T> + PartialEq>(
     }
 
     result
+    
+
 }
 
 
@@ -89,3 +93,5 @@ mod tests {
         assert!(result.iter().all(|r| r.top_left.y < 30));
     }
 }
+
+ */

@@ -1,11 +1,6 @@
-use crate::core::context::alpha::AlphaMethod;
 use crate::core::context::GraphContext;
 use crate::primitives::numeric::Numeric;
 use crate::primitives::plane::RectArea;
-use crate::primitives::point::Point;
-use crate::utils::color::alpha::{blend_pixel_f32, blend_pixel_int};
-
-use crate::draw;
 
 use crate::buffer_op::gpu::fill_rects::filled_multiple_gpu;
 use crate::buffer_op::gpu::fill_rects_bucketed::fill_rects_bucketed;

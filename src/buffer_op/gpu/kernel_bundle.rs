@@ -24,7 +24,9 @@ pub struct KernelBundle {
     pub buffers: Vec<Buffer<u32>>,
 }
 
+#[cfg(feature = "gpu")]
 impl KernelBundle {
+    
     pub fn new(kernel: Kernel, buffers: Vec<Buffer<u32>>) -> Self {
         Self { kernel, buffers }
     }

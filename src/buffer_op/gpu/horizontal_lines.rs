@@ -48,6 +48,7 @@ pub fn horizontal_lines(
 
 /// Returns ready-to-enqueue OpenCL kernel for scanlines operation.
 /// See scanlines.c for details.
+
 pub fn horizontal_lines_get_kernel(
     cpu_frame_buf: &mut [u32],
     buf_dimensions: &Dimensions2d,
@@ -127,6 +128,12 @@ pub fn horizontal_lines_get_kernel(
     }
     #[cfg(not(feature = "gpu"))]
     {
+        let _cpu_frame_buf = cpu_frame_buf;
+        let _buf_dimensions = buf_dimensions;
+        let _flat_scanline_data =flat_scanline_data;
+        let _flat_data_ptrs = flat_data_ptrs;
+        let _scanline_sizes = scanline_sizes;
+        let _gpu_context = gpu_context;
         Err("GPU support is not enabled at compile time.".to_string())
     }
 }

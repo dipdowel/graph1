@@ -96,13 +96,21 @@ impl PixelFont {
         default_char: char,
         spacing: Spacing,
         glyph_widths_px: HashMap<char, u8>,
-        src_kerning_px: u8,
+        _src_kerning_px: u8,
         meta: PixelFontMeta,
     ) -> Self {
+
+
+        /*
+        // FIXME: What's up with `src_kerning_px`? Why is it not used?
         let mut src_kerning_px: u32 = src_kerning_px as u32;
         if src_kerning_px == 0 {
-            src_kerning_px = DEFAULT_KERNING_PX as u32;
+            #[allow(unused_assignments)]
+            {
+                src_kerning_px = DEFAULT_KERNING_PX as u32;
+            }
         }
+         */
 
         let mut glyphs: HashMap<char, RectArea> = HashMap::new();
 

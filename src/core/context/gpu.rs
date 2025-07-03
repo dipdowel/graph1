@@ -1,7 +1,9 @@
 #[cfg(feature = "gpu")]
 use ocl::{Buffer, Context, Device, Platform, Program, Queue};
 
+#[cfg(feature = "gpu")]
 use std::collections::HashMap;
+#[cfg(feature = "gpu")]
 use std::sync::Arc;
 
 /*
@@ -39,6 +41,7 @@ pub struct GpuContext {
 }
 
 /// Initializes the GPU context by selecting the OpenCL platform, device, and creating an OpenCL context and command queue.
+#[cfg(feature = "gpu")]
 fn init_ocl(gpu_ctx: &mut GpuContext) -> Result<(), String> {
 
     #[cfg(feature = "gpu")]{

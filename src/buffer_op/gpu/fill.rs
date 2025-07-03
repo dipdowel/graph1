@@ -2,7 +2,8 @@ use crate::core::context::gpu::GpuContext;
 
 
 #[cfg(feature = "gpu")]
-use ocl::{Kernel, Buffer};
+use ocl::{Kernel};
+#[cfg(feature = "gpu")]
 use crate::buffer_op::gpu::kernel_bundle::KernelBundle;
 
 /// Fill the GPU buffer with a color (in-place, downloads to host after).
@@ -40,6 +41,7 @@ pub fn fill(
 /// Build and return the ready-to-enqueue OpenCL kernel for fill operation.
 /// Use with the kernel executor for multi-effect GPU pipelines.
 /// Returns the kernel and frame buffer (so it lives long enough).
+#[cfg(feature = "gpu")]
 pub fn fill_get_kernel(
     cpu_frame_buf: &mut [u32],
     buf_len: usize,

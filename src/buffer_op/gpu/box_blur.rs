@@ -1,9 +1,11 @@
 use crate::core::context::gpu::GpuContext;
-use crate::buffer_op::gpu::kernel_bundle::KernelBundle;
+
 use crate::primitives::plane::Dimensions2d;
 
 #[cfg(feature = "gpu")]
 use ocl::{Kernel};
+#[cfg(feature = "gpu")]
+use crate::buffer_op::gpu::kernel_bundle::KernelBundle;
 
 /// GPU-accelerated box blur effect using OpenCL.
 /// This uploads the image buffer to the GPU, processes it with the box blur kernel,
@@ -49,6 +51,7 @@ pub fn box_blur(
 
 /// Builds the OpenCL kernel and frame buffer for GPU-based box blur.
 /// Returns a ready-to-enqueue kernel and its associated GPU buffer.
+#[cfg(feature = "gpu")]
 fn box_blur_get_kernel(
     cpu_buf: &mut [u32],
     width: usize,

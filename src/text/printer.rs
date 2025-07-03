@@ -99,7 +99,7 @@ fn get_line_widths(font: &PixelFont, text: &[&str]) -> Vec<usize> {
     let mut line_count: usize = 0;
     let mut max_found_width: usize = 0; // width (in pixels) of the widest (longest) line in the text
 
-    let mut text_line_chars_count: usize = 0;
+    let mut text_line_chars_count: usize;
 
     for text_line in text {
         for ch in text_line.chars() {

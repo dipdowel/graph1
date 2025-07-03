@@ -1,6 +1,6 @@
-use std::fmt;
-use crate::primitives::numeric::Numeric;
+
 use crate::primitives::point::Point;
+use std::fmt;
 
 #[derive(Clone, Copy, PartialEq)]
 /// A pixel with coordinates and color.
