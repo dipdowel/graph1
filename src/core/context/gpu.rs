@@ -157,6 +157,38 @@ impl GpuContext {
             }
         }
     }
+
+
+    #[cfg(feature = "gpu")]
+    pub fn get_or_create_readonly_buffer<'a>(
+        &mut self,
+        len: usize,
+        queue: &ocl::Queue,
+        host_slice: &'a [u32],
+    ) -> Result<Buffer<u32>, String> {
+        use std::collections::hash_map::Entry;
+
+        let key = len | 0x8000_0000; // differentiate readonly buffers in pool
+        match self.buffer_pool.entry(key) {
+            Entry::Occupied(o) => Ok(o.get().clone()),
+            Entry::Vacant(v) => {
+                let buf = unsafe {
+                    Buffer::<u32>::builder()
+                        .queue(queue.clone())
+                        .len(len)
+                        .use_host_slice(host_slice)
+                        .flags(ocl::flags::MEM_READ_ONLY)
+                        .build()
+                        .map_err(|e| format!("Failed to create readonly OpenCL buffer: {e}"))?
+                };
+                v.insert(buf.clone());
+                Ok(buf)
+            }
+        }
+    }
+
+
+
     pub fn is_initialized(&self) -> bool {
         #[cfg(feature = "gpu")]{
             self.context.is_some() && self.device.is_some() && self.queue.is_some()
