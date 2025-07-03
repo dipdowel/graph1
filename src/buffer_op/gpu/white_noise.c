@@ -4,13 +4,14 @@ __kernel void apply_noise_kernel(
     uint len,
     uint noise_len,
     uchar operation,
-    uchar use_alpha
+    uchar use_alpha,
+    uint step
 ) {
     uint gid = get_global_id(0);
-    if (gid >= len) return;
+    if (gid >= len || (gid % step) != 0) return;
 
     uint c1 = target_buf[gid];
-    uint c2 = noise_buf[gid % noise_len];
+    uint c2 = noise_buf[(gid / step) % noise_len];
 
     uint r1 = (c1 >> 24) & 0xff;
     uint g1 = (c1 >> 16) & 0xff;

@@ -11,11 +11,12 @@ pub fn white_noise(
     noise_buf: &[u32],
     operation: &Option<ColorOperation>,
     use_alpha: bool,
+    step: Option<usize>,
     gpu_context: &mut GpuContext,
 ) -> Result<(), String> {
     #[cfg(feature = "gpu")]
     {
-        let bundle = get_white_noise_kernel(target_buf, noise_buf, operation, use_alpha, gpu_context)?;
+        let bundle = get_white_noise_kernel(target_buf, noise_buf, operation, use_alpha, step, gpu_context)?;
         let kernel = bundle.kernel;
         let target_gpu_buf = bundle.buffers.get(0).ok_or("Missing target buffer")?;
         let noise_gpu_buf = bundle.buffers.get(1).ok_or("Missing noise buffer")?;
@@ -32,6 +33,7 @@ pub fn white_noise(
     {
         let _ = target_buf;
         let _ = noise_buf;
+        let _ = step;
         let _ = operation;
         let _ = use_alpha;
         let _ = gpu_context;
@@ -44,10 +46,13 @@ fn get_white_noise_kernel(
     noise_buf: &[u32],
     operation: &Option<ColorOperation>,
     use_alpha: bool,
+    step: Option<usize>,
     gpu_context: &mut GpuContext,
 ) -> Result<KernelBundle, String> {
     #[cfg(feature = "gpu")]
     {
+        let step = step.unwrap_or(1).max(1);
+
         let kernel_src = include_str!("white_noise.c");
         let kernel_name = "apply_noise_kernel";
         let program_name = "apply_noise_program";
@@ -81,6 +86,7 @@ fn get_white_noise_kernel(
             .arg(noise_len as u32)
             .arg(op_code)
             .arg(if use_alpha { 1u8 } else { 0u8 })
+            .arg(step as u32)
             .build()
             .map_err(|e| format!("Kernel build error: {e}"))?;
 
@@ -92,6 +98,7 @@ fn get_white_noise_kernel(
         let _ = noise_buf;
         let _ = operation;
         let _ = use_alpha;
+        let _ = step;
         let _ = gpu_context;
         Err("GPU support not enabled.".to_string())
     }

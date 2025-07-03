@@ -11,6 +11,12 @@ pub struct WhiteNoiseProps {
     pub max_alpha: u8,
     pub operation: Option<ColorOperation>,
     pub step: Option<usize>,
+
+    /// Size of the noise circular buffer.
+    /// I.e. how much of unique noise values to generate.
+    /// Setting this to small values will result in repeating noise patterns.
+    /// If `None`, the noise size will equal the entire target buffer size.
+    pub noise_size: Option<usize>,
 }
 
 impl WhiteNoiseProps {
@@ -21,6 +27,7 @@ impl WhiteNoiseProps {
         max_alpha: u8,
         operation: Option<ColorOperation>,
         step: Option<usize>,
+        noise_size: Option<usize>,
     ) -> Self {
         Self {
             min_color,
@@ -29,6 +36,7 @@ impl WhiteNoiseProps {
             max_alpha,
             operation,
             step,
+            noise_size,
         }
     }
 }
@@ -67,14 +75,14 @@ impl<'a> WhiteNoise<'a> {
             max_alpha,
             operation,
             step,
+            noise_size
         } = self.props;
 
         let use_alpha = *min_alpha != *max_alpha && *min_alpha != 0xff;
 
-        #[cfg(feature = "gpu")]
 
         let noise = self.gray_rng.get_random_grays_32(
-            target_buf.len(),
+            noise_size.unwrap_or(target_buf.len()),
             *min_color,
             *max_color,
             *min_alpha,
@@ -82,14 +90,7 @@ impl<'a> WhiteNoise<'a> {
             seed,
         );
 
-        /*
-            target_buf: &mut [u32],
-            noise_buf: &[u32],
-            operation: crate::utils::color::math::ColorOperation,
-            use_alpha: bool,
-            gpu_context: &mut GpuContext,
-         */
-
+            #[cfg(feature = "gpu")]
             if gpu_context.is_enabled() {
                 let seed = seed.unwrap_or(0);
                 gpu_white_noise::white_noise(
@@ -97,21 +98,12 @@ impl<'a> WhiteNoise<'a> {
                     &noise,
                     operation,
                     use_alpha,
+                    *step,
                     gpu_context,
                 )
                 .expect("GPU white noise generation failed");
                 return;
             }
-
-
-        // let noise = self.gray_rng.get_random_grays_32(
-        //     target_buf.len(),
-        //     *min_color,
-        //     *max_color,
-        //     *min_alpha,
-        //     *max_alpha,
-        //     seed,
-        // );
 
         // let use_alpha = *min_alpha != *max_alpha && *min_alpha != 0xff;
         let mut step = step.unwrap_or(1);
@@ -119,14 +111,20 @@ impl<'a> WhiteNoise<'a> {
             step = 1;
         }
 
+
+
+        let noise_len = noise.len();
+
         if let Some(operation) = operation {
             for i in (0..target_buf.len()).step_by(step) {
                 target_buf[i] =
-                    rgba_operation(target_buf[i], noise[i / step], operation.clone(), use_alpha);
+                    // The noise buffer is used in a circular manner
+                    rgba_operation(target_buf[i], noise[(i / step) % noise_len], operation.clone(), use_alpha);
             }
         } else {
             for i in (0..target_buf.len()).step_by(step) {
-                target_buf[i] = noise[i];
+                // The noise buffer is expected to be of the same size as the target buffer
+                target_buf[i] = noise[i  % noise_len];
             }
         }
     }
