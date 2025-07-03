@@ -40,6 +40,8 @@ pub mod buffer_op {
 
         pub(crate) mod kernel_executor;
         pub(crate) mod kernel_bundle;
+        pub(crate) mod white_noise;
+
     }
 
 }
