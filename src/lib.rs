@@ -18,6 +18,14 @@ pub mod buffer_op {
     pub use fill::flood::flood;
     pub use fill::scanline_wavefront::scanline_wavefront;
 
+
+    pub mod buffer_fx {
+        pub mod blur {
+            // pub(crate) mod gaussian;
+            pub mod box_blur;
+        }
+    }
+
     pub(crate) mod gpu {
         pub(crate) mod fill;
         pub(crate) mod scanline;
@@ -26,9 +34,11 @@ pub mod buffer_op {
         pub(crate) mod fill_rects_bucketed;
         pub(crate) mod fill_rects_spatial_tiles;
 
+
         pub(crate) mod kernel_executor;
         pub(crate) mod kernel_bundle;
     }
+
 }
 
 //-=[ C }=------------------------------------------------------------------------------------------
