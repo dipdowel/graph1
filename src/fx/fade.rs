@@ -1,6 +1,7 @@
 use crate::core::context::GraphContext;
 use crate::utils::color::math::{rgba_operation, ColorOperation};
 use std::thread;
+use crate::buffer_op::gpu;
 
 /// Fades the entire frame buffer by applying a color operation to each pixel.
 /// Multithreaded, if possible (per `ctx.num_threads`)
@@ -11,6 +12,19 @@ use std::thread;
 /// - `op`: The color operation to apply (Add or Subtract).
 /// - `use_alpha`: If true, the alpha channel is considered in the operation; otherwise, it is ignored.
 pub fn fade<UserData>(ctx: &mut GraphContext<UserData>, color_operand: u32, op: ColorOperation, use_alpha: bool) {
+    
+    // TODO: implement the GPU version of the fade effect
+    // if ctx.gpu_context.is_enabled() {
+    //     gpu::scanline::scanline_fx(
+    //         &mut ctx.frame_buf,
+    //         ctx.win.w,
+    //         size,
+    //         intensity,
+    //         &mut ctx.gpu_context,
+    //     ).expect("GPU fade failed");
+    //     return;
+    // }
+
 
     // Nothing to do...
     if ctx.num_threads == 0 {
