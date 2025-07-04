@@ -17,5 +17,5 @@ impl Default for MockUserData {
 /// Instantiates a mock graph context
 /// with a window size specified by `w` and `h` (width and height)
 pub fn get_mock_graph_context(w:u32, h:u32) -> GraphContext<MockUserData> {
-    GraphContext::new(WindowContext::new(w, h, None, None), false, false, None, 1, None)
+    GraphContext::new(WindowContext::new(w, h, None, None), false, 1, None, 1, None)
 }

@@ -73,7 +73,6 @@ pub mod core {
         pub use alpha::AlphaContext;
         // pub use alpha::AlphaMethod;
         pub use bezier::BezierContext;
-        pub use graph::FrameBuffer;
         pub use graph::GraphContext;
         pub use line_context::AntiAliasingConfig;
         pub use line_context::AntiAliasingMethod;
