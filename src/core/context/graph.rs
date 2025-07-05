@@ -7,16 +7,19 @@ use crate::utils::math::rng::XorShiftRng;
 use std::ptr;
 
 use crate::core::context::gpu::GpuContext;
+
 use crate::core::default_colors::TRANSPARENT_BLACK;
 
 #[derive(Debug)]
-pub enum FrameBufferError {
+pub enum FrameBufferStatus {
     /// An error occurred while trying to set the active frame buffer
-    BadBufferIndex = 100,
+    ErrorBadBufferIndex = 100,
     /// An error occurred while trying to copy frame buffers
-    PixelOutOfBounds = 200,
-    /// The frame buffer was resized to zero pixels (not an error per se, but a warning)
-    ResizedToZero = 300,
+    ErrorPixelOutOfBounds = 200,
+    /// Warning: the buffer was resized to zero pixels.
+    WarningResizedToZero = 300,
+    /// Warning: the source and destination frame buffers are the same.
+    WarningSameSourceAndDestination = 301,
 }
 
 #[derive(Debug)]
@@ -61,12 +64,7 @@ pub struct GraphContext<UserData = Vec<i32>> {
 
     /// The brush used for paint-brush operations.
     pub brush: Brush,
-    /*
-    // TODO: Consider implementing the following feature:
-    /// Autodetect when it's cheaper to perform an operation on just one thread (e.g. due to a small buffer size)
-    /// and auto-switch to single-threaded mode and then back to multithreaded mode, once the operation is finished.
-    pub num_threads_autoadjust:bool,
-     */
+
     /// Context for very experimental GPU rendering.
     /// **NB:** Use only if you know what you are doing!
     pub gpu_context: GpuContext,
@@ -79,17 +77,14 @@ impl<UserData: Default> GraphContext<UserData> {
     /// # Arguments
     /// * `win` - The window context
     /// * `use_alpha` - Whether to enable alpha blending
-    /// * `use_draft_buf` - if `true`, create and use the draft buffer (same size as the frame buffer)
+    /// * `num_frame_bufs` - How many frame buffers to create (including the active one).
     /// * `user_data` - Optional user-defined data
     /// * `num_threads` - How many threads to use for rendering.
     ///     * `0` - skip operations that support multithreading (rather should not be used).
     ///     * `1` - use main thread only.
     ///     * `2` - and more - use that many threads.
     /// * `line` - Optional line context. If `None` given, default settings will be used.
-    /// TODO: update the documentation (e.g. on `num_frame_bufs`)!
-    /// TODO: update the documentation!
-    /// TODO: update the documentation!
-    /// TODO: update the documentation!
+
     /// # Returns
     /// A new `GraphContext` instance
     pub fn new(
@@ -109,9 +104,8 @@ impl<UserData: Default> GraphContext<UserData> {
 
         // TODO: write a unit test that ensures that the number of frame buffers is always at least 1.
 
-        let mut frame_buf: Vec<u32>;
+        let frame_buf: Vec<u32>;
         let mut frame_bufs: Vec<Vec<u32>> = Vec::new();
-
 
         // Only one frame buffer is needed, so it is created directly as the active frame buffer.
         if num_frame_bufs == 1 {
@@ -160,11 +154,11 @@ impl<UserData: Default> GraphContext<UserData> {
 
 impl<UserData> GraphContext<UserData> {
     /// Resizes the window context, the frame buffer, and the back frame buffers, if any.
-    /// If the new size is zero, `frame_buf_error` is set to `FrameBufferError::ResizedToZero`.
+    /// If the new size is zero, `FrameBufferError::ResizedToZero` is returned.
     /// # Arguments
     /// * `w` - The new width of the window
     /// * `h` - The new height of the window
-    pub fn resize(&mut self, w: u32, h: u32) -> Result<(), FrameBufferError>{
+    pub fn resize(&mut self, w: u32, h: u32) -> Result<(), FrameBufferStatus> {
         // resize the window (which also resizes the quadrants)
         self.win.resize(w, h);
 
@@ -179,38 +173,38 @@ impl<UserData> GraphContext<UserData> {
             }
         }
         if num_pixels == 0 {
-            return Err(FrameBufferError::ResizedToZero);
+            return Err(FrameBufferStatus::WarningResizedToZero);
         }
         Ok(())
     }
 
     /// Sets the pixel at (x, y) in the frame buffer to the specified color.
     /// If the coordinates are out of bounds, the pixel will not be set,
-    /// and `frame_buf_error` will be set to `FrameBufferError::PixelOutOfBounds`.
+    /// and `FrameBufferError::PixelOutOfBounds` is returned.
     /// # Arguments
     /// * `x` - The x-coordinate of the pixel
     /// * `y` - The y-coordinate of the pixel
     /// * `color` - The color to set the pixel to, in RGBA format (0xRRGGBBAA)
     /// * `back_buf_index` - Optional index of the back buffer to set the pixel in. If `None`, sets the pixel in the active frame buffer.
-    pub fn set_pixel(&mut self, x: u32, y: u32, color: u32) -> Result<(), FrameBufferError> {
-         if x < self.win.w && y < self.win.h {
+    pub fn set_pixel(&mut self, x: u32, y: u32, color: u32) -> Result<(), FrameBufferStatus> {
+        if x < self.win.w && y < self.win.h {
             self.frame_buf[(x + y * self.win.w) as usize] = color;
             return Ok(());
         }
-        Err(FrameBufferError::PixelOutOfBounds)
+        Err(FrameBufferStatus::ErrorPixelOutOfBounds)
     }
 
     /// Reads the pixel color from the frame buffer at (x, y).
     /// If the coordinates are out of bounds, returns `None`,
-    /// and sets `frame_buf_error` to `FrameBufferError::PixelOutOfBounds`.
+    /// and `FrameBufferError::PixelOutOfBounds` is returned.
     /// # Arguments
     /// * `x` - The x-coordinate of the pixel
     /// * `y` - The y-coordinate of the pixel
-    pub fn get_pixel(&mut self, x: u32, y: u32) -> Result<u32, FrameBufferError> {
+    pub fn get_pixel(&mut self, x: u32, y: u32) -> Result<u32, FrameBufferStatus> {
         if x < self.win.w && y < self.win.h {
-            return Ok(self.frame_buf[(x + y * self.win.w) as usize])
+            return Ok(self.frame_buf[(x + y * self.win.w) as usize]);
         }
-        Err(FrameBufferError::PixelOutOfBounds)
+        Err(FrameBufferStatus::ErrorPixelOutOfBounds)
     }
 
     /// Returns index of a frame buffer that is currently active.
@@ -220,12 +214,19 @@ impl<UserData> GraphContext<UserData> {
 
     /// Sets the active frame buffer to the one specified by `frame_buf_index`.
     /// If the specified index is the same as the currently active one, no operation is performed
-    /// and `frame_buf_error`  is set to `FrameBufferError::BadBufferIndex`.
+    /// and `FrameBufferError::BadBufferIndex` is returned.
     /// # Arguments
     /// * `frame_buf_index` - The index of the frame buffer to set as active.
-    pub fn set_active_frame_buf(&mut self, frame_buf_index: usize) -> Result<(), FrameBufferError> {
-         if frame_buf_index < self.frame_bufs.len() && frame_buf_index != self.active_frame_buf_index
-        {
+    pub fn set_active_frame_buf(
+        &mut self,
+        frame_buf_index: usize,
+    ) -> Result<(), FrameBufferStatus> {
+        if frame_buf_index == self.active_frame_buf_index {
+            // No operation needed, the requested buffer is already active
+            return Err(FrameBufferStatus::WarningSameSourceAndDestination);
+        }
+
+        if frame_buf_index < self.frame_bufs.len() {
             // Return the currently active buffer to its place
             std::mem::swap(
                 &mut self.frame_buf,
@@ -234,26 +235,31 @@ impl<UserData> GraphContext<UserData> {
             // Set the requested frame buffer as the active one
             std::mem::swap(&mut self.frame_buf, &mut self.frame_bufs[frame_buf_index]);
             self.active_frame_buf_index = frame_buf_index;
-            return Ok(()) ;
+            return Ok(());
         }
-         Err(FrameBufferError::BadBufferIndex)
+        Err(FrameBufferStatus::ErrorBadBufferIndex)
     }
 
     /// Copies the contents of the source frame buffer to the destination frame buffer.
     /// If the source and destination indices are the same, no operation is performed,
-    /// and `frame_buf_error` is set to `FrameBufferError::BadBufferIndex`.
+    /// and `FrameBufferError::BadBufferIndex` is returned.
     ///
     /// # Arguments
     /// * `src_index` - The index of the source frame buffer to copy from.
     /// * `dst_index` - The index of the destination frame buffer to copy to.
     ///
-    pub fn frame_buf_copy(&mut self, src_index: usize, dst_index: usize) -> Result<(), FrameBufferError> {
+    pub fn frame_buf_copy(
+        &mut self,
+        src_index: usize,
+        dst_index: usize,
+    ) -> Result<(), FrameBufferStatus> {
+        if src_index == dst_index {
+            // Can't copy from a buffer to itself, no operation needed
+            return Err(FrameBufferStatus::WarningSameSourceAndDestination);
+        }
 
         // Ensure the source and destination indices are within bounds and not the same
-        if src_index < self.frame_bufs.len()
-            && dst_index < self.frame_bufs.len()
-            && src_index != dst_index
-        {
+        if src_index < self.frame_bufs.len() && dst_index < self.frame_bufs.len() {
             // Return the currently active buffer to its place in the vector for simplicity of indexing
             // Effectively, at this point `frame_buf` must reference the dummy filled with `default_colors::TRANSPARENT_BLACK`
             std::mem::swap(
@@ -274,18 +280,24 @@ impl<UserData> GraphContext<UserData> {
             );
             return Ok(());
         }
-         Err(FrameBufferError::BadBufferIndex)
+        Err(FrameBufferStatus::ErrorBadBufferIndex)
     }
 
     /// Copies the contents of the currently active frame buffer to the frame buffer specified by `frame_buf_index`.
     /// If the destination frame buffer and  the active one are the same, no operation is performed,
-    /// and `frame_buf_error` is set to `FrameBufferError::BadBufferIndex`.
+    /// and `FrameBufferError::BadBufferIndex` is returned.
     /// # Arguments
     /// * `frame_buf_index` - The index of the frame buffer to copy to.
-    pub fn copy_to_active_frame_buf_from(&mut self, frame_buf_index: usize)  -> Result<(), FrameBufferError> {
+    pub fn copy_to_active_frame_buf_from(
+        &mut self,
+        frame_buf_index: usize,
+    ) -> Result<(), FrameBufferStatus> {
+        if frame_buf_index == self.active_frame_buf_index {
+            // Can't copy from a buffer to itself, no operation needed
+            return Err(FrameBufferStatus::WarningSameSourceAndDestination);
+        }
 
-        if frame_buf_index < self.frame_bufs.len() && frame_buf_index != self.active_frame_buf_index
-        {
+        if frame_buf_index < self.frame_bufs.len() {
             unsafe {
                 ptr::copy_nonoverlapping(
                     self.frame_bufs[frame_buf_index].as_ptr(),
@@ -295,18 +307,24 @@ impl<UserData> GraphContext<UserData> {
             }
             return Ok(());
         }
-        Err(FrameBufferError::BadBufferIndex)
+        Err(FrameBufferStatus::ErrorBadBufferIndex)
     }
 
     /// Copies the contents of the specified frame buffer to the currently active frame buffer.
     /// If the source frame buffer is the active one, no operation is performed,
-    /// and `frame_buf_error` is set to `FrameBufferError::BadBufferIndex`.
+    /// and `FrameBufferError::BadBufferIndex` is returned.
     /// # Arguments
     /// * `frame_buf_index` - The index of the frame buffer to copy from.
-    pub fn copy_from_active_frame_buf_to(&mut self, frame_buf_index: usize)  -> Result<(), FrameBufferError> {
+    pub fn copy_from_active_frame_buf_to(
+        &mut self,
+        frame_buf_index: usize,
+    ) -> Result<(), FrameBufferStatus> {
+        if frame_buf_index == self.active_frame_buf_index {
+            // Can't copy from a buffer to itself, no operation needed
+            return Err(FrameBufferStatus::WarningSameSourceAndDestination);
+        }
 
-        if frame_buf_index < self.frame_bufs.len() && frame_buf_index != self.active_frame_buf_index
-        {
+        if frame_buf_index < self.frame_bufs.len() {
             unsafe {
                 ptr::copy_nonoverlapping(
                     self.frame_buf.as_ptr(),
@@ -316,6 +334,174 @@ impl<UserData> GraphContext<UserData> {
             }
             return Ok(());
         }
-        Err(FrameBufferError::BadBufferIndex)
+        Err(FrameBufferStatus::ErrorBadBufferIndex)
+    }
+}
+
+
+/***************************************************************************************************
+***************************************************************************************************
+       ████████  ██████  ██████  ████████  ██████
+          ██     ██      ██         ██     ██
+          ██     ████    ██████     ██     ██████
+          ██     ██          ██     ██         ██
+          ██     ██████  ██████     ██     ██████
+****************************************************************************************************
+****************************************************************************************************/
+
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn make_ctx(width: u32, height: u32, num_bufs: usize) -> GraphContext<()> {
+        let background = Some(0xFF0000FF); // Red, fully opaque
+        let foreground = Some(0xFFFFFFFF); // White, fully opaque
+        let win = WindowContext::new(width, height, background, foreground);
+        GraphContext::new(win, false, num_bufs, None, 1, None)
+    }
+
+    #[test]
+    fn test_new_single_buffer() {
+        let width = 4;
+        let height = 3;
+        let ctx = make_ctx(width, height, 1);
+        assert_eq!(ctx.frame_buf.len(), (width * height) as usize);
+        assert_eq!(ctx.get_active_frame_buf_index(), 0);
+
+        // Check that the second buffer is initialized with the background color
+        assert!(ctx.frame_buf.iter().all(|&c| c == ctx.win.background_color));
+    }
+
+    #[test]
+    fn test_new_multi_buffer() {
+        let width = 2;
+        let height = 2;
+        let ctx = make_ctx(width, height, 2);
+        assert_eq!(ctx.frame_buf.len(), 4);
+        assert_eq!(ctx.get_active_frame_buf_index(), 0);
+        assert_eq!(ctx.frame_bufs.len(), 2);
+        // Check that the second buffer is initialized
+        assert_eq!(ctx.frame_bufs[1].len(), 4);
+        // Check that the second buffer is initialized with the background color
+        assert!(ctx.frame_bufs[1]
+            .iter()
+            .all(|&c| c == ctx.win.background_color));
+    }
+
+    #[test]
+    fn test_resize() {
+        let mut ctx = make_ctx(2, 2, 1);
+        assert_eq!(ctx.frame_buf.len(), 4);
+        ctx.resize(3, 6).unwrap();
+        assert_eq!(ctx.frame_buf.len(), 3 * 6);
+        assert_eq!(ctx.win.w, 3);
+        assert_eq!(ctx.win.h, 6);
+    }
+
+    #[test]
+    fn test_resize_to_zero() {
+        let mut ctx = make_ctx(2, 2, 1);
+        let res = ctx.resize(10, 0);
+        assert!(matches!(res, Err(FrameBufferStatus::WarningResizedToZero)));
+
+        let res = ctx.resize(4, 4);
+        assert!(matches!(res, Ok(())));
+        assert_eq!(ctx.frame_buf.len(), 4 * 4);
+
+        let res = ctx.resize(0, 10);
+        assert!(matches!(res, Err(FrameBufferStatus::WarningResizedToZero)));
+    }
+
+    #[test]
+    fn test_set_and_get_pixel() {
+        let mut ctx = make_ctx(3, 2, 1);
+        let color = 0xAABBCCDD;
+        assert!(ctx.set_pixel(1, 1, color).is_ok());
+        assert_eq!(ctx.get_pixel(1, 1).unwrap(), color);
+        // Out of bounds
+        assert!(ctx.set_pixel(10, 10, color).is_err());
+        assert!(ctx.get_pixel(10, 10).is_err());
+    }
+
+    #[test]
+    fn test_active_frame_buf_index() {
+        let ctx = make_ctx(2, 2, 2);
+        assert_eq!(ctx.get_active_frame_buf_index(), 0);
+    }
+
+    #[test]
+    fn test_set_active_frame_buf_and_swap() {
+        let mut ctx = make_ctx(2, 2, 3);
+        // Write unique values to each buffer in turn
+        for buf_index in 3..0 {
+            ctx.set_active_frame_buf(buf_index).unwrap();
+            for i in 0..ctx.frame_buf.len() {
+                ctx.frame_buf[i] = (buf_index as u32) * 0x11111111;
+            }
+        }
+        // Now verify that values persist after swaps
+        for buf_index in 3..0 {
+            ctx.set_active_frame_buf(buf_index).unwrap();
+            assert!(ctx
+                .frame_buf
+                .iter()
+                .all(|&v| v == (buf_index as u32) * 0x11111111));
+        }
+        // Out of bounds should error
+        let res = ctx.set_active_frame_buf(100);
+        // check that the error is `FrameBufferStatus::ErrorBadBufferIndex`
+        assert!(matches!(res, Err(FrameBufferStatus::ErrorBadBufferIndex)));
+    }
+
+    #[test]
+    fn test_frame_buf_copy() {
+        let mut ctx = make_ctx(2, 2, 2);
+        // Fill buffer 0 with a pattern
+        for i in 0..ctx.frame_buf.len() {
+            ctx.frame_buf[i] = 0x12345678;
+        }
+        // Copy from buffer 0 to buffer 1
+        assert!(ctx.frame_buf_copy(0, 1).is_ok());
+        // Switch to buffer 1 and check values
+        ctx.set_active_frame_buf(1).unwrap();
+        assert!(ctx.frame_buf.iter().all(|&v| v == 0x12345678));
+        // Should fail on same src/dst
+        let res = ctx.frame_buf_copy(0, 0);
+        assert!(matches!(
+            res,
+            Err(FrameBufferStatus::WarningSameSourceAndDestination)
+        ));
+    }
+
+    #[test]
+    fn test_copy_to_and_from_active_frame_buf() {
+        let mut ctx = make_ctx(2, 2, 2);
+        // Write distinct data to buffer 0 and 1
+
+        let res = ctx.set_active_frame_buf(0);
+        // this is expected, and it's just a warning
+        assert!(matches!(
+            res,
+            Err(FrameBufferStatus::WarningSameSourceAndDestination)
+        ));
+
+
+
+        for i in 0..ctx.frame_buf.len() {
+            ctx.frame_buf[i] = 0xCAFEBABE;
+        }
+        ctx.set_active_frame_buf(1).unwrap();
+        for i in 0..ctx.frame_buf.len() {
+            ctx.frame_buf[i] = 0xDEADBEEF;
+        }
+        // Copy buffer 1 into buffer 0 (active <- from)
+        assert!(ctx.copy_to_active_frame_buf_from(0).is_ok());
+        assert!(ctx.frame_buf.iter().all(|&v| v == 0xCAFEBABE));
+        // Copy active buffer (1) into buffer 0 (from active -> to)
+        ctx.set_active_frame_buf(0).unwrap();
+        assert!(ctx.copy_from_active_frame_buf_to(1).is_ok());
+        ctx.set_active_frame_buf(1).unwrap();
+        assert!(ctx.frame_buf.iter().all(|&v| v == 0xCAFEBABE));
     }
 }
