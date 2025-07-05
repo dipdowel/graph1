@@ -7,22 +7,33 @@ use crate::utils::math::rng::XorShiftRng;
 use std::ptr;
 
 use crate::core::context::gpu::GpuContext;
+use crate::core::default_colors::TRANSPARENT_BLACK;
+
+#[derive(Debug)]
+pub enum FrameBufferError {
+    NoError,
+    BadBufferIndex,
+    PixelOutOfBounds,
+}
 
 #[derive(Debug)]
 pub struct GraphContext<UserData = Vec<i32>> {
     /// Reference to the window context
     pub win: WindowContext,
 
+    /* start FRAME BUFFER related fields */
     /// The currently active renderable buffer
     pub frame_buf: Vec<u32>,
 
-    /// A vector of the back buffers
-    back_bufs: Vec<Vec<u32>>,
+    /// A vector of initialized frame buffers
+    frame_bufs: Vec<Vec<u32>>,
 
-    /// A vector of indices of back buffers that were swapped with the frame buffer
-    /// This is used to undo the swaps in the reverse order compared to how they were done.
-    back_buf_swap_indices: Vec<usize>,
+    /// The index of the currently active frame buffer
+    active_frame_buf_index: usize,
 
+    frame_buf_error: FrameBufferError,
+
+    /* end FRAME BUFFER related fields */
     /// A vector of user-defined data. Store any information here that needs to be passed around with the context
     pub user_data: Box<UserData>,
     /// Settings for rendering controls for Bezier curves
@@ -74,7 +85,7 @@ impl<UserData: Default> GraphContext<UserData> {
     ///     * `1` - use main thread only.
     ///     * `2` - and more - use that many threads.
     /// * `line` - Optional line context. If `None` given, default settings will be used.
-    /// TODO: update the documentation!
+    /// TODO: update the documentation (e.g. on `num_frame_bufs`)!
     /// TODO: update the documentation!
     /// TODO: update the documentation!
     /// TODO: update the documentation!
@@ -83,7 +94,7 @@ impl<UserData: Default> GraphContext<UserData> {
     pub fn new(
         win: WindowContext,
         use_alpha: bool,
-        num_back_bufs: usize,
+        num_frame_bufs: usize,
         user_data: Option<UserData>,
         num_threads: usize,
         line: Option<LineContext>,
@@ -91,22 +102,39 @@ impl<UserData: Default> GraphContext<UserData> {
         // How many pixels are in the frame buffer
         let num_pixels = win.get_num_pixels();
         let bg_color = win.background_color;
-        
-        
-        
-        let back_bufs = if num_back_bufs > 0 {
-            println!("Creating {} back buffers", num_back_bufs);
-            vec![vec![bg_color; num_pixels]; num_back_bufs]
-        } else {
-            println!("No back buffers created");
-            vec![]
-        };
 
-        GraphContext {
+        // Ensure at least one frame buffer will be created
+        let num_frame_bufs = num_frame_bufs.max(1);
+
+        // TODO: write a unit test that ensures that the number of frame buffers is always at least 1.
+
+        let mut frame_buf: Vec<u32>;
+        let mut frame_bufs: Vec<Vec<u32>> = Vec::new();
+
+        println!("num_frame_bufs: {}", num_frame_bufs);
+
+        // Only one frame buffer is needed, so it is created directly as the active frame buffer.
+        if num_frame_bufs == 1 {
+            frame_buf = vec![bg_color; num_pixels];
+        } else {
+            // Initialize the active frame buffer with a dummy.
+            // TODO: check if we can actually avoid allocating memory for the dummy and still be able to use
+            // TODO: `std::mem::swap` (or maybe something like `std::mem::take`?)
+
+            frame_buf = vec![TRANSPARENT_BLACK; num_pixels];
+            // Create additional frame buffers
+            for _ in 1..=num_frame_bufs {
+                frame_bufs.push(vec![bg_color; num_pixels]);
+            }
+        }
+
+        let mut ctx = GraphContext {
             win,
-            frame_buf: vec![bg_color; num_pixels],
-            back_bufs,
-            back_buf_swap_indices: Vec::new(), // No back buffer swapped yet
+            frame_buf,
+            frame_bufs,
+            active_frame_buf_index: 0, // Index of the currently active frame buffer
+            frame_buf_error: FrameBufferError::NoError,
+
             // Use the provided `user_data` or default to `UserData::default()`
             user_data: Box::new(user_data.unwrap_or_default()),
             bezier: BezierContext::default(),
@@ -120,12 +148,19 @@ impl<UserData: Default> GraphContext<UserData> {
             line: line.unwrap_or_default(),
             brush: Brush::default(),
             gpu_context: GpuContext::create(),
+        };
+
+        // Set buffer `0` to be the active frame buffer
+        if num_frame_bufs > 1 {
+            std::mem::swap(&mut ctx.frame_buf, &mut ctx.frame_bufs[0]);
         }
+
+        ctx
     }
 }
 
 impl<UserData> GraphContext<UserData> {
-    /// Resizes the window context, the frame buffer, and the draft buffer (if `use_draft_buf == true`)
+    /// Resizes the window context, the frame buffer, and the back  frame buffers, if any.
     pub fn resize(&mut self, w: u32, h: u32) {
         // resize the window (which also resizes the quadrants)
         self.win.resize(w, h);
@@ -134,16 +169,17 @@ impl<UserData> GraphContext<UserData> {
         let num_pixels = self.win.get_num_pixels();
         self.frame_buf.resize(num_pixels, self.win.background_color);
 
-        // resize the back buffers, if any
-        if self.back_bufs.len() > 0 {
-            for buf in &mut self.back_bufs {
-                buf.resize(num_pixels, self.win.background_color);
+        if self.frame_bufs.len() > 0 {
+            // resize all the existing frame buffers
+            for frame_buf in &mut self.frame_bufs {
+                frame_buf.resize(num_pixels, self.win.background_color);
             }
         }
     }
 
     /// Sets the pixel at (x, y) in the frame buffer to the specified color.
-    /// If the coordinates are out of bounds, the pixel will not be set.
+    /// If the coordinates are out of bounds, the pixel will not be set,
+    /// and `frame_buf_error` will be set to `FrameBufferError::PixelOutOfBounds`.
     /// # Arguments
     /// * `x` - The x-coordinate of the pixel
     /// * `y` - The y-coordinate of the pixel
@@ -152,104 +188,132 @@ impl<UserData> GraphContext<UserData> {
     pub fn set_pixel(&mut self, x: u32, y: u32, color: u32) {
         if x < self.win.w && y < self.win.h {
             self.frame_buf[(x + y * self.win.w) as usize] = color;
+            return;
         }
+        self.frame_buf_error = FrameBufferError::PixelOutOfBounds;
     }
 
     /// Reads the pixel color from the frame buffer at (x, y).
-    /// If the coordinates are out of bounds, returns `None`.
+    /// If the coordinates are out of bounds, returns `None`,
+    /// and sets `frame_buf_error` to `FrameBufferError::PixelOutOfBounds`.
     /// # Arguments
     /// * `x` - The x-coordinate of the pixel
     /// * `y` - The y-coordinate of the pixel
-    pub fn get_pixel(&self, x: u32, y: u32) -> Option<u32> {
+    pub fn get_pixel(&mut self, x: u32, y: u32) -> Option<u32> {
         if x < self.win.w && y < self.win.h {
             Some(self.frame_buf[(x + y * self.win.w) as usize])
         } else {
+            self.frame_buf_error = FrameBufferError::PixelOutOfBounds;
             None
         }
     }
 
-    /// Sets the pixel at (x, y) in the specified back buffer to the specified color.
-    /// If the coordinates are out of bounds or the back buffer index is invalid, the pixel will not be set.
-    /// /// # Arguments
-    /// /// * `x` - The x-coordinate of the pixel
-    /// /// * `y` - The y-coordinate of the pixel
-    /// /// * `color` - The color to set the pixel to, in RGBA format (0xRRGGBBAA)
-    /// /// * `back_buf_index` - The index of the back buffer to set the pixel in
-    pub fn set_pixel_back_buf(&mut self, x: u32, y: u32, color: u32, back_buf_index: usize) {
-        if back_buf_index < self.back_bufs.len() && x < self.win.w && y < self.win.h {
-            // Set the pixel in the specified back buffer
-            self.back_bufs[back_buf_index][(x + y * self.win.w) as usize] = color;
-        }
-        // TODO: if context internal log will be introduced, log the back_buf_index out of bounds error
+    /// Returns index of a frame buffer that is currently active.
+    pub fn get_active_frame_buf_index(&self) -> usize {
+        self.active_frame_buf_index
     }
 
-    /// Reads the pixel color from the specified back buffer at (x, y).
-    /// /// # Arguments
-    /// /// * `x` - The x-coordinate of the pixel
-    /// /// * `y` - The y-coordinate of the pixel
-    /// /// * `back_buf_index` - The index of the back buffer to read from
-    /// /// # Returns
-    /// /// An `Option<u32>` containing the pixel color if the coordinates are valid and the back buffer index is within bounds,
-    /// /// or `None` if the coordinates are out of bounds or the back buffer index is invalid.
-    pub fn get_pixel_back_buf(&self, x: u32, y: u32, back_buf_index: usize) -> Option<u32> {
-        if back_buf_index < self.back_bufs.len() && x < self.win.w && y < self.win.h {
-            Some(self.back_bufs[back_buf_index][(x + y * self.win.w) as usize])
-        } else {
-            None
-        }
-    }
-
-    /// Swaps the frame buffer with a specified back buffer.
+    /// Sets the active frame buffer to the one specified by `frame_buf_index`.
+    /// If the specified index is the same as the currently active one, no operation is performed
+    /// and `frame_buf_error`  is set to `FrameBufferError::BadBufferIndex`.
     /// # Arguments
-    /// * `back_buf_index` - The index of the back buffer to swap with the frame buffer.
-    pub fn swap_frame_buf_with(&mut self, back_buf_index: usize) {
-        if back_buf_index < self.back_bufs.len() {
-            std::mem::swap(&mut self.frame_buf, &mut self.back_bufs[back_buf_index]);
-            self.back_buf_swap_indices.push(back_buf_index);
-
+    /// * `frame_buf_index` - The index of the frame buffer to set as active.
+    pub fn set_active_frame_buf(&mut self, frame_buf_index: usize) {
+        if frame_buf_index < self.frame_bufs.len() && frame_buf_index != self.active_frame_buf_index
+        {
+            // Return the currently active buffer to its place
+            std::mem::swap(
+                &mut self.frame_buf,
+                &mut self.frame_bufs[self.active_frame_buf_index],
+            );
+            // Set the requested frame buffer as the active one
+            std::mem::swap(&mut self.frame_buf, &mut self.frame_bufs[frame_buf_index]);
+            self.active_frame_buf_index = frame_buf_index;
+            return;
         }
+        self.frame_buf_error = FrameBufferError::BadBufferIndex;
     }
 
-    /// Undoes the last frame buffer swap.
-    /// Tha by swapping the frame buffer back with the last swapped back buffer.
-    /// If there are no swaps to undo, this function does nothing.
-    pub fn undo_last_frame_buf_swap(&mut self) {
-        if self.back_buf_swap_indices.is_empty() {
-            return; // No swaps to undo
-        }
-        let back_buf_index = self.back_buf_swap_indices.pop().expect("back_buf_swap is unexpectedly empty!");
-        if back_buf_index < self.back_bufs.len() {
-            std::mem::swap(&mut self.frame_buf, &mut self.back_bufs[back_buf_index]);
-        }
-    }
-
-    /// Copies data from a back buffer to the frame buffer.
+    /// Copies the contents of the source frame buffer to the destination frame buffer.
+    /// If the source and destination indices are the same, no operation is performed,
+    /// and `frame_buf_error` is set to `FrameBufferError::BadBufferIndex`.
+    ///
     /// # Arguments
-    /// * `back_buf_index` - The index of the back buffer to copy from.
-    pub fn copy_to_frame_buf_from(&mut self, back_buf_index: usize) {
-        if back_buf_index < self.back_bufs.len() {
+    /// * `src_index` - The index of the source frame buffer to copy from.
+    /// * `dst_index` - The index of the destination frame buffer to copy to.
+    ///
+    pub fn frame_buf_copy(&mut self, src_index: usize, dst_index: usize)
+    /* TODO: consider returning Result<> */
+    {
+        // Ensure the source and destination indices are within bounds and not the same
+        if src_index < self.frame_bufs.len()
+            && dst_index < self.frame_bufs.len()
+            && src_index != dst_index
+        {
+            // Return the currently active buffer to its place in the vector for simplicity of indexing
+            // Effectively, at this point `frame_buf` must reference the dummy filled with `default_colors::TRANSPARENT_BLACK`
+            std::mem::swap(
+                &mut self.frame_buf,
+                &mut self.frame_bufs[self.active_frame_buf_index],
+            );
             unsafe {
                 ptr::copy_nonoverlapping(
-                    self.back_bufs[back_buf_index].as_ptr(),
+                    self.frame_bufs[src_index].as_ptr(),
+                    self.frame_bufs[dst_index].as_mut_ptr(),
+                    self.frame_buf.len(),
+                );
+            }
+            // Restore the active buffer reference
+            std::mem::swap(
+                &mut self.frame_buf,
+                &mut self.frame_bufs[self.active_frame_buf_index],
+            );
+            return;
+        }
+        self.frame_buf_error = FrameBufferError::BadBufferIndex;
+    }
+
+    /// Copies the contents of the currently active frame buffer to the frame buffer specified by `frame_buf_index`.
+    /// If the destination frame buffer and  the active one are the same, no operation is performed,
+    /// and `frame_buf_error` is set to `FrameBufferError::BadBufferIndex`.
+    /// # Arguments
+    /// * `frame_buf_index` - The index of the frame buffer to copy to.
+    pub fn copy_to_active_frame_buf_from(&mut self, frame_buf_index: usize)
+    /* TODO: consider returning Result<> */
+    {
+        if frame_buf_index < self.frame_bufs.len() && frame_buf_index != self.active_frame_buf_index
+        {
+            unsafe {
+                ptr::copy_nonoverlapping(
+                    self.frame_bufs[frame_buf_index].as_ptr(),
                     self.frame_buf.as_mut_ptr(),
                     self.frame_buf.len(),
                 );
             }
+            return;
         }
+        self.frame_buf_error = FrameBufferError::BadBufferIndex;
     }
 
-    /// Copies data from a back buffer to the frame buffer.
+    /// Copies the contents of the specified frame buffer to the currently active frame buffer.
+    /// If the source frame buffer is the active one, no operation is performed,
+    /// and `frame_buf_error` is set to `FrameBufferError::BadBufferIndex`.
     /// # Arguments
-    /// * `back_buf_index` - The index of the back buffer to copy from.
-    pub fn copy_from_frame_buf_to(&mut self, back_buf_index: usize) {
-        if back_buf_index < self.back_bufs.len() {
+    /// * `frame_buf_index` - The index of the frame buffer to copy from.
+    pub fn copy_from_active_frame_buf_to(&mut self, frame_buf_index: usize)
+    /* TODO: consider returning Result<> */
+    {
+        if frame_buf_index < self.frame_bufs.len() && frame_buf_index != self.active_frame_buf_index
+        {
             unsafe {
                 ptr::copy_nonoverlapping(
                     self.frame_buf.as_ptr(),
-                    self.back_bufs[back_buf_index].as_mut_ptr(),
+                    self.frame_bufs[frame_buf_index].as_mut_ptr(),
                     self.frame_buf.len(),
                 );
             }
+            return;
         }
+        self.frame_buf_error = FrameBufferError::BadBufferIndex;
     }
 }
