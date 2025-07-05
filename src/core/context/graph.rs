@@ -11,14 +11,12 @@ use crate::core::default_colors::TRANSPARENT_BLACK;
 
 #[derive(Debug)]
 pub enum FrameBufferError {
-    /// No error occurred yet
-    NoError,
     /// An error occurred while trying to set the active frame buffer
-    BadBufferIndex,
+    BadBufferIndex = 100,
     /// An error occurred while trying to copy frame buffers
-    PixelOutOfBounds,
+    PixelOutOfBounds = 200,
     /// The frame buffer was resized to zero pixels (not an error per se, but a warning)
-    ResizedToZero,
+    ResizedToZero = 300,
 }
 
 #[derive(Debug)]
@@ -35,9 +33,6 @@ pub struct GraphContext<UserData = Vec<i32>> {
 
     /// The index of the currently active frame buffer
     active_frame_buf_index: usize,
-
-    /// The status of the latest frame buffer operation
-    frame_buf_error: FrameBufferError,
 
     /* end FRAME BUFFER related fields */
     /// A vector of user-defined data. Store any information here that needs to be passed around with the context
@@ -117,7 +112,6 @@ impl<UserData: Default> GraphContext<UserData> {
         let mut frame_buf: Vec<u32>;
         let mut frame_bufs: Vec<Vec<u32>> = Vec::new();
 
-        println!("num_frame_bufs: {}", num_frame_bufs);
 
         // Only one frame buffer is needed, so it is created directly as the active frame buffer.
         if num_frame_bufs == 1 {
@@ -139,7 +133,6 @@ impl<UserData: Default> GraphContext<UserData> {
             frame_buf,
             frame_bufs,
             active_frame_buf_index: 0, // Index of the currently active frame buffer
-            frame_buf_error: FrameBufferError::NoError,
 
             // Use the provided `user_data` or default to `UserData::default()`
             user_data: Box::new(user_data.unwrap_or_default()),
@@ -171,8 +164,7 @@ impl<UserData> GraphContext<UserData> {
     /// # Arguments
     /// * `w` - The new width of the window
     /// * `h` - The new height of the window
-    pub fn resize(&mut self, w: u32, h: u32) {
-        self.frame_buf_error = FrameBufferError::NoError;
+    pub fn resize(&mut self, w: u32, h: u32) -> Result<(), FrameBufferError>{
         // resize the window (which also resizes the quadrants)
         self.win.resize(w, h);
 
@@ -187,8 +179,9 @@ impl<UserData> GraphContext<UserData> {
             }
         }
         if num_pixels == 0 {
-            self.frame_buf_error = FrameBufferError::ResizedToZero;
+            return Err(FrameBufferError::ResizedToZero);
         }
+        Ok(())
     }
 
     /// Sets the pixel at (x, y) in the frame buffer to the specified color.
@@ -199,13 +192,12 @@ impl<UserData> GraphContext<UserData> {
     /// * `y` - The y-coordinate of the pixel
     /// * `color` - The color to set the pixel to, in RGBA format (0xRRGGBBAA)
     /// * `back_buf_index` - Optional index of the back buffer to set the pixel in. If `None`, sets the pixel in the active frame buffer.
-    pub fn set_pixel(&mut self, x: u32, y: u32, color: u32) {
-        self.frame_buf_error = FrameBufferError::NoError;
-        if x < self.win.w && y < self.win.h {
+    pub fn set_pixel(&mut self, x: u32, y: u32, color: u32) -> Result<(), FrameBufferError> {
+         if x < self.win.w && y < self.win.h {
             self.frame_buf[(x + y * self.win.w) as usize] = color;
-            return;
+            return Ok(());
         }
-        self.frame_buf_error = FrameBufferError::PixelOutOfBounds;
+        Err(FrameBufferError::PixelOutOfBounds)
     }
 
     /// Reads the pixel color from the frame buffer at (x, y).
@@ -214,14 +206,11 @@ impl<UserData> GraphContext<UserData> {
     /// # Arguments
     /// * `x` - The x-coordinate of the pixel
     /// * `y` - The y-coordinate of the pixel
-    pub fn get_pixel(&mut self, x: u32, y: u32) -> Option<u32> {
-        self.frame_buf_error = FrameBufferError::NoError;
+    pub fn get_pixel(&mut self, x: u32, y: u32) -> Result<u32, FrameBufferError> {
         if x < self.win.w && y < self.win.h {
-            Some(self.frame_buf[(x + y * self.win.w) as usize])
-        } else {
-            self.frame_buf_error = FrameBufferError::PixelOutOfBounds;
-            None
+            return Ok(self.frame_buf[(x + y * self.win.w) as usize])
         }
+        Err(FrameBufferError::PixelOutOfBounds)
     }
 
     /// Returns index of a frame buffer that is currently active.
@@ -234,9 +223,8 @@ impl<UserData> GraphContext<UserData> {
     /// and `frame_buf_error`  is set to `FrameBufferError::BadBufferIndex`.
     /// # Arguments
     /// * `frame_buf_index` - The index of the frame buffer to set as active.
-    pub fn set_active_frame_buf(&mut self, frame_buf_index: usize) {
-        self.frame_buf_error = FrameBufferError::NoError;
-        if frame_buf_index < self.frame_bufs.len() && frame_buf_index != self.active_frame_buf_index
+    pub fn set_active_frame_buf(&mut self, frame_buf_index: usize) -> Result<(), FrameBufferError> {
+         if frame_buf_index < self.frame_bufs.len() && frame_buf_index != self.active_frame_buf_index
         {
             // Return the currently active buffer to its place
             std::mem::swap(
@@ -246,9 +234,9 @@ impl<UserData> GraphContext<UserData> {
             // Set the requested frame buffer as the active one
             std::mem::swap(&mut self.frame_buf, &mut self.frame_bufs[frame_buf_index]);
             self.active_frame_buf_index = frame_buf_index;
-            return;
+            return Ok(()) ;
         }
-        self.frame_buf_error = FrameBufferError::BadBufferIndex;
+         Err(FrameBufferError::BadBufferIndex)
     }
 
     /// Copies the contents of the source frame buffer to the destination frame buffer.
@@ -259,8 +247,8 @@ impl<UserData> GraphContext<UserData> {
     /// * `src_index` - The index of the source frame buffer to copy from.
     /// * `dst_index` - The index of the destination frame buffer to copy to.
     ///
-    pub fn frame_buf_copy(&mut self, src_index: usize, dst_index: usize) {
-        self.frame_buf_error = FrameBufferError::NoError;
+    pub fn frame_buf_copy(&mut self, src_index: usize, dst_index: usize) -> Result<(), FrameBufferError> {
+
         // Ensure the source and destination indices are within bounds and not the same
         if src_index < self.frame_bufs.len()
             && dst_index < self.frame_bufs.len()
@@ -284,9 +272,9 @@ impl<UserData> GraphContext<UserData> {
                 &mut self.frame_buf,
                 &mut self.frame_bufs[self.active_frame_buf_index],
             );
-            return;
+            return Ok(());
         }
-        self.frame_buf_error = FrameBufferError::BadBufferIndex;
+         Err(FrameBufferError::BadBufferIndex)
     }
 
     /// Copies the contents of the currently active frame buffer to the frame buffer specified by `frame_buf_index`.
@@ -294,8 +282,8 @@ impl<UserData> GraphContext<UserData> {
     /// and `frame_buf_error` is set to `FrameBufferError::BadBufferIndex`.
     /// # Arguments
     /// * `frame_buf_index` - The index of the frame buffer to copy to.
-    pub fn copy_to_active_frame_buf_from(&mut self, frame_buf_index: usize) {
-        self.frame_buf_error = FrameBufferError::NoError;
+    pub fn copy_to_active_frame_buf_from(&mut self, frame_buf_index: usize)  -> Result<(), FrameBufferError> {
+
         if frame_buf_index < self.frame_bufs.len() && frame_buf_index != self.active_frame_buf_index
         {
             unsafe {
@@ -305,9 +293,9 @@ impl<UserData> GraphContext<UserData> {
                     self.frame_buf.len(),
                 );
             }
-            return;
+            return Ok(());
         }
-        self.frame_buf_error = FrameBufferError::BadBufferIndex;
+        Err(FrameBufferError::BadBufferIndex)
     }
 
     /// Copies the contents of the specified frame buffer to the currently active frame buffer.
@@ -315,8 +303,8 @@ impl<UserData> GraphContext<UserData> {
     /// and `frame_buf_error` is set to `FrameBufferError::BadBufferIndex`.
     /// # Arguments
     /// * `frame_buf_index` - The index of the frame buffer to copy from.
-    pub fn copy_from_active_frame_buf_to(&mut self, frame_buf_index: usize) {
-        self.frame_buf_error = FrameBufferError::NoError;
+    pub fn copy_from_active_frame_buf_to(&mut self, frame_buf_index: usize)  -> Result<(), FrameBufferError> {
+
         if frame_buf_index < self.frame_bufs.len() && frame_buf_index != self.active_frame_buf_index
         {
             unsafe {
@@ -326,8 +314,8 @@ impl<UserData> GraphContext<UserData> {
                     self.frame_buf.len(),
                 );
             }
-            return;
+            return Ok(());
         }
-        self.frame_buf_error = FrameBufferError::BadBufferIndex;
+        Err(FrameBufferError::BadBufferIndex)
     }
 }
