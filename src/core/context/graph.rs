@@ -434,14 +434,14 @@ mod tests {
     fn test_set_active_frame_buf_and_swap() {
         let mut ctx = make_ctx(2, 2, 3);
         // Write unique values to each buffer in turn
-        for buf_index in 3..0 {
+        for buf_index in 1..3 {
             ctx.set_active_frame_buf(buf_index).unwrap();
             for i in 0..ctx.frame_buf.len() {
                 ctx.frame_buf[i] = (buf_index as u32) * 0x11111111;
             }
         }
         // Now verify that values persist after swaps
-        for buf_index in 3..0 {
+        for buf_index in 1..3 {
             ctx.set_active_frame_buf(buf_index).unwrap();
             assert!(ctx
                 .frame_buf
