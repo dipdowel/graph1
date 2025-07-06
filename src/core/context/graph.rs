@@ -14,12 +14,12 @@ use crate::core::default_colors::TRANSPARENT_BLACK;
 pub enum FrameBufferStatus {
     /// An error occurred while trying to set the active frame buffer
     ErrorBadBufferIndex = 100,
-    /// The length of the mutable map does not match the number of frame buffers
-    ErrorMutMapWrongSize = 101,
     /// An error occurred while trying to copy frame buffers
     ErrorPixelOutOfBounds = 200,
+    /*
     /// Attempt to perform an indirect operation on the active buffer
     ErrorBufferIsActive = 300,
+    */
     /// Warning: the buffer was resized to zero pixels.
     WarningResizedToZero = 1000,
     /// Warning: the source and destination frame buffers are the same.
@@ -372,25 +372,30 @@ impl<UserData> GraphContext<UserData> {
     /// - **NB:** If you want `immut` to maintain the order of the frame buffers specified in `frame_buf_indices`,
     /// **do not** include the active frame buffer index in `frame_buf_indices`.
     /// - The active frame buffer will not be included in the `immut` vector as it is returned as mutable in `active`.
-    pub fn get_multi_frame_bufs(&mut self, frame_buf_indices: &[usize]) -> MultipleFrameBuffers {
+    pub fn get_multi_frame_bufs(&mut self, frame_buf_indices: &[usize])  -> Result<(MultipleFrameBuffers), FrameBufferStatus>   {
         let mut immut_frame_bufs: Vec<ImmutableFrameBuffer> = Vec::new();
 
         for buf_index in frame_buf_indices {
+            let buf_index = *buf_index;
+
+            if buf_index >= self.frame_bufs.len() {
+                return Err(FrameBufferStatus::ErrorBadBufferIndex);
+            }
 
             // Skip the active frame buffer as it'll be returned as mutable.
-            if *buf_index == self.active_frame_buf_index {
+            if buf_index == self.active_frame_buf_index {
                 continue;
             }
 
             immut_frame_bufs.push(ImmutableFrameBuffer {
-                frame_buf_index: *buf_index,
-                frame_buf: &self.frame_bufs[*buf_index],
+                frame_buf_index: buf_index,
+                frame_buf: &self.frame_bufs[buf_index],
             });
         }
-        MultipleFrameBuffers {
+        Ok(MultipleFrameBuffers {
             active: &mut self.frame_buf,
             immut: immut_frame_bufs,
-        }
+        })
     }
 }
 
@@ -556,4 +561,9 @@ mod tests {
         ctx.set_active_frame_buf(1).unwrap();
         assert!(ctx.frame_buf.iter().all(|&v| v == 0xCAFEBABE));
     }
+
+
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+
 }
