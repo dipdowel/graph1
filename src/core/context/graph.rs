@@ -14,12 +14,35 @@ use crate::core::default_colors::TRANSPARENT_BLACK;
 pub enum FrameBufferStatus {
     /// An error occurred while trying to set the active frame buffer
     ErrorBadBufferIndex = 100,
+    /// The length of the mutable map does not match the number of frame buffers
+    ErrorMutMapWrongSize = 101,
     /// An error occurred while trying to copy frame buffers
     ErrorPixelOutOfBounds = 200,
+    /// Attempt to perform an indirect operation on the active buffer
+    ErrorBufferIsActive = 300,
     /// Warning: the buffer was resized to zero pixels.
-    WarningResizedToZero = 300,
+    WarningResizedToZero = 1000,
     /// Warning: the source and destination frame buffers are the same.
-    WarningSameSourceAndDestination = 301,
+    WarningSameSourceAndDestination = 1001,
+}
+
+#[derive(Debug)]
+/// A struct that holds an immutable reference to a frame buffer
+pub struct ImmutableFrameBuffer<'a> {
+    /// The index of the frame buffer in the vector of frame buffers
+    pub frame_buf_index: usize,
+    /// A reference to the frame buffer itself
+    pub frame_buf: &'a Vec<u32>,
+}
+
+#[derive(Debug)]
+/// A struct that holds a mutable reference to the currently active frame buffer
+/// and a vector of immutable references to other frame buffers.
+pub struct MultipleFrameBuffers<'a> {
+    /// A mutable reference to the currently active frame buffer
+    pub active: &'a mut Vec<u32>,
+    /// A vector of immutable references to other frame buffers
+    pub immut: Vec<ImmutableFrameBuffer<'a>>,
 }
 
 #[derive(Debug)]
@@ -336,19 +359,50 @@ impl<UserData> GraphContext<UserData> {
         }
         Err(FrameBufferStatus::ErrorBadBufferIndex)
     }
+
+    /// Returns a mutable reference to the currently active frame buffer and
+    /// a vector of immutable references to frame buffers specified by the caller.
+    /// # Arguments
+    /// * `frame_buf_indices` - Indices of the frame buffers to return as immutable.
+    /// # Returns
+    /// A `MultipleFrameBuffers` struct containing:
+    /// * `active` - A mutable reference to the currently active frame buffer.
+    /// * `immut` - A vector of immutable references to the frame buffers specified by `frame_buf_indices`.
+    /// # Note
+    /// - **NB:** If you want `immut` to maintain the order of the frame buffers specified in `frame_buf_indices`,
+    /// **do not** include the active frame buffer index in `frame_buf_indices`.
+    /// - The active frame buffer will not be included in the `immut` vector as it is returned as mutable in `active`.
+    pub fn get_multi_frame_bufs(&mut self, frame_buf_indices: &[usize]) -> MultipleFrameBuffers {
+        let mut immut_frame_bufs: Vec<ImmutableFrameBuffer> = Vec::new();
+
+        for buf_index in frame_buf_indices {
+
+            // Skip the active frame buffer as it'll be returned as mutable.
+            if *buf_index == self.active_frame_buf_index {
+                continue;
+            }
+
+            immut_frame_bufs.push(ImmutableFrameBuffer {
+                frame_buf_index: *buf_index,
+                frame_buf: &self.frame_bufs[*buf_index],
+            });
+        }
+        MultipleFrameBuffers {
+            active: &mut self.frame_buf,
+            immut: immut_frame_bufs,
+        }
+    }
 }
 
-
 /***************************************************************************************************
-***************************************************************************************************
-       ████████  ██████  ██████  ████████  ██████
-          ██     ██      ██         ██     ██
-          ██     ████    ██████     ██     ██████
-          ██     ██          ██     ██         ██
-          ██     ██████  ██████     ██     ██████
-****************************************************************************************************
+----------------------------------------------------------------------------------------------------
+                   [████████]  [██████]  [██████]  [████████]  [██████]
+                      [██]     [██]      [██]         [██]     [██]
+                      [██]     [████]    [██████]     [██]     [██████]
+                      [██]     [██]          [██]     [██]         [██]
+                      [██]     [██████]  [██████]     [██]     [██████]
+....................................................................................................
 ****************************************************************************************************/
-
 
 #[cfg(test)]
 mod tests {
@@ -485,8 +539,6 @@ mod tests {
             res,
             Err(FrameBufferStatus::WarningSameSourceAndDestination)
         ));
-
-
 
         for i in 0..ctx.frame_buf.len() {
             ctx.frame_buf[i] = 0xCAFEBABE;
