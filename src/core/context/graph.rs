@@ -372,7 +372,7 @@ impl<UserData> GraphContext<UserData> {
     /// - **NB:** If you want `immut` to maintain the order of the frame buffers specified in `frame_buf_indices`,
     /// **do not** include the active frame buffer index in `frame_buf_indices`.
     /// - The active frame buffer will not be included in the `immut` vector as it is returned as mutable in `active`.
-    pub fn get_multi_frame_bufs(&mut self, frame_buf_indices: &[usize])  -> Result<(MultipleFrameBuffers), FrameBufferStatus>   {
+    pub fn get_multi_frame_bufs(&mut self, frame_buf_indices: &[usize])  -> Result<MultipleFrameBuffers, FrameBufferStatus>   {
         let mut immut_frame_bufs: Vec<ImmutableFrameBuffer> = Vec::new();
 
         for buf_index in frame_buf_indices {
@@ -565,5 +565,64 @@ mod tests {
 
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
+    #[test]
+    fn returns_active_and_immut_refs_when_indices_valid() {
+        let mut ctx = make_ctx(2, 2, 3);
+        let indices = [0, 1, 2];
+        let res = ctx.get_multi_frame_bufs(&indices);
+        assert!(res.is_ok());
+        let bufs = res.unwrap();
 
+        // Should skip index 0 in immut (active), so only [1, 2]
+        let immut_indices: Vec<_> = bufs.immut.iter().map(|f| f.frame_buf_index).collect();
+        assert_eq!(immut_indices, vec![1, 2]);
+        // Active buffer should be mutable
+        bufs.active[0] = 0x22222222;
+
+        // The active buffer is 0 by default
+        assert_eq!(ctx.get_active_frame_buf_index(), 0);
+    }
+
+    #[test]
+    fn order_is_preserved_and_active_is_skipped() {
+        let mut ctx = make_ctx(2, 2, 4);
+        ctx.set_active_frame_buf(2).unwrap();
+        let indices = [3, 0, 2, 1];
+        let res = ctx.get_multi_frame_bufs(&indices);
+        assert!(res.is_ok());
+        let bufs = res.unwrap();
+        let immut_indices: Vec<_> = bufs.immut.iter().map(|f| f.frame_buf_index).collect();
+        // 2 is active, so only [3,0,1] in order
+        assert_eq!(immut_indices, vec![3, 0, 1]);
+    }
+
+    #[test]
+    fn returns_error_for_any_oob_index() {
+        let mut ctx = make_ctx(2, 2, 2);
+        // Buffers: 0,1; index 2 is invalid
+        let indices = [0, 2];
+        let res = ctx.get_multi_frame_bufs(&indices);
+        assert!(matches!(res, Err(FrameBufferStatus::ErrorBadBufferIndex)));
+    }
+
+    #[test]
+    fn returns_empty_immut_if_only_active_requested() {
+        let mut ctx = make_ctx(2, 2, 2);
+        let indices = [0]; // 0 is active
+        let res = ctx.get_multi_frame_bufs(&indices);
+        assert!(res.is_ok());
+        let bufs = res.unwrap();
+        assert!(bufs.immut.is_empty());
+    }
+
+    #[test]
+    fn active_mutation_reflects_on_context() {
+        let mut ctx = make_ctx(2, 2, 2);
+        let indices = [0, 1];
+        let res = ctx.get_multi_frame_bufs(&indices).unwrap();
+        for px in res.active.iter_mut() {
+            *px = 0xAABBCCDD;
+        }
+        assert!(ctx.frame_buf.iter().all(|&px| px == 0xAABBCCDD));
+    }
 }
