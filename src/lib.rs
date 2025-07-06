@@ -1,5 +1,8 @@
 //-=[ B }=------------------------------------------------------------------------------------------
 pub mod buffer_op {
+    pub mod copy {
+        pub mod region;
+    }
 
     pub(crate) mod fill {
         pub(crate) mod buffer;
@@ -264,6 +267,7 @@ pub mod utils {
     pub mod clip {
         pub mod line;
     }
+
 
     /// Utils for processing colors
     pub mod color {

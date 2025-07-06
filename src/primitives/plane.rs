@@ -101,6 +101,13 @@ impl<T: Numeric + std::ops::Add<Output = T>> RectArea<T> {
             && other.top_left.y + other.dimensions.h <= self.top_left.y + self.dimensions.h
     }
 
+    pub fn get_bottom_right(&self) -> Point<T> {
+        Point {
+            x: self.top_left.x + self.dimensions.w /* - T::one() */,
+            y: self.top_left.y + self.dimensions.h /* - T::one() */,
+        }
+    }
+
     /// Checks whether a given line segment is completely outside this `RectArea`.
     ///
     /// This method performs a fast rejection test based on the axis-aligned bounding box (AABB)
