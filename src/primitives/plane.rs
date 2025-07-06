@@ -101,6 +101,30 @@ impl<T: Numeric + std::ops::Add<Output = T>> RectArea<T> {
             && other.top_left.y + other.dimensions.h <= self.top_left.y + self.dimensions.h
     }
 
+
+        /// Checks whether this rectangle overlaps with another rectangle.
+        /// (a general AABB (axis-aligned bounding box) overlap test)
+        /// # Parameters
+        /// - `other`: The other rectangle to check for overlap.
+        pub fn overlaps(&self, other: &RectArea<T>) -> bool {
+            let self_x1 = self.top_left.x;
+            let self_y1 = self.top_left.y;
+            let self_x2 = self.top_left.x + self.dimensions.w;
+            let self_y2 = self.top_left.y + self.dimensions.h;
+
+            let other_x1 = other.top_left.x;
+            let other_y1 = other.top_left.y;
+            let other_x2 = other.top_left.x + other.dimensions.w;
+            let other_y2 = other.top_left.y + other.dimensions.h;
+
+            self_x1 < other_x2 &&
+                self_x2 > other_x1 &&
+                self_y1 < other_y2 &&
+                self_y2 > other_y1
+        }
+
+
+    /// Returns the bottom-right point of this rectangle.
     pub fn get_bottom_right(&self) -> Point<T> {
         Point {
             x: self.top_left.x + self.dimensions.w /* - T::one() */,
