@@ -20,10 +20,10 @@ use crate::primitives::point::Point;
 /// Will panic if indices are out of bounds for the provided buffers. However,
 /// clipping logic guarantees that all writes remain within bounds.
 pub fn to_another_buf(
-    src_buf: &Vec<u32>,
+    src_buf: &[u32],
     src_dims: &Dimensions2d<u32>,
     src_area: &RectArea<u32>,
-    dst_buf: &mut Vec<u32>,
+    dst_buf: &mut [u32],
     dst_dims: &Dimensions2d<u32>,
     dst_start: &Point<u32>,
     use_absolute_alpha: bool,
