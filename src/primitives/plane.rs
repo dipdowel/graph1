@@ -368,5 +368,55 @@ mod tests {
     }
 
 
+    /////  AABB overlap tests
+
+    #[test]
+    fn test_overlaps_when_no_overlap() {
+        let a = RectArea::new(0, 0, 10, 10, None);
+        let b = RectArea::new(20, 20, 10, 10, None);
+        assert!(!a.overlaps(&b));
+        assert!(!b.overlaps(&a));
+    }
+
+    #[test]
+    fn test_overlaps_when_overlap_by_area() {
+        let a = RectArea::new(0, 0, 10, 10, None);
+        let b = RectArea::new(5, 5, 10, 10, None);
+        assert!(a.overlaps(&b));
+        assert!(b.overlaps(&a));
+    }
+
+    #[test]
+    fn test_overlaps_when_touching_by_edge() {
+        let a = RectArea::new(0, 0, 10, 10, None);
+        let b = RectArea::new(10, 0, 10, 10, None);
+        assert!(!a.overlaps(&b));
+        assert!(!b.overlaps(&a));
+    }
+
+    #[test]
+    fn test_overlaps_when_touching_by_corner() {
+        let a = RectArea::new(0, 0, 10, 10, None);
+        let b = RectArea::new(10, 10, 10, 10, None);
+        assert!(!a.overlaps(&b));
+        assert!(!b.overlaps(&a));
+    }
+
+    #[test]
+    fn test_overlaps_when_one_inside_another() {
+        let a = RectArea::new(0, 0, 20, 20, None);
+        let b = RectArea::new(5, 5, 5, 5, None);
+        assert!(a.overlaps(&b));
+        assert!(b.overlaps(&a));
+    }
+
+    #[test]
+    fn test_overlaps_when_identical() {
+        let a = RectArea::new(0, 0, 10, 10, None);
+        let b = RectArea::new(0, 0, 10, 10, None);
+        assert!(a.overlaps(&b));
+        assert!(b.overlaps(&a));
+    }
+
 
 }
