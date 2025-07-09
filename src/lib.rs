@@ -1,7 +1,14 @@
 //-=[ B }=------------------------------------------------------------------------------------------
 pub mod buffer_op {
     pub mod copy {
-        pub mod region;
+        // pub mod region;
+        pub mod rect{
+            mod to_another_buf;
+            mod within_buf;
+            pub use to_another_buf::to_another_buf;
+            pub use within_buf::within_buf;
+
+        }
     }
 
     pub(crate) mod fill {

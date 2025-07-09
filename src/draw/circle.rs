@@ -43,6 +43,13 @@ fn draw_lines_of_circle_thread(
 }
 
 /// Draws a filled circle with multithreading support (like rectangle::filled).
+/// **NB:** Circle drawing logic seems to be buggy at the moment! Don't use it!
+/// FIXME: fix the circle drawing logic.
+/// FIXME: fix the circle drawing logic.
+/// FIXME: fix the circle drawing logic.
+/// FIXME: fix the circle drawing logic.
+/// FIXME: fix the circle drawing logic.
+
 pub fn filled<UserData>(
     ctx: &mut GraphContext<UserData>,
     center: &Pixel,
