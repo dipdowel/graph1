@@ -2,10 +2,10 @@ use crate::core::context::gpu::GpuContext;
 use crate::primitives::numeric::Numeric;
 use crate::primitives::plane::{Dimensions2d, RectArea};
 
-#[cfg(feature = "gpu")]
-use ocl::{Kernel, Buffer};
-#[cfg(feature = "gpu")]
+
 use crate::buffer_op::gpu::kernel_bundle::KernelBundle;
+#[cfg(feature = "gpu")]
+use ocl::{Buffer, Kernel};
 
 /// Fills multiple rectangles using the GPU. Will download result into the buffer.
 pub fn filled_multiple_gpu<T: Numeric + Copy + 'static>(
@@ -18,18 +18,33 @@ pub fn filled_multiple_gpu<T: Numeric + Copy + 'static>(
     #[cfg(feature = "gpu")]
     {
         let bundle = fill_rects_get_kernel(
-            cpu_frame_buf, buf_dimensions, rects, default_color, gpu_context,
+            cpu_frame_buf,
+            buf_dimensions,
+            rects,
+            default_color,
+            gpu_context,
         )?;
         let kernel = bundle.kernel;
-        let gpu_frame_buf = bundle.buffers.get(0)
+        let gpu_frame_buf = bundle
+            .buffers
+            .get(0)
             .ok_or("No frame buffer in kernel bundle")?;
 
-
         // Upload current ctx.frame_buf to the GPU
-        gpu_frame_buf.write(cpu_frame_buf.as_ref()).enq().map_err(|e| format!("Failed to upload frame buffer: {e}"))?;
+        gpu_frame_buf
+            .write(cpu_frame_buf.as_ref())
+            .enq()
+            .map_err(|e| format!("Failed to upload frame buffer: {e}"))?;
 
-        unsafe { kernel.enq().map_err(|e| format!("Failed to enqueue kernel: {e}"))?; }
-        gpu_frame_buf.read(cpu_frame_buf).enq().map_err(|e| format!("Failed to read GPU buffer: {e}"))?;
+        unsafe {
+            kernel
+                .enq()
+                .map_err(|e| format!("Failed to enqueue kernel: {e}"))?;
+        }
+        gpu_frame_buf
+            .read(cpu_frame_buf)
+            .enq()
+            .map_err(|e| format!("Failed to read GPU buffer: {e}"))?;
         Ok(())
     }
     #[cfg(not(feature = "gpu"))]
@@ -55,8 +70,8 @@ pub fn filled_multiple_gpu<T: Numeric + Copy + 'static>(
 /// * `gpu_context` - The GPU context containing OpenCL resources.
 /// * `upload_fb2gpu` - Whether to upload the current Graph1  frame buffer to the GPU before running the kernel.
 ///
-/// 
-#[cfg(feature = "gpu")]
+///
+
 pub fn fill_rects_get_kernel<T: Numeric + Copy + 'static>(
     cpu_frame_buf: &mut [u32],
     buf_dimensions: &Dimensions2d<u32>,
@@ -111,8 +126,6 @@ pub fn fill_rects_get_kernel<T: Numeric + Copy + 'static>(
 
         // Upload frame buffer (pooled)
         let gpu_frame_buf = gpu_context.get_or_create_buffer(buf_len, queue_ref, cpu_frame_buf)?;
-
-
 
         // Build (but do not enqueue) the kernel
         let kernel = Kernel::builder()

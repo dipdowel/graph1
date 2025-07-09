@@ -95,7 +95,6 @@ fn draw_lines_of_rectangle_thread(
 /// * `ctx` - The graph context
 /// * `rect` - The rectangle to draw
 pub fn filled<UserData, T: Numeric>(ctx: &mut GraphContext<UserData>, rect: &RectArea<T>) {
-
     // Do nothing if threading is not enabled
     if ctx.num_threads == 0 {
         return;

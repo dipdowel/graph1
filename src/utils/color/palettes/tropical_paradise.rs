@@ -1,5 +1,3 @@
-
-
 pub struct TropicalParadise;
 impl TropicalParadise {
     pub const SAND_YELLOW: u32 = 0xf5_d7_98_ff;

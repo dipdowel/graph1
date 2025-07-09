@@ -70,7 +70,7 @@ impl WindowContext {
             foreground_color: fg_color,
             center: Point::new(w / 2, h / 2),
             quadrants,
-            region: Region::new(win_rect_area)
+            region: Region::new(win_rect_area),
         }
     }
 

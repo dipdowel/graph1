@@ -59,9 +59,8 @@ pub fn rgba_to_abgr(dst: &mut [u32], src: &[u32], stats: bool) -> Option<Adapter
             average_green: avg_g & 0xFF,
             average_blue: avg_b & 0xFF,
             num_pixels: num_pixels as u32,
-        })
+        });
     }
 
     None
-
 }

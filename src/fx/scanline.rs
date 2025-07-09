@@ -1,10 +1,14 @@
-use std::thread;
 use crate::buffer_op::gpu;
 use crate::core::context::GraphContext;
 use crate::utils::color::math::{rgba_operation, ColorOperation};
+use std::thread;
 
-
-fn buffer_scanline_fx_thread(buffer: &mut [u32], intensity: u32, line_flipper: u32, pixel_count_offset: u32) {
+fn buffer_scanline_fx_thread(
+    buffer: &mut [u32],
+    intensity: u32,
+    line_flipper: u32,
+    pixel_count_offset: u32,
+) {
     // println!("[threads: {}] thread: {}, chunk {:?}/{:?}", total_chunks,chunk_index, chunk_index+1, total_chunks);
     // let thread_id = thread::current().id();
     // println!("[thread: {:?}] ", thread_id);
@@ -42,7 +46,6 @@ fn buffer_scanline_fx_thread(buffer: &mut [u32], intensity: u32, line_flipper: u
 /// * `size` - The size of the scanline effect. Must be greater than 0.
 /// * `intensity` - The intensity of the scanline effect. Must be between 0 and 255.
 pub fn window<UserData>(ctx: &mut GraphContext<UserData>, size: u8, intensity: u8) {
-
     if ctx.gpu_context.is_enabled() {
         gpu::scanline::scanline_fx(
             &mut ctx.frame_buf,
@@ -50,19 +53,18 @@ pub fn window<UserData>(ctx: &mut GraphContext<UserData>, size: u8, intensity: u
             size,
             intensity,
             &mut ctx.gpu_context,
-        ).expect("GPU scanline failed");
+        )
+        .expect("GPU scanline failed");
         return;
     }
-
-
 
     if ctx.num_threads < 1 {
         return;
     }
 
     // don't let the size be zero
-    let size: u32 = if size == 0 { 1 } else {size as u32};
-    let intensity: u32 =  intensity as u32;
+    let size: u32 = if size == 0 { 1 } else { size as u32 };
+    let intensity: u32 = intensity as u32;
     let intensity: u32 = intensity << 24 | intensity << 16 | intensity << 8 | 0xff;
     let line_flipper = ctx.win.w * size;
 
@@ -83,12 +85,11 @@ pub fn window<UserData>(ctx: &mut GraphContext<UserData>, size: u8, intensity: u
         // Iterate over the chunks and process each in its own thread
         // for chunk in &mut chunks.iter_mut() {
         for (chunk_index, chunk) in &mut chunks.iter_mut().enumerate() {
-
             // How many pixels were processed in the previous threads. Helps the currently created thread to know where to start.
             let pixel_count_offset = (chunk_index * chunk.len()) as u32;
-            s.spawn(move || buffer_scanline_fx_thread(chunk, intensity, line_flipper, pixel_count_offset));
+            s.spawn(move || {
+                buffer_scanline_fx_thread(chunk, intensity, line_flipper, pixel_count_offset)
+            });
         }
     }); // The scope for the scoped threads ends here. All the threads are expected to be joined automagically at this point.
-
-
 }

@@ -1,4 +1,3 @@
-
 pub struct VintagePastel;
 impl VintagePastel {
     pub const POWDER_PINK: u32 = 0xf3_b5_d0_ff;

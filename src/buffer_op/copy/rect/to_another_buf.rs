@@ -58,8 +58,14 @@ pub fn to_another_buf(
         return;
     }
 
-    let Point { x: x_start, y: y_start } = src_area.top_left;
-    let Point { x: mut x_end, y: mut y_end } = src_area.get_bottom_right();
+    let Point {
+        x: x_start,
+        y: y_start,
+    } = src_area.top_left;
+    let Point {
+        x: mut x_end,
+        y: mut y_end,
+    } = src_area.get_bottom_right();
 
     // Clip source to buffer bounds
     x_end = x_end.min(src_dims.w);

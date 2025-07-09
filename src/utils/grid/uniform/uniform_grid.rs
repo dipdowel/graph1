@@ -90,8 +90,6 @@ impl<T: Numeric> UniformGrid<T> {
         self.cells.iter()
     }
 
-
-
     /// Returns an iterator over all cells (mutable)
     /// NB: check if this is actually needed
     pub fn iter_mut(&mut self) -> impl DoubleEndedIterator<Item = &mut Region<T>> {
@@ -223,7 +221,6 @@ pub struct Neighbor<'a, T: Numeric> {
     pub cell_index: usize,
 }
 
-
 // TODO: This implementation is so much a WiP!
 // TODO: Refactor:
 // TODO: - Better naming
@@ -328,16 +325,10 @@ impl<T: Numeric> UniformGrid<T> {
                     let distance = match neighborhood_type {
                         NeighborhoodType::Circle { .. } => {
                             ((dx * dx + dy * dy) as f64).sqrt().round() as u32
-                        },
-                        NeighborhoodType::Square { .. } => {
-                            dx.abs().max(dy.abs()) as u32
-                        },
-                        NeighborhoodType::Diamond { .. } => {
-                            (dx.abs() + dy.abs()) as u32
-                        },
-                        _ => {
-                            ((dx * dx + dy * dy) as f64).sqrt().round() as u32
                         }
+                        NeighborhoodType::Square { .. } => dx.abs().max(dy.abs()) as u32,
+                        NeighborhoodType::Diamond { .. } => (dx.abs() + dy.abs()) as u32,
+                        _ => ((dx * dx + dy * dy) as f64).sqrt().round() as u32,
                     };
                     let cell_index = n_row * self.cols + n_col;
                     result.push(Neighbor {

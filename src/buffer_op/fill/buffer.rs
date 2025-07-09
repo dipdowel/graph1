@@ -1,5 +1,5 @@
-use std::thread;
 use crate::buffer_op;
+use std::thread;
 
 use crate::core::context::gpu::GpuContext;
 
@@ -44,28 +44,15 @@ fn buffer_fill_thread(buffer: &mut [u32], color: u32) {
 /// * `color` - The color to fill the buffer with
 /// * `num_threads` - The number of threads to spawn.
 /// * `gpu_context` - Optional GPU context. If provided, will try to use GPU/OpenCL.
-pub fn fill(
-    buffer: &mut [u32],
-    color: u32,
-    num_threads: usize,
-    gpu_context: &mut GpuContext,
-) {
-    
-
+pub fn fill(buffer: &mut [u32], color: u32, num_threads: usize, gpu_context: &mut GpuContext) {
     // let start = Instant::now();
 
     // ==[ GPU OpenCL ]=======================================================================
-    
 
     if gpu_context.is_enabled() {
-
         let len = buffer.len();
-        buffer_op::gpu::fill::fill(
-            buffer,
-            len,
-            color,
-            gpu_context
-        ).expect("gpu::fill::fill() failed :(");
+        buffer_op::gpu::fill::fill(buffer, len, color, gpu_context)
+            .expect("gpu::fill::fill() failed :(");
         return;
     }
 

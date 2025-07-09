@@ -25,24 +25,23 @@ macro_rules! hash_random_u32 {
     }};
 
     // min/max range provided
-($value:expr, $min:expr, $max:expr) => {{
-    let mut min = $min;
-    let mut max = $max;
+    ($value:expr, $min:expr, $max:expr) => {{
+        let mut min = $min;
+        let mut max = $max;
 
-    if min == max {
-        min
-    } else {
-        if min > max {
-            core::mem::swap(&mut min, &mut max);
+        if min == max {
+            min
+        } else {
+            if min > max {
+                core::mem::swap(&mut min, &mut max);
+            }
+
+            let hash_random = $crate::hash_random_u32!($value);
+            let range = max - min;
+            min + (hash_random % range)
         }
-
-        let hash_random = $crate::hash_random_u32!($value);
-        let range = max - min;
-        min + (hash_random % range)
-    }
-}};
+    }};
 }
-
 
 #[cfg(test)]
 mod tests {
@@ -87,9 +86,10 @@ mod tests {
 
         // Filter out duplicates from the created random values
         let mut seen = HashSet::new();
-        let filtered_values:Vec<u32> = random_values.iter()
-            .cloned()                     // convert &u32 to u32
-            .filter(|x| seen.insert(*x))  // insert returns false if already present
+        let filtered_values: Vec<u32> = random_values
+            .iter()
+            .cloned() // convert &u32 to u32
+            .filter(|x| seen.insert(*x)) // insert returns false if already present
             .collect();
 
         // println!("random_values: {:?}",random_values);
@@ -132,6 +132,4 @@ mod tests {
     //         );
     //     }
     // }
-
-
 }

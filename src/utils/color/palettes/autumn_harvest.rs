@@ -1,5 +1,3 @@
-
-
 pub struct AutumnHarvest;
 impl AutumnHarvest {
     pub const PUMPKIN_ORANGE: u32 = 0xff_7d_4e_ff;

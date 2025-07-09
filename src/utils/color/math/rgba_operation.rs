@@ -14,7 +14,7 @@ pub fn rgba_operation(c1: u32, c2: u32, op: ColorOperation, use_alpha: bool) -> 
     let r = match op {
         ColorOperation::Add => {
             let result = ((c1 >> 24) & 0xff).wrapping_add((c2 >> 24) & 0xff);
-            result.min(0xff) 
+            result.min(0xff)
         }
         ColorOperation::Subtract => {
             let result = ((c1 >> 24) & 0xff) as i32 - ((c2 >> 24) & 0xff) as i32;
@@ -25,7 +25,7 @@ pub fn rgba_operation(c1: u32, c2: u32, op: ColorOperation, use_alpha: bool) -> 
     let g = match op {
         ColorOperation::Add => {
             let result = ((c1 >> 16) & 0xff).wrapping_add((c2 >> 16) & 0xff);
-            result.min(0xff) 
+            result.min(0xff)
         }
         ColorOperation::Subtract => {
             let result = ((c1 >> 16) & 0xff) as i32 - ((c2 >> 16) & 0xff) as i32;

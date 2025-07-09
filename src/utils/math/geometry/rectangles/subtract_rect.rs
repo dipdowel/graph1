@@ -9,8 +9,8 @@ fn subtract_rect<T: Numeric + std::ops::Add<Output = T> + PartialEq>(
 ) -> Vec<RectArea<T>> {
 
     panic!("subtract_rect() NEEDS TO BE TESTED BEFORE USE!");
-    
-  
+
+
     let mut result = Vec::new();
 
     let x1 = rect.top_left.x;
@@ -47,7 +47,7 @@ fn subtract_rect<T: Numeric + std::ops::Add<Output = T> + PartialEq>(
     }
 
     result
-    
+
 
 }
 

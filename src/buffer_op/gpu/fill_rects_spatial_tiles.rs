@@ -1,12 +1,11 @@
+use crate::buffer_op::gpu::kernel_bundle::KernelBundle;
 use crate::core::context::gpu::GpuContext;
 use crate::primitives::numeric::Numeric;
 use crate::primitives::plane::{Dimensions2d, RectArea};
 #[cfg(feature = "gpu")]
-use ocl::{Kernel, Buffer};
-use crate::buffer_op::gpu::kernel_bundle::KernelBundle;
+use ocl::{Buffer, Kernel};
 /// Prepare a 2D tile grid of rectangles for GPU rasterization.
 /// Returns (flat_rects, tile_offsets, tile_counts, tiles_x, tiles_y).
-
 
 pub fn fill_rects_spatial_tiles<T: Numeric + Copy + 'static>(
     cpu_frame_buf: &mut [u32],
@@ -23,16 +22,32 @@ pub fn fill_rects_spatial_tiles<T: Numeric + Copy + 'static>(
         let tiles_y = tiles_y.unwrap_or(8).clamp(2, 32);
 
         let bundle = fill_rects_spatial_tiles_get_kernel(
-            cpu_frame_buf, buf_dimensions, rects, default_color, tiles_x, tiles_y, gpu_context,
+            cpu_frame_buf,
+            buf_dimensions,
+            rects,
+            default_color,
+            tiles_x,
+            tiles_y,
+            gpu_context,
         )?;
         let kernel = bundle.kernel;
-        let gpu_frame_buf = bundle.buffers.get(0)
+        let gpu_frame_buf = bundle
+            .buffers
+            .get(0)
             .ok_or("No frame buffer in kernel bundle")?;
 
-        gpu_frame_buf.write(cpu_frame_buf.as_ref()).enq()
+        gpu_frame_buf
+            .write(cpu_frame_buf.as_ref())
+            .enq()
             .map_err(|e| format!("Failed to upload frame buffer: {e}"))?;
-        unsafe { kernel.enq().map_err(|e| format!("Failed to enqueue kernel: {e}"))?; }
-        gpu_frame_buf.read(cpu_frame_buf).enq()
+        unsafe {
+            kernel
+                .enq()
+                .map_err(|e| format!("Failed to enqueue kernel: {e}"))?;
+        }
+        gpu_frame_buf
+            .read(cpu_frame_buf)
+            .enq()
             .map_err(|e| format!("Failed to read GPU buffer: {e}"))?;
         Ok(())
     }
@@ -60,11 +75,16 @@ pub fn fill_rects_spatial_tiles_get_kernel<T: Numeric + Copy + 'static>(
 ) -> Result<KernelBundle, String> {
     #[cfg(feature = "gpu")]
     {
+        // let start = Instant::now(); // Start timing
 
-         // let start = Instant::now(); // Start timing
-
-        let (flat_rects, tile_offsets, tile_counts, tiles_x, tiles_y) =
-            tile_rects_grid(rects, buf_dimensions.w, buf_dimensions.h, tiles_x, tiles_y, default_color);
+        let (flat_rects, tile_offsets, tile_counts, tiles_x, tiles_y) = tile_rects_grid(
+            rects,
+            buf_dimensions.w,
+            buf_dimensions.h,
+            tiles_x,
+            tiles_y,
+            default_color,
+        );
 
         let kernel_src = include_str!("fill_rects_spatial_tiles.c");
         let kernel_name = "fill_rects_tiles";
@@ -76,28 +96,36 @@ pub fn fill_rects_spatial_tiles_get_kernel<T: Numeric + Copy + 'static>(
                 .load_program(&kernel_src, program_name)
                 .map_err(|e| format!("Failed to build OpenCL program: {e}"))?;
         }
-        let program = gpu_context.get_program(program_name)
+        let program = gpu_context
+            .get_program(program_name)
             .ok_or("Program not loaded (unknown error)")?;
-        let queue = gpu_context.queue.as_ref().ok_or("No OpenCL queue in context")?.clone();
+        let queue = gpu_context
+            .queue
+            .as_ref()
+            .ok_or("No OpenCL queue in context")?
+            .clone();
         let queue_ref = queue.as_ref();
 
         let flat_rects_buf = Buffer::<u32>::builder()
             .queue(queue_ref.clone())
             .len(flat_rects.len())
             .copy_host_slice(&flat_rects)
-            .build().map_err(|e| format!("Failed to create OpenCL flat_rects buffer: {e}"))?;
+            .build()
+            .map_err(|e| format!("Failed to create OpenCL flat_rects buffer: {e}"))?;
 
         let offsets_buf = Buffer::<u32>::builder()
             .queue(queue_ref.clone())
             .len(tile_offsets.len())
             .copy_host_slice(&tile_offsets)
-            .build().map_err(|e| format!("Failed to create OpenCL tile_offsets buffer: {e}"))?;
+            .build()
+            .map_err(|e| format!("Failed to create OpenCL tile_offsets buffer: {e}"))?;
 
         let counts_buf = Buffer::<u32>::builder()
             .queue(queue_ref.clone())
             .len(tile_counts.len())
             .copy_host_slice(&tile_counts)
-            .build().map_err(|e| format!("Failed to create OpenCL tile_counts buffer: {e}"))?;
+            .build()
+            .map_err(|e| format!("Failed to create OpenCL tile_counts buffer: {e}"))?;
 
         let gpu_frame_buf = gpu_context.get_or_create_buffer(buf_len, queue_ref, cpu_frame_buf)?;
 
@@ -127,12 +155,7 @@ pub fn fill_rects_spatial_tiles_get_kernel<T: Numeric + Copy + 'static>(
 
         Ok(KernelBundle {
             kernel,
-            buffers: vec![
-                gpu_frame_buf,
-                flat_rects_buf,
-                offsets_buf,
-                counts_buf,
-            ],
+            buffers: vec![gpu_frame_buf, flat_rects_buf, offsets_buf, counts_buf],
         })
     }
     #[cfg(not(feature = "gpu"))]
@@ -147,8 +170,6 @@ pub fn fill_rects_spatial_tiles_get_kernel<T: Numeric + Copy + 'static>(
         Err("GPU support is not enabled at compile time.".to_string())
     }
 }
-
-
 
 #[cfg(feature = "gpu")]
 pub fn tile_rects_grid<T: Numeric + Copy>(

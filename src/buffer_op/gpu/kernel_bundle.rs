@@ -1,11 +1,10 @@
 //! Defines KernelBundle, a wrapper for OpenCL kernels and their associated buffers
 //! Provides real Kernel and Buffer instances for GPU builds and fake ones for non-GPU builds.
-//! That way, the same code can be used in both GPU and non-GPU contexts 
+//! That way, the same code can be used in both GPU and non-GPU contexts
 //! and the compiler doesn't complain about missing types.
 
-
 #[cfg(feature = "gpu")]
-use ocl::{Kernel, Buffer};
+use ocl::{Buffer, Kernel};
 
 #[derive(Debug)]
 #[cfg(not(feature = "gpu"))]
@@ -14,7 +13,6 @@ pub struct Kernel;
 #[derive(Debug)]
 #[cfg(not(feature = "gpu"))]
 pub struct Buffer<T>(std::marker::PhantomData<T>);
-
 
 /// Holds a GPU kernel and the device buffers it needs to operate.
 /// Keeps buffers alive for the duration of the kernel's use.
@@ -26,7 +24,6 @@ pub struct KernelBundle {
 
 #[cfg(feature = "gpu")]
 impl KernelBundle {
-    
     pub fn new(kernel: Kernel, buffers: Vec<Buffer<u32>>) -> Self {
         Self { kernel, buffers }
     }

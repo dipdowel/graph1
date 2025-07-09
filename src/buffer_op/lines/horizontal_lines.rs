@@ -1,7 +1,6 @@
 use crate::buffer_op;
 use crate::core::context::gpu::GpuContext;
 use crate::primitives::plane::Dimensions2d;
- 
 
 /// Draws horizontal lines on a buffer. **Single-threaded!**
 ///
@@ -23,11 +22,9 @@ pub fn horizontal_lines(
     scanline_sizes: &Vec<u32>,
     gpu_context: &mut GpuContext,
 ) {
-
     // ==[ GPU OpenCL ]=======================================================================
 
     if gpu_context.is_enabled() {
-
         // println!(">>>>>>>>>>>>> scanlines (no threads) Scanlines using GPU OpenCL");
 
         buffer_op::gpu::horizontal_lines::horizontal_lines(
@@ -39,10 +36,9 @@ pub fn horizontal_lines(
             scanline_sizes,
             gpu_context,
         )
-            .expect("Failed to draw horizontal lines using GPU OpenCL");
+        .expect("Failed to draw horizontal lines using GPU OpenCL");
         return;
     }
-
 
     let x_max = buf_dimensions.w;
     let y_max = buf_dimensions.h - 1;

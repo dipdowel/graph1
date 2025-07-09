@@ -120,8 +120,6 @@ pub fn filled_multiple<
     });
 }
 
-
-
 /// Draws all rectangles that intersect a vertical scanline range directly into the frame buffer.
 ///
 /// # Parameters

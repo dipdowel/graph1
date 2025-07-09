@@ -101,7 +101,6 @@ fn prepare_stats(color_totals: ColorTotals, num_pixels: u64) -> AdapterStatistic
 // TODO: WRITE TESTS !!!
 // TODO: WRITE TESTS !!!
 
-
 /// Converts the source buffer `src` from RGBA to 0RGB and writes the result to `dst`.
 /// 0RGB model is used by some rendering libraries, such as `minifb`.
 /// # Arguments
@@ -184,7 +183,6 @@ pub fn rgba_to_0rgb(
         }
     }); // The scope for the scoped threads ends here.
 
-
     if !stats {
         return None;
     }
@@ -192,4 +190,3 @@ pub fn rgba_to_0rgb(
     let color_totals = *(color_totals.lock().unwrap());
     Some(prepare_stats(color_totals, num_pixels))
 }
-

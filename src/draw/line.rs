@@ -169,18 +169,15 @@ fn draw_integer_line<UserData>(
         return;
     }
 
-
-
     let line_width = ctx.line.width_int.max(1);
     let radius = line_width as f32 / 2.0;
     let ceil_radius = radius.ceil() as i32;
     let max_dist2 = radius * radius;
 
     // Used for limiting the length of the line to prevent protrusions due to the line width
-    let dst_len = len-(ctx.line.width_int as i32/2);
+    let dst_len = len - (ctx.line.width_int as i32 / 2);
 
     for i in 0..=len {
-
         if i == dst_len {
             break;
         }
@@ -231,20 +228,17 @@ fn draw_float_line<UserData>(
         return;
     }
 
-
     let radius = ctx.line.width_float.max(1.0) / 2.0;
     let ceil_radius = radius.ceil() as i32;
     let max_dist2 = radius * radius;
 
     // Used for limiting the length of the line to prevent protrusions due to the line width
-    let dst_len = ( len - ctx.line.width_float / 2.0) as i32;
+    let dst_len = (len - ctx.line.width_float / 2.0) as i32;
 
     for i in 0..=len.ceil() as i32 {
-
         if i == dst_len {
             break;
         }
-
 
         let t = i as f32 / len;
         let x = p0.x as f32 + t * dx;

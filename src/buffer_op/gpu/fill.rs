@@ -1,10 +1,9 @@
 use crate::core::context::gpu::GpuContext;
 
 
-#[cfg(feature = "gpu")]
-use ocl::{Kernel};
-#[cfg(feature = "gpu")]
 use crate::buffer_op::gpu::kernel_bundle::KernelBundle;
+#[cfg(feature = "gpu")]
+use ocl::Kernel;
 
 /// Fill the GPU buffer with a color (in-place, downloads to host after).
 pub fn fill(
@@ -17,15 +16,27 @@ pub fn fill(
     {
         let bundle = fill_get_kernel(cpu_frame_buf, buf_len, color, gpu_context)?;
         let kernel = bundle.kernel;
-        let gpu_frame_buf = bundle.buffers.get(0)
+        let gpu_frame_buf = bundle
+            .buffers
+            .get(0)
             .ok_or("No frame buffer in kernel bundle")?;
-        
-        // Upload current ctx.frame_buf to the GPU
-        gpu_frame_buf.write(cpu_frame_buf.as_ref()).enq().map_err(|e| format!("Failed to upload frame buffer: {e}"))?;
 
-        unsafe { kernel.enq().map_err(|e| format!("Failed to enqueue kernel: {e}"))?; }
+        // Upload current ctx.frame_buf to the GPU
+        gpu_frame_buf
+            .write(cpu_frame_buf.as_ref())
+            .enq()
+            .map_err(|e| format!("Failed to upload frame buffer: {e}"))?;
+
+        unsafe {
+            kernel
+                .enq()
+                .map_err(|e| format!("Failed to enqueue kernel: {e}"))?;
+        }
         // Download
-        gpu_frame_buf.read(cpu_frame_buf).enq().map_err(|e| format!("Failed to read GPU buffer back to host: {e}"))?;
+        gpu_frame_buf
+            .read(cpu_frame_buf)
+            .enq()
+            .map_err(|e| format!("Failed to read GPU buffer back to host: {e}"))?;
         Ok(())
     }
     #[cfg(not(feature = "gpu"))]
@@ -41,7 +52,7 @@ pub fn fill(
 /// Build and return the ready-to-enqueue OpenCL kernel for fill operation.
 /// Use with the kernel executor for multi-effect GPU pipelines.
 /// Returns the kernel and frame buffer (so it lives long enough).
-#[cfg(feature = "gpu")]
+
 pub fn fill_get_kernel(
     cpu_frame_buf: &mut [u32],
     buf_len: usize,
@@ -73,8 +84,6 @@ pub fn fill_get_kernel(
 
         // Frame buffer (pooled)
         let gpu_frame_buf = gpu_context.get_or_create_buffer(buf_len, queue_ref, cpu_frame_buf)?;
-
-
 
         // Build (do not enqueue)
         let kernel = Kernel::builder()

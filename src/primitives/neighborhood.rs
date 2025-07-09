@@ -1,7 +1,6 @@
 /// Represents different types of neighborhoods in a uniform 2D grid.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum NeighborhoodType {
-
     /// Includes all 8 surrounding cells: the 4 orthogonal and 4 diagonal neighbors.
     ///
     /// Also known as the **Moore neighborhood**.
@@ -17,7 +16,7 @@ pub enum NeighborhoodType {
     /// - Game of Life
     /// - Local spatial interaction
     Immediate,
-    
+
     /// Includes the 4 orthogonal (non-diagonal) neighbors:
     /// - Top (0, -1)
     /// - Right (1, 0)
@@ -84,22 +83,21 @@ pub enum NeighborhoodType {
         /// Maximum Manhattan distance (|dx| + |dy|)
         distance: usize,
     },
+    /*
+       // TODO: this type looks promising. See how it can be improved and implemented
+       /// Includes only cells in a specified direction and within a certain angular width.
+       ///
+       /// ### Use Cases:
+       /// - Vision cones for AI
+       /// - Directed particle spread
+       DirectionalSector {
+           /// Direction angle in degrees or radians (0 = right, 90 = up, etc.)
+           angle: f32,
+           /// Width of the sector in degrees or radians (e.g. 90 for quarter circle)
+           aperture: f32,
+           /// Maximum radius from center
+           radius: usize,
+       },
 
-/*
-    // TODO: this type looks promising. See how it can be improved and implemented
-    /// Includes only cells in a specified direction and within a certain angular width.
-    ///
-    /// ### Use Cases:
-    /// - Vision cones for AI
-    /// - Directed particle spread
-    DirectionalSector {
-        /// Direction angle in degrees or radians (0 = right, 90 = up, etc.)
-        angle: f32,
-        /// Width of the sector in degrees or radians (e.g. 90 for quarter circle)
-        aperture: f32,
-        /// Maximum radius from center
-        radius: usize,
-    },
-    
- */
+    */
 }

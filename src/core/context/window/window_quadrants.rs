@@ -10,7 +10,6 @@ pub struct Quadrants<T: Numeric = u32> {
     pub bottom_right: Region<T>,
 }
 
-
 impl Quadrants {
     pub fn from_dimensions(w: u32, h: u32) -> Self {
         let full_region = Region::new(RectArea::new(0, 0, w, h, None));
@@ -38,9 +37,7 @@ impl Quadrants {
     }
 }
 
-
 impl<T: Numeric> Quadrants<T> {
-
     /// Converts all `Region<T>` fields to another numeric type, returning a new `Quadrants<U>`.
     /// Useful for rendering or calculation scenarios involving a different numeric precision.
     pub fn convert<U: Numeric>(&self) -> Quadrants<U> {
@@ -52,7 +49,6 @@ impl<T: Numeric> Quadrants<T> {
         }
     }
 }
-
 
 #[cfg(test)]
 mod tests {
@@ -130,9 +126,13 @@ mod tests {
         let quads_i32 = quads_u32.convert::<i32>();
 
         assert_eq!(quads_u32.top_left.area() as i32, quads_i32.top_left.area());
-        assert_eq!(quads_u32.top_right.center().x as i32, quads_i32.top_right.center().x);
-        assert_eq!(quads_u32.bottom_right.size().w as i32, quads_i32.bottom_right.size().w);
+        assert_eq!(
+            quads_u32.top_right.center().x as i32,
+            quads_i32.top_right.center().x
+        );
+        assert_eq!(
+            quads_u32.bottom_right.size().w as i32,
+            quads_i32.bottom_right.size().w
+        );
     }
-
-
 }

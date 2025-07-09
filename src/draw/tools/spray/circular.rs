@@ -38,8 +38,6 @@ pub fn circular_spray<UserData>(
 
     // --- Random point generation (rejection sampling within circle) ---
     while points.len() < density as usize && tries < max_tries as usize {
-
-
         // FIXME: It's better to use `ctx.rng.get_vec_u32()` than `ctx.rng.get_u32` (should be more efficient)
 
         // Generate dx, dy in [-rad, rad] by shifting unsigned to signed domain
@@ -115,13 +113,17 @@ pub fn circular_spray<UserData>(
             if band_start >= band_end || band_end > frame_buf_len {
                 continue;
             }
-            let band_slice = unsafe { std::slice::from_raw_parts_mut(frame_buf_ptr.add(band_start), band_end - band_start) };
+            let band_slice = unsafe {
+                std::slice::from_raw_parts_mut(frame_buf_ptr.add(band_start), band_end - band_start)
+            };
             s.spawn(move || {
                 for &i in &indices {
                     let (px, py, color_idx) = points[i];
                     if px >= 0 && px < w && py >= 0 && py < h {
                         // let rel_y = py - min_y;
-                        let local_idx = ((px) + (py - (min_y + (band as i32 * band_height as i32))) * w) as usize;
+                        let local_idx = ((px)
+                            + (py - (min_y + (band as i32 * band_height as i32))) * w)
+                            as usize;
                         if local_idx < band_slice.len() {
                             band_slice[local_idx] = colors[color_idx];
                         }

@@ -1,9 +1,8 @@
-use std::ptr;
 use crate::primitives::helper_types::PixelColorTransformerFn;
 use crate::primitives::plane::{Dimensions2d, RectArea};
 use crate::primitives::point::Point;
 use crate::utils::math::is_power_of_two;
-
+use std::ptr;
 
 // TODO:
 // TODO:
@@ -36,7 +35,6 @@ pub struct ImageDataCopyProps<'a> {
     pub data: Option<&'a Vec<u32>>,
 }
 
-
 /// Fast copying of image data without any transformations or checks (unsafe rust)
 ///
 /// # Parameters
@@ -56,11 +54,18 @@ pub fn copy_fast(
 ) {
     // Calculate the effective width and height of the rectangle to be copied,
     // ensuring they do not exceed the source buffer's dimensions
-    let rect_width = src_region.dimensions.w.min(src_buf_dimensions.w - src_region.top_left.x);
-    let rect_height = src_region.dimensions.h.min(src_buf_dimensions.h - src_region.top_left.y);
+    let rect_width = src_region
+        .dimensions
+        .w
+        .min(src_buf_dimensions.w - src_region.top_left.x);
+    let rect_height = src_region
+        .dimensions
+        .h
+        .min(src_buf_dimensions.h - src_region.top_left.y);
 
     for y in 0..rect_height {
-        let src_start = ((src_region.top_left.y + y) * src_buf_dimensions.w + src_region.top_left.x) as usize;
+        let src_start =
+            ((src_region.top_left.y + y) * src_buf_dimensions.w + src_region.top_left.x) as usize;
         let dest_start = ((dst_point.y + y) * dst_buf_dimensions.w + dst_point.x) as usize;
         let copy_len = rect_width as usize;
 
@@ -74,7 +79,6 @@ pub fn copy_fast(
         }
     }
 }
-
 
 /// Fast copying of image data without any transformations or checks (unsafe rust)
 ///
@@ -93,14 +97,20 @@ pub fn copy_fast_multi_dst(
     src_buf_dimensions: &Dimensions2d,
     src_region: &RectArea,
 ) {
-
     // Calculate the effective width and height of the rectangle to be copied,
     // ensuring they do not exceed the buffer's dimensions
-    let rect_width = src_region.dimensions.w.min(src_buf_dimensions.w - src_region.top_left.x);
-    let rect_height = src_region.dimensions.h.min(src_buf_dimensions.h - src_region.top_left.y);
+    let rect_width = src_region
+        .dimensions
+        .w
+        .min(src_buf_dimensions.w - src_region.top_left.x);
+    let rect_height = src_region
+        .dimensions
+        .h
+        .min(src_buf_dimensions.h - src_region.top_left.y);
 
     for y in 0..rect_height {
-        let src_start = ((src_region.top_left.y + y) * src_buf_dimensions.w + src_region.top_left.x) as usize;
+        let src_start =
+            ((src_region.top_left.y + y) * src_buf_dimensions.w + src_region.top_left.x) as usize;
         let copy_len = rect_width as usize;
 
         for dst_point in dst_points {
@@ -116,7 +126,6 @@ pub fn copy_fast_multi_dst(
             }
         }
     }
-
 }
 
 /// Fast copying of image data within the same buffer without any transformations or checks (unsafe rust)
@@ -134,11 +143,18 @@ pub fn copy_fast_within_buffer(
 ) {
     // Calculate the effective width and height of the rectangle to be copied,
     // ensuring they do not exceed the buffer's dimensions
-    let rect_width = src_region.dimensions.w.min(buffer_dimensions.w - src_region.top_left.x);
-    let rect_height = src_region.dimensions.h.min(buffer_dimensions.h - src_region.top_left.y);
+    let rect_width = src_region
+        .dimensions
+        .w
+        .min(buffer_dimensions.w - src_region.top_left.x);
+    let rect_height = src_region
+        .dimensions
+        .h
+        .min(buffer_dimensions.h - src_region.top_left.y);
 
     for y in 0..rect_height {
-        let src_start = ((src_region.top_left.y + y) * buffer_dimensions.w + src_region.top_left.x) as usize;
+        let src_start =
+            ((src_region.top_left.y + y) * buffer_dimensions.w + src_region.top_left.x) as usize;
         let dest_start = ((dst_point.y + y) * buffer_dimensions.w + dst_point.x) as usize;
         let copy_len = rect_width as usize;
 
@@ -152,8 +168,6 @@ pub fn copy_fast_within_buffer(
         }
     }
 }
-
-
 
 /// Fast copying of image data within the same buffer to multiple destinations.
 ///
@@ -170,11 +184,18 @@ pub fn copy_fast_within_buffer_multi_dst(
 ) {
     // Calculate the effective width and height of the rectangle to be copied,
     // ensuring they do not exceed the buffer's dimensions
-    let rect_width = src_region.dimensions.w.min(buffer_dimensions.w - src_region.top_left.x);
-    let rect_height = src_region.dimensions.h.min(buffer_dimensions.h - src_region.top_left.y);
+    let rect_width = src_region
+        .dimensions
+        .w
+        .min(buffer_dimensions.w - src_region.top_left.x);
+    let rect_height = src_region
+        .dimensions
+        .h
+        .min(buffer_dimensions.h - src_region.top_left.y);
 
     for y in 0..rect_height {
-        let src_start = ((src_region.top_left.y + y) * buffer_dimensions.w + src_region.top_left.x) as usize;
+        let src_start =
+            ((src_region.top_left.y + y) * buffer_dimensions.w + src_region.top_left.x) as usize;
         let copy_len = rect_width as usize;
 
         for dst_point in dst_points {
@@ -191,7 +212,6 @@ pub fn copy_fast_within_buffer_multi_dst(
         }
     }
 }
-
 
 /// Copies image data from a source buffer to a destination buffer, within specified areas and dimensions.
 ///
@@ -236,12 +256,25 @@ pub fn copy(
 
     // Calculate the effective width and height of the rectangle to be copied,
     // ensuring they do not exceed the source buffer's dimensions
-    let rect_width = src_region.dimensions.w.min(src_buf_dimensions.w - src_region.top_left.x);
-    let rect_height = src_region.dimensions.h.min(src_buf_dimensions.h - src_region.top_left.y);
+    let rect_width = src_region
+        .dimensions
+        .w
+        .min(src_buf_dimensions.w - src_region.top_left.x);
+    let rect_height = src_region
+        .dimensions
+        .h
+        .min(src_buf_dimensions.h - src_region.top_left.y);
 
     if properties.is_none() {
         // Call the fast path function if no properties are provided
-        copy_fast(dst_buf, dst_buf_dimensions, dst_point, src_buf, src_buf_dimensions, src_region);
+        copy_fast(
+            dst_buf,
+            dst_buf_dimensions,
+            dst_point,
+            src_buf,
+            src_buf_dimensions,
+            src_region,
+        );
         return;
     }
 
@@ -260,7 +293,9 @@ pub fn copy(
     let fill_color = props.fill_color.unwrap_or(0);
 
     // Determine the color transformer function (default to an identity function if not provided)
-    let color_transformer = props.color_transformer.unwrap_or(|color, _, _, _, _, _| color);
+    let color_transformer = props
+        .color_transformer
+        .unwrap_or(|color, _, _, _, _, _| color);
 
     // Use unsafe block to allow unchecked memory access for performance
     unsafe {
@@ -309,8 +344,6 @@ pub fn copy(
     }
 }
 
-
-
 /// Copies image data within the same buffer, within specified areas and dimensions.
 ///
 /// # Parameters
@@ -346,8 +379,14 @@ pub fn copy_within_buffer(
 
     // Calculate the effective width and height of the rectangle to be copied,
     // ensuring they do not exceed the buffer's dimensions
-    let rect_width = src_region.dimensions.w.min(buffer_dimensions.w - src_region.top_left.x);
-    let rect_height = src_region.dimensions.h.min(buffer_dimensions.h - src_region.top_left.y);
+    let rect_width = src_region
+        .dimensions
+        .w
+        .min(buffer_dimensions.w - src_region.top_left.x);
+    let rect_height = src_region
+        .dimensions
+        .h
+        .min(buffer_dimensions.h - src_region.top_left.y);
 
     // Extract properties or provide default values if none are provided
     let props = properties.unwrap_or(&ImageDataCopyProps {
@@ -364,7 +403,9 @@ pub fn copy_within_buffer(
     let fill_color = props.fill_color.unwrap_or(0);
 
     // Determine the color transformer function (default to an identity function if not provided)
-    let color_transformer = props.color_transformer.unwrap_or(|color, _, _, _, _, _| color);
+    let color_transformer = props
+        .color_transformer
+        .unwrap_or(|color, _, _, _, _, _| color);
 
     // Use unsafe block to allow unchecked memory access for performance
     unsafe {
@@ -412,7 +453,6 @@ pub fn copy_within_buffer(
         }
     }
 }
-
 
 /// Scales up a given image data and saves the result to a destination buffer
 ///

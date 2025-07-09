@@ -1,40 +1,45 @@
 use crate::core::context::gpu::GpuContext;
-
-use crate::primitives::plane::Dimensions2d;
+use crate::utils::color::math::ColorOperation;
 
 
 use crate::buffer_op::gpu::kernel_bundle::KernelBundle;
 #[cfg(feature = "gpu")]
 use ocl::Kernel;
 
-/// GPU-accelerated box blur effect using OpenCL.
-/// This uploads the image buffer to the GPU, processes it with the box blur kernel,
-/// and downloads the result back to the CPU buffer.
+/// GPU-accelerated fade effect using OpenCL.
+/// Applies a color operation to each pixel in the buffer.
 ///
 /// # Parameters
 /// * `cpu_buf` - The mutable CPU-side buffer (RGBA pixels packed in u32)
-/// * `buf_dimensions` - The 2D dimensions of the buffer (width x height)
-/// * `kernel_radius` - Radius of the blur kernel (square kernel)
+/// * `width` - Width of the image
+/// * `height` - Height of the image
+/// * `color_operand` - The color operand (as RGBA packed in u32)
+/// * `op` - Color operation (Add or Subtract)
+/// * `use_alpha` - Whether alpha is affected
 /// * `gpu_context` - The GPU context for managing OpenCL resources
-///
-/// # Returns
-/// * `Result<(), String>` - Ok on success, Err on any GPU failure
-pub fn box_blur(
+pub fn fade_gpu(
     cpu_buf: &mut [u32],
-    buf_dimensions: &Dimensions2d<u32>,
-    kernel_radius: u32,
+    width: u32,
+    height: u32,
+    color_operand: u32,
+    op: ColorOperation,
+    use_alpha: bool,
     gpu_context: &mut GpuContext,
 ) -> Result<(), String> {
     #[cfg(feature = "gpu")]
     {
-        let width = buf_dimensions.w as usize;
-        let height = buf_dimensions.h as usize;
-        let bundle = box_blur_get_kernel(cpu_buf, width, height, kernel_radius, gpu_context)?;
+        let buf_len = (width * height) as usize;
+        let bundle = fade_get_kernel(
+            cpu_buf,
+            width,
+            height,
+            color_operand,
+            op,
+            use_alpha,
+            gpu_context,
+        )?;
         let kernel = bundle.kernel;
-        let gpu_buf = bundle
-            .buffers
-            .get(0)
-            .ok_or("No frame buffer in kernel bundle")?;
+        let gpu_buf = bundle.buffers.get(0).ok_or("No GPU buffer")?;
 
         gpu_buf
             .write(cpu_buf.as_ref())
@@ -53,36 +58,42 @@ pub fn box_blur(
     }
     #[cfg(not(feature = "gpu"))]
     {
-        let _ = cpu_buf;
-        let _ = buf_dimensions;
-        let _ = kernel_radius;
-        let _ = gpu_context;
+        let _ = (
+            cpu_buf,
+            width,
+            height,
+            color_operand,
+            op,
+            use_alpha,
+            gpu_context,
+        );
         Err("GPU support is not enabled.".to_string())
     }
 }
 
-/// Builds the OpenCL kernel and frame buffer for GPU-based box blur.
-/// Returns a ready-to-enqueue kernel and its associated GPU buffer.
-// #[cfg(feature = "gpu")]
-pub fn box_blur_get_kernel(
+
+pub fn fade_get_kernel(
     cpu_buf: &mut [u32],
-    width: usize,
-    height: usize,
-    kernel_radius: u32,
+    width: u32,
+    height: u32,
+    color_operand: u32,
+    op: ColorOperation,
+    use_alpha: bool,
     gpu_context: &mut GpuContext,
 ) -> Result<KernelBundle, String> {
     #[cfg(feature = "gpu")]
     {
-        let kernel_src = include_str!("box_blur.c");
-        let kernel_name = "box_blur_kernel";
-        let program_name = "box_blur_program";
-        let buf_len = width * height;
+        let kernel_src = include_str!("fade.c");
+        let kernel_name = "fade_kernel";
+        let program_name = "fade_program";
+        let buf_len = (width * height) as usize;
 
         if gpu_context.get_program(program_name).is_none() {
             gpu_context
-                .load_program(&kernel_src, program_name)
+                .load_program(kernel_src, program_name)
                 .map_err(|e| format!("Program load error: {e}"))?;
         }
+
         let program = gpu_context
             .get_program(program_name)
             .ok_or("Program missing unexpectedly")?;
@@ -92,18 +103,19 @@ pub fn box_blur_get_kernel(
             .ok_or("Missing GPU queue")?
             .clone();
         let gpu_buf = gpu_context.get_or_create_buffer(buf_len, queue.as_ref(), cpu_buf)?;
-
         let queue_value = queue.as_ref().clone();
 
         let kernel = Kernel::builder()
             .program(&program)
             .name(kernel_name)
-            .queue(queue_value.clone())
+            .queue(queue_value)
             .global_work_size(buf_len)
             .arg(&gpu_buf)
-            .arg(width as u32)
-            .arg(height as u32)
-            .arg(kernel_radius)
+            .arg(width)
+            .arg(height)
+            .arg(color_operand)
+            .arg(op as i32)
+            .arg(use_alpha as i32)
             .build()
             .map_err(|e| format!("Kernel build error: {e}"))?;
 
@@ -111,11 +123,7 @@ pub fn box_blur_get_kernel(
     }
     #[cfg(not(feature = "gpu"))]
     {
-        let _ = cpu_buf;
-        let _ = width;
-        let _ = height;
-        let _ = kernel_radius;
-        let _ = gpu_context;
+        let _ = (cpu_buf, width, height, color_operand, op, use_alpha, gpu_context);
         Err("GPU support is not enabled.".to_string())
     }
 }

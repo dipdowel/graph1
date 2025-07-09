@@ -1,4 +1,3 @@
-
 pub struct UrbanConcrete;
 impl UrbanConcrete {
     pub const SLATE_GRAY: u32 = 0x6b_7c_85_ff;

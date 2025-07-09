@@ -1,4 +1,3 @@
-
 pub struct OceanBreeze;
 impl OceanBreeze {
     pub const SEAFOAM: u32 = 0xa8_ef_dc_ff;

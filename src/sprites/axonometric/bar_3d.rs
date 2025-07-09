@@ -340,16 +340,14 @@ pub fn bars_3d<UserData>(ctx: &mut GraphContext<UserData>, props: &Vec<Bar3DProp
         &mut ctx.gpu_context,
     );
 
-
-
     let rect_avg_w = partition_base.total_width / props.len() as u32;
     let rect_avg_h = partition_base.total_height / props.len() as u32;
 
     // println!("avg w:{}, avg h:{}, partition_base = {:?}", rect_avg_w,rect_avg_h, partition_base);
 
-    let tiles_horizontal = (partition_base.x_max -partition_base.x_min) / rect_avg_w;
-    let tiles_vertical = (partition_base.y_max -partition_base.y_min) / rect_avg_h;
-    
+    let tiles_horizontal = (partition_base.x_max - partition_base.x_min) / rect_avg_w;
+    let tiles_vertical = (partition_base.y_max - partition_base.y_min) / rect_avg_h;
+
     // Ensure even number of tiles for both dimensions
     let tiles_horizontal = (tiles_horizontal + 1) & !1;
     let tiles_vertical = (tiles_vertical + 1) & !1;
@@ -368,7 +366,6 @@ pub fn bars_3d<UserData>(ctx: &mut GraphContext<UserData>, props: &Vec<Bar3DProp
 
     // If any kernel creation fails, fallback to CPU rendering
     if kernel1_res.is_err() || kernel2_res.is_err() {
-
         horizontal_lines_threaded::horizontal_lines_threaded(
             &mut ctx.frame_buf,
             &ctx.win.dimensions,
@@ -397,12 +394,10 @@ pub fn bars_3d<UserData>(ctx: &mut GraphContext<UserData>, props: &Vec<Bar3DProp
         kernel: kernel2, ..
     } = kernel2_res.expect("kernel2 failed");
 
-
     let kernels = vec![kernel1, kernel2];
-    let gpu_result = execute_kernels_and_read(&kernels, &buffer, &mut ctx.frame_buf);
+    let gpu_result = execute_kernels_and_read(&kernels, &buffer, &mut ctx.frame_buf, false);
 
     if gpu_result.is_err() {
         eprintln!("GPU execution failed :( {}", gpu_result.unwrap_err());
     }
-
 }

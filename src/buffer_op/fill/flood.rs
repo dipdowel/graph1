@@ -2,14 +2,14 @@ use crate::primitives::plane::Dimensions2d;
 use crate::primitives::Pixel;
 use std::collections::VecDeque;
 
-/// Flood fills a shape with a color. 
+/// Flood fills a shape with a color.
 /// The color and the starting position of the fill are  specified in `start_pixel`
 /// **NB:** Use `fill::scanline_wavefront()` for better performance in most cases.
 /// # Parameters
 /// - `buf`: The buffer of pixels to fill
 /// - `buf_dimensions`: Dimensions of the buffer (width, height)
 /// - `start_pixel`: The starting pixel (with fill color)
-     
+
 pub fn flood(buf: &mut [u32], buf_dimensions: &Dimensions2d, start_pixel: &Pixel) {
     // Buffer dimensions
     let width = buf_dimensions.w;

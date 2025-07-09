@@ -7,8 +7,6 @@ fn clamp(v: i32, min: i32, max: i32) -> i32 {
     v.max(min).min(max)
 }
 
-
-
 /// Box blur effect, **single-threader**
 pub fn box_blur(
     buf: &mut [u32],
@@ -16,20 +14,13 @@ pub fn box_blur(
     kernel_radius: u32,
     gpu_context: &mut GpuContext,
 ) {
-
-
     // ==[ GPU OpenCL ]=======================================================================
     if gpu_context.is_enabled() {
-                
-        buffer_op::gpu::box_blur::box_blur(
-            buf,
-            buf_dimensions,
-            kernel_radius,
-            gpu_context
-        ).expect("gpu::fill::fill() failed :(");
+        buffer_op::gpu::box_blur::box_blur(buf, buf_dimensions, kernel_radius, gpu_context)
+            .expect("gpu::fill::fill() failed :(");
         return;
     }
-    
+
     // ==[ CPU ]================================================================================
     let width = buf_dimensions.w as usize;
     let height = buf_dimensions.h as usize;
@@ -81,7 +72,6 @@ pub fn box_blur(
         }
     }
 }
-
 
 //  How Kernel Window works
 //---------------------------------------------

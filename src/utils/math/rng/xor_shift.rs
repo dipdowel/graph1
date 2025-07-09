@@ -1,5 +1,5 @@
 use crate::primitives::math::{MinMax, MIN_MAX_U32, MIN_MAX_U64};
- use crate::utils::math::rng::helpers::normalize_xor_shift_input::{
+use crate::utils::math::rng::helpers::normalize_xor_shift_input::{
     normalize_input, NormalizedInput,
 };
 

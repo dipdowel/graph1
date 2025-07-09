@@ -1,9 +1,9 @@
 use crate::core::context::gpu::GpuContext;
 use crate::primitives::plane::Dimensions2d;
 
-#[cfg(feature = "gpu")]
-use ocl::{Kernel, Buffer};
 use crate::buffer_op::gpu::kernel_bundle::KernelBundle;
+#[cfg(feature = "gpu")]
+use ocl::{Buffer, Kernel};
 
 /// GPU-accelerated scanlines drawing (using scanline_sizes as y lookup).
 pub fn horizontal_lines(
@@ -25,13 +25,26 @@ pub fn horizontal_lines(
             gpu_context,
         )?;
         let kernel = bundle.kernel;
-        let gpu_frame_buf = bundle.buffers.get(0).ok_or("No frame buffer in kernel bundle")?;
+        let gpu_frame_buf = bundle
+            .buffers
+            .get(0)
+            .ok_or("No frame buffer in kernel bundle")?;
 
         // Upload buffer to GPU
-        gpu_frame_buf.write(cpu_frame_buf.as_ref()).enq().map_err(|e| format!("Failed to upload frame buffer: {e}"))?;
+        gpu_frame_buf
+            .write(cpu_frame_buf.as_ref())
+            .enq()
+            .map_err(|e| format!("Failed to upload frame buffer: {e}"))?;
 
-        unsafe { kernel.enq().map_err(|e| format!("Failed to enqueue kernel: {e}"))?; }
-        gpu_frame_buf.read(cpu_frame_buf).enq().map_err(|e| format!("Failed to read GPU buffer back to host: {e}"))?;
+        unsafe {
+            kernel
+                .enq()
+                .map_err(|e| format!("Failed to enqueue kernel: {e}"))?;
+        }
+        gpu_frame_buf
+            .read(cpu_frame_buf)
+            .enq()
+            .map_err(|e| format!("Failed to read GPU buffer back to host: {e}"))?;
         Ok(())
     }
     #[cfg(not(feature = "gpu"))]
@@ -130,7 +143,7 @@ pub fn horizontal_lines_get_kernel(
     {
         let _cpu_frame_buf = cpu_frame_buf;
         let _buf_dimensions = buf_dimensions;
-        let _flat_scanline_data =flat_scanline_data;
+        let _flat_scanline_data = flat_scanline_data;
         let _flat_data_ptrs = flat_data_ptrs;
         let _scanline_sizes = scanline_sizes;
         let _gpu_context = gpu_context;

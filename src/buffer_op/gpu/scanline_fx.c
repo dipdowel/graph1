@@ -1,3 +1,27 @@
+//__kernel void scanline_fx(
+//    __global uint *buf,
+//    uint intensity,
+//    uint line_flipper,
+//    uint pixel_count,
+//    uint width
+//) {
+//    uint gid = get_global_id(0);
+//    if (gid >= pixel_count) return;
+//
+//    // Figure out if this pixel is in a scanline "row"
+//    if (((gid / line_flipper) % 2) == 0) {
+//        // Do subtract intensity (on packed RGBA)
+//        uint c = buf[gid];
+//
+//        // Subtract the intensity from each color channel except alpha
+//
+//        // Fast path: subtract as a 32-bit value (may overflow/underflow)
+//        buf[gid] = c - intensity;
+//    }
+//}
+
+
+
 __kernel void scanline_fx(
     __global uint *buf,
     uint intensity,
@@ -8,14 +32,22 @@ __kernel void scanline_fx(
     uint gid = get_global_id(0);
     if (gid >= pixel_count) return;
 
-    // Figure out if this pixel is in a scanline "row"
+    // Apply effect only to selected scanlines
     if (((gid / line_flipper) % 2) == 0) {
-        // Do subtract intensity (on packed RGBA)
         uint c = buf[gid];
 
-        // Subtract the intensity from each color channel except alpha
-        
-        // Fast path: subtract as a 32-bit value (may overflow/underflow)
-        buf[gid] = c - intensity;
+        // Extract channels
+        uint r = (c >> 24) & 0xff;
+        uint g = (c >> 16) & 0xff;
+        uint b = (c >> 8) & 0xff;
+        uint a = c & 0xff;
+
+        // Clamp subtractions to avoid underflow
+        r = r > ((intensity >> 24) & 0xff) ? r - ((intensity >> 24) & 0xff) : 0;
+        g = g > ((intensity >> 16) & 0xff) ? g - ((intensity >> 16) & 0xff) : 0;
+        b = b > ((intensity >> 8) & 0xff) ? b - ((intensity >> 8) & 0xff) : 0;
+
+        // Repack and store
+        buf[gid] = (r << 24) | (g << 16) | (b << 8) | a;
     }
 }

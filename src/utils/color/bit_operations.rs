@@ -4,7 +4,7 @@
 /// and any other value is treated as white and is converted to `1`
 pub fn rgba_to_one_bit_image(data: &Vec<u32>) -> Vec<u8> {
     let bit_array_size = (data.len() + 7) / 8; // <--- this does the same as `.div_ceil()` !
-                            // let bit_array_size = data.len().div_ceil(8);
+                                               // let bit_array_size = data.len().div_ceil(8);
 
     // bit array to accumulate the results
     let mut bit_array = Vec::with_capacity(bit_array_size);

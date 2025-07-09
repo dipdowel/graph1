@@ -1,8 +1,8 @@
-use crate::primitives::plane::Dimensions2d;
-use std::thread;
-use std::sync::Arc;
 use crate::buffer_op::buffer_fx::blur::box_blur::box_blur;
 use crate::core::context::gpu::GpuContext;
+use crate::primitives::plane::Dimensions2d;
+use std::sync::Arc;
+use std::thread;
 
 /// Clamps a value between a minimum and a maximum
 fn clamp(v: i32, min: i32, max: i32) -> i32 {
@@ -30,17 +30,16 @@ pub fn box_blur_threaded(
     num_threads: usize,
     gpu_context: &mut GpuContext,
 ) {
-    
-    if num_threads ==0 || buf.is_empty() || kernel_radius == 0 {
+    if num_threads == 0 || buf.is_empty() || kernel_radius == 0 {
         return; // Nothing to do
     }
-    
-    if num_threads ==1 || gpu_context.is_enabled() {
+
+    if num_threads == 1 || gpu_context.is_enabled() {
         // Fallback to single-threaded blur if only one thread is requested or GPU is enabled
         box_blur(buf, buf_dimensions, kernel_radius, gpu_context);
         return;
     }
-    
+
     let width = buf_dimensions.w as usize;
     let height = buf_dimensions.h as usize;
     let radius = kernel_radius as i32;
@@ -49,7 +48,6 @@ pub fn box_blur_threaded(
 
     let src = Arc::new(buf.to_vec()); // Original read-only buffer
     let dst = buf as *mut [u32]; // Mutable buffer pointer
-
 
     unsafe {
         thread::scope(|s| {
@@ -94,7 +92,8 @@ pub fn box_blur_threaded(
                             let avg_b = (sum_b / count) & 0xFF;
                             let avg_a = (sum_a / count) & 0xFF;
 
-                            dst_slice[y * width + x] = (avg_r << 24) | (avg_g << 16) | (avg_b << 8) | avg_a;
+                            dst_slice[y * width + x] =
+                                (avg_r << 24) | (avg_g << 16) | (avg_b << 8) | avg_a;
                         }
                     }
                 });

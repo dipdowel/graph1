@@ -1,4 +1,3 @@
-
 use crate::primitives::point::Point;
 use std::fmt;
 
@@ -12,21 +11,21 @@ pub struct Pixel {
     pub color: u32,
 }
 
-
 impl Pixel {
     pub fn new(x: u32, y: u32, color: u32) -> Self {
         Pixel { x, y, color }
     }
 }
 
-
 impl fmt::Debug for Pixel {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "Pixel {{ x: {}, y: {}, color: {:#x} }}", self.x, self.y, self.color)
+        write!(
+            f,
+            "Pixel {{ x: {}, y: {}, color: {:#x} }}",
+            self.x, self.y, self.color
+        )
     }
 }
-
-
 
 // FIXME: Can the 4 implementations below be merged into one?
 

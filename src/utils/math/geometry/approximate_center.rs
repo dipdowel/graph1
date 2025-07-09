@@ -14,10 +14,10 @@ pub fn approximate_center<T: Numeric>(points: &Vec<Point<T>>) -> Option<Point<T>
         return None;
     }
 
-    let (sum_x, sum_y) = points.iter().take(4).fold(
-        (T::zero(), T::zero()),
-        |(sx, sy), p| (sx + p.x, sy + p.y),
-    );
+    let (sum_x, sum_y) = points
+        .iter()
+        .take(4)
+        .fold((T::zero(), T::zero()), |(sx, sy), p| (sx + p.x, sy + p.y));
 
     Some(Point {
         x: sum_x / T::from_u32(4),

@@ -1,6 +1,6 @@
-use std::ops::{Add, Sub};
 use crate::primitives::numeric::Numeric;
 use crate::primitives::Pixel;
+use std::ops::{Add, Sub};
 
 /// A generic 2D-point: `(x: u32, y:u32)`. Other `Numeric` types can be used instead of `u32`.
 ///
@@ -61,8 +61,6 @@ impl<T: Numeric> Point<T> {
     }
 }
 
-
-
 impl<T: Numeric> Add for Point<T> {
     type Output = Self;
 
@@ -89,17 +87,14 @@ impl<T: Numeric> Sub for Point<T> {
     }
 }
 
-
 impl<T: Numeric> Point<T> {
     pub fn saturating_sub(self, rhs: Point<T>) -> Point<T> {
         Point {
             x: self.x.saturating_sub(rhs.x),
             y: self.y.saturating_sub(rhs.y),
         }
-        
     }
 }
-
 
 /// An often-used constant for a point at the origin (0, 0).
 pub const POINT_ZERO: Point = Point { x: 0, y: 0 };
@@ -151,7 +146,6 @@ pub const POINT_3D_ZERO: Point3D = Point3D { x: 0, y: 0, z: 0 };
 mod tests {
     use super::*;
 
-
     #[test]
     fn test_add_points() {
         let a = Point::new(1, 2);
@@ -182,23 +176,64 @@ mod tests {
         assert_eq!(a - b, expected);
     }
 
-
     #[test]
     fn test_to_pixel() {
+        let mut pixel: Pixel;
+        pixel = Point {
+            x: 10.8_f64,
+            y: -20.1_f64,
+        }
+        .to_pixel(0xff_ff_ff_ff);
+        assert_eq!(
+            pixel,
+            Pixel {
+                x: 11,
+                y: 0,
+                color: 0xff_ff_ff_ff
+            }
+        );
 
-        let mut pixel:Pixel;
-        pixel = Point { x: 10.8_f64, y: -20.1_f64 }.to_pixel(0xff_ff_ff_ff);
-        assert_eq!(pixel, Pixel { x: 11, y: 0, color: 0xff_ff_ff_ff });
+        pixel = Point {
+            x: 10.8_f32,
+            y: -20.1_f32,
+        }
+        .to_pixel(0xff_ff_ff_ff);
+        assert_eq!(
+            pixel,
+            Pixel {
+                x: 11,
+                y: 0,
+                color: 0xff_ff_ff_ff
+            }
+        );
 
-        pixel = Point { x: 10.8_f32, y: -20.1_f32 }.to_pixel(0xff_ff_ff_ff);
-        assert_eq!(pixel, Pixel { x: 11, y: 0, color: 0xff_ff_ff_ff });
+        pixel = Point {
+            x: -20_i32,
+            y: 30_i32,
+        }
+        .to_pixel(0xff_ff_00_ff);
+        assert_eq!(
+            pixel,
+            Pixel {
+                x: 0,
+                y: 30,
+                color: 0xff_ff_00_ff
+            }
+        );
 
-        pixel = Point { x: -20_i32, y: 30_i32 }.to_pixel(0xff_ff_00_ff);
-        assert_eq!(pixel, Pixel { x: 0, y: 30, color: 0xff_ff_00_ff });
-
-        pixel = Point { x: 33_u32, y: 88_u32 }.to_pixel(0xff_ff_00_ff);
-        assert_eq!(pixel, Pixel { x: 33, y: 88, color: 0xff_ff_00_ff });
-
+        pixel = Point {
+            x: 33_u32,
+            y: 88_u32,
+        }
+        .to_pixel(0xff_ff_00_ff);
+        assert_eq!(
+            pixel,
+            Pixel {
+                x: 33,
+                y: 88,
+                color: 0xff_ff_00_ff
+            }
+        );
     }
     #[test]
     fn test_convert_negative_i32_to_u32() {
@@ -221,7 +256,4 @@ mod tests {
         assert_eq!(pix.x, 2);
         assert_eq!(pix.y, 4);
     }
-
-
-
 }

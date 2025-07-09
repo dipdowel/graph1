@@ -23,8 +23,14 @@ pub fn within_buf(
     dst_start: &Point<u32>,
     use_absolute_alpha: bool,
 ) {
-    let Point { x: x_start, y: y_start } = src_area.top_left;
-    let Point { x: mut x_end, y: mut y_end } = src_area.get_bottom_right();
+    let Point {
+        x: x_start,
+        y: y_start,
+    } = src_area.top_left;
+    let Point {
+        x: mut x_end,
+        y: mut y_end,
+    } = src_area.get_bottom_right();
 
     // 1. Clip source rectangle to buffer bounds.
     if x_end > dims.w {

@@ -1,8 +1,8 @@
-use std::f64::consts::PI;
 use crate::core::context::GraphContext;
 use crate::draw::polygons::closed_perimeter;
-use crate::primitives::Pixel;
 use crate::primitives::point::Point;
+use crate::primitives::Pixel;
+use std::f64::consts::PI;
 
 #[derive(Debug, Clone, Copy)]
 pub struct PolygonProperties {
@@ -29,7 +29,10 @@ pub struct PolygonProperties {
 /// * `props` - Properties of the polygon to render
 /// # Returns
 /// A vector of `Point`s representing the vertices of the polygon.
-pub fn polygon<UserData>(ctx: &mut GraphContext<UserData>, props: &PolygonProperties) -> Vec<Point<i32>> {
+pub fn polygon<UserData>(
+    ctx: &mut GraphContext<UserData>,
+    props: &PolygonProperties,
+) -> Vec<Point<i32>> {
     // Do nothing if it's not at least a triangle
     if props.num_sides < 3 {
         return Vec::new();
@@ -48,9 +51,8 @@ pub fn polygon<UserData>(ctx: &mut GraphContext<UserData>, props: &PolygonProper
     // ************************************************************************
     let num_sides_usize = num_sides as usize;
 
-    let mut vertices:Vec<Point<i32>> = Vec::with_capacity(num_sides_usize);
+    let mut vertices: Vec<Point<i32>> = Vec::with_capacity(num_sides_usize);
     vertices.resize(num_sides_usize, Point { x: 0, y: 0 });
-
 
     for i in 0..num_sides_usize {
         let angle = i as f64 * angle_step + rotation_radians; // Current angle adjusted for rotation

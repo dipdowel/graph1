@@ -10,11 +10,7 @@
 ///
 /// # Returns
 /// Integer oscillating value.
-pub fn linear_fast(
-    counter: isize,
-    lower_bound: isize,
-    upper_bound: isize,
-) -> isize {
+pub fn linear_fast(counter: isize, lower_bound: isize, upper_bound: isize) -> isize {
     let range = upper_bound - lower_bound;
     let full_period = 2 * range;
     let phase = counter % full_period;
@@ -25,20 +21,18 @@ pub fn linear_fast(
     }
 }
 
-
 #[cfg(test)]
 mod tests {
     use super::linear_fast;
 
-
     #[test]
     fn test_linear_fast_oscillation() {
-        let lb:isize = 3;
-        let ub:isize = 7;
+        let lb: isize = 3;
+        let ub: isize = 7;
 
-        let expected:[isize;11] = [3,4,5,6,7,6,5,4,3,4,5];
+        let expected: [isize; 11] = [3, 4, 5, 6, 7, 6, 5, 4, 3, 4, 5];
         for i in 0..expected.len() {
-            assert_eq!(linear_fast(lb, ub, i as isize), expected[i] );
+            assert_eq!(linear_fast(lb, ub, i as isize), expected[i]);
         }
     }
 }

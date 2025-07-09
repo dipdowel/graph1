@@ -7,7 +7,6 @@ use crate::utils::pixel_copy::image_data;
 
 const DEFAULT_TRANSPARENCY_COLOR: u32 = 0xff_ff_ff_ff;
 
-
 #[derive(Debug, Clone, Copy)]
 pub struct ColorProperties<'a> {
     /// Text color. If `color` provided, `color_transformer` is ignored
@@ -46,7 +45,6 @@ pub fn print_line<UserData>(
     color_props: &ColorProperties,
     text_str: &str,
 ) -> Dimensions2d {
-
     let mut result: Dimensions2d = Dimensions2d { w: 0, h: 0 };
     if text_str.len() == 0 {
         return result;
@@ -107,7 +105,7 @@ fn get_line_widths(font: &PixelFont, text: &[&str]) -> Vec<usize> {
         }
         text_line_chars_count = text_line.chars().count();
         line_widths[line_count] += if text_line_chars_count > 0 {
-            kerning as usize * (text_line_chars_count -1)
+            kerning as usize * (text_line_chars_count - 1)
         } else {
             0
         };
@@ -176,7 +174,7 @@ pub fn print<UserData>(
             Align::Left => original_position.x,
         };
 
-        if  text_line.chars().count() >0 {
+        if text_line.chars().count() > 0 {
             print_line(ctx, &position, font, color_props, text_line);
         }
         position.y += full_line_height;

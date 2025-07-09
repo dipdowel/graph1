@@ -73,7 +73,7 @@ impl<T: Numeric> Region<T> {
         let new_area = self.rect_area.convert::<U>();
         Region::new(new_area)
     }
-    
+
     /// Updates the region with a new `RectArea` and recalculates all relevant points.
     pub fn update(&mut self, area: RectArea<T>) {
         self.rect_area = area;
@@ -192,7 +192,7 @@ impl<T: Numeric> Region<T> {
     /// # Arguments
     ///
     /// * `include_center` - If `true`, the center point is also included (as the last element).
-    pub fn get_points(&self, include_center:bool) -> Vec<Point<T>> {
+    pub fn get_points(&self, include_center: bool) -> Vec<Point<T>> {
         let capacity = if include_center { 9 } else { 8 };
         let mut points = Vec::with_capacity(capacity);
 
@@ -206,7 +206,7 @@ impl<T: Numeric> Region<T> {
             self.left,
             self.top_left,
         ]);
-        if include_center{
+        if include_center {
             points.push(self.center);
         }
         points
@@ -596,10 +596,12 @@ mod tests {
         let region_i32 = region_u32.convert::<i32>();
 
         assert_eq!(region_i32.rect_area().top_left, Point::new(10i32, 20i32));
-        assert_eq!(region_i32.rect_area().dimensions, Dimensions2d::new(30i32, 40i32));
+        assert_eq!(
+            region_i32.rect_area().dimensions,
+            Dimensions2d::new(30i32, 40i32)
+        );
         assert_eq!(region_i32.center(), Point::new(25i32, 40i32));
     }
-
 
     /*
      // FIXME: THESE TESTS FAIL!

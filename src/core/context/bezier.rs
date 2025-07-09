@@ -10,7 +10,7 @@ pub struct BezierContext {
     /// Color of the control points, if `None` the inverted background color will be used
     pub control_color: Option<u32>,
     /// If true, Bézier curves will be rendered, otherwise not
-    pub enabled: bool
+    pub enabled: bool,
 }
 
 impl BezierContext {

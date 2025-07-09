@@ -152,7 +152,7 @@ pub fn horizontal_glitch<UserData>(
     });
 }
 
-/* 
+/*
 // It's a working test suite, but it requires some human interaction for now.
 #[cfg(test)]
 mod tests {

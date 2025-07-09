@@ -13,7 +13,13 @@ pub(crate) fn write_pixel_with_blending(dst: &mut u32, src: u32, method: Option<
     };
 }
 
-pub(crate) fn write_pixel(ctx: &mut GraphContext<impl Sized>, x: i32, y: i32, color: u32, alpha: u8) {
+pub(crate) fn write_pixel(
+    ctx: &mut GraphContext<impl Sized>,
+    x: i32,
+    y: i32,
+    color: u32,
+    alpha: u8,
+) {
     if x < 0 || y < 0 || x >= ctx.win.w as i32 || y >= ctx.win.h as i32 {
         return;
     }
@@ -28,7 +34,13 @@ pub(crate) fn write_pixel(ctx: &mut GraphContext<impl Sized>, x: i32, y: i32, co
 
 /// Blends a color into the framebuffer using a floating-point alpha [0.0..=1.0].
 #[inline(always)]
-pub(crate) fn write_pixel_f32(ctx: &mut GraphContext<impl Sized>, x: i32, y: i32, color: u32, alpha: f32) {
+pub(crate) fn write_pixel_f32(
+    ctx: &mut GraphContext<impl Sized>,
+    x: i32,
+    y: i32,
+    color: u32,
+    alpha: f32,
+) {
     if x < 0 || y < 0 || x >= ctx.win.w as i32 || y >= ctx.win.h as i32 {
         return;
     }

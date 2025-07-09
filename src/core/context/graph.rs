@@ -372,7 +372,10 @@ impl<UserData> GraphContext<UserData> {
     /// - **NB:** If you want `immut` to maintain the order of the frame buffers specified in `frame_buf_indices`,
     /// **do not** include the active frame buffer index in `frame_buf_indices`.
     /// - The active frame buffer will not be included in the `immut` vector as it is returned as mutable in `active`.
-    pub fn get_multi_frame_bufs(&mut self, frame_buf_indices: &[usize])  -> Result<MultipleFrameBuffers, FrameBufferStatus>   {
+    pub fn get_multi_frame_bufs(
+        &mut self,
+        frame_buf_indices: &[usize],
+    ) -> Result<MultipleFrameBuffers, FrameBufferStatus> {
         let mut immut_frame_bufs: Vec<ImmutableFrameBuffer> = Vec::new();
 
         for buf_index in frame_buf_indices {
@@ -561,8 +564,6 @@ mod tests {
         ctx.set_active_frame_buf(1).unwrap();
         assert!(ctx.frame_buf.iter().all(|&v| v == 0xCAFEBABE));
     }
-
-
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
     #[test]

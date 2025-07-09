@@ -14,8 +14,6 @@ impl GrayRng {
         }
     }
 
-
-
     /// Generates a vector of random grayscale colors using a 32-bit RNG
     /// * `size` - The size of the vector to generate.
     /// * `color1` - The minimum grayscale color value.
@@ -25,7 +23,7 @@ impl GrayRng {
     /// * `seed` - An optional randomization seed.
     /// # Returns
     /// * `Vec<u32>` - A vector of random grayscale colors.
-    
+
     pub fn get_random_grays_32(
         &mut self,
         size: usize,
@@ -51,7 +49,6 @@ impl GrayRng {
         let alpha_delta = alpha_range.max - alpha_range.min;
 
         let mut result: Vec<u32> = Vec::with_capacity(size);
-
 
         for i in 0..adjusted_size {
             // If color1 === color2, fill in `c` with `color1`

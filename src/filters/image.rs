@@ -1,7 +1,6 @@
 use crate::primitives::plane::{Dimensions2d, RectArea};
 use crate::primitives::point::Point;
 
-
 pub enum ImageFilter {
     /// Inverts the color of a buffer / pixel
     Invert,

@@ -1,4 +1,3 @@
-
 /// Defines a common interface for saving and restoring the state of Graph1 contexts.
 /// Implementing this trait allows a context to be cloned and replaced with a previously saved state,
 /// which is useful for undo/redo functionality or context state management in applications.
@@ -11,7 +10,6 @@ pub trait ContextSnapshot {
     /// Replaces this context with another one (used for restoring saved state).
     fn set_context(&mut self, ctx: Self);
 }
-
 
 /*
 // This macro is great in theory, but the complier cannot find the implemented methods in a context :-(

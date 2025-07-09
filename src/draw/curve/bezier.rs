@@ -165,7 +165,7 @@ fn render_points<UserData, PointType: Numeric>(
     points: &[Point<PointType>],
 ) {
     for p in points {
-        let point_color= ctx.bezier.control_color;
+        let point_color = ctx.bezier.control_color;
 
         if point_color.is_some() {
             render_point_color(
@@ -194,8 +194,10 @@ fn draw_controls<UserData, PointType: Numeric>(
     ctx: &mut GraphContext<UserData>,
     segments: &[BezierSegment<PointType>],
 ) {
-    let points: Vec<Point<PointType>> =
-        segments.iter().flat_map(|s| vec![s.start_control, s.end_control]).collect();
+    let points: Vec<Point<PointType>> = segments
+        .iter()
+        .flat_map(|s| vec![s.start_control, s.end_control])
+        .collect();
 
     render_points(ctx, &points);
 

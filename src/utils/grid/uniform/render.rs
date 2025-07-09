@@ -5,7 +5,6 @@ use crate::primitives::plane::RectArea;
 use crate::utils::grid::uniform::uniform_grid::UniformGrid;
 use crate::utils::math::geometry::region::Region;
 
-
 /// Renders a `UniformGrid` instance on the screen.
 /// NB: This method is very basic and is mostly meant for visual debugging purposes.
 /// NB: It is recommended to implement your own rendering if you need something more complex.

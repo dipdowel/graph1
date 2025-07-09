@@ -1,5 +1,5 @@
-use crate::core::context_utils::line_clipping_style::LineClippingStyle;
 use crate::core::context_utils::context_snapshot::ContextSnapshot;
+use crate::core::context_utils::line_clipping_style::LineClippingStyle;
 
 /// Defines the rendering style for lines drawn in the framebuffer.
 ///
@@ -205,7 +205,6 @@ pub enum RasterizationMethod {
 }
 
 impl RasterizationMethod {
-
     pub fn is_int(&self) -> bool {
         *self == RasterizationMethod::Int
     }

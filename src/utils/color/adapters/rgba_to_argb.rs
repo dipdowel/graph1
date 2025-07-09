@@ -1,5 +1,3 @@
-
-
 use crate::utils::color::adapters::AdapterStatistics;
 
 /// Converts the source buffer `src` from RGBA to ARGB and writes the result to `dst`.
@@ -61,7 +59,7 @@ pub fn rgba_to_argb(dst: &mut [u32], src: &[u32], stats: bool) -> Option<Adapter
             average_green: avg_g & 0xFF,
             average_blue: avg_b & 0xFF,
             num_pixels: num_pixels as u32,
-        })
+        });
     }
 
     None

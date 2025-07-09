@@ -43,8 +43,8 @@ pub struct GpuContext {
 /// Initializes the GPU context by selecting the OpenCL platform, device, and creating an OpenCL context and command queue.
 #[cfg(feature = "gpu")]
 fn init_ocl(gpu_ctx: &mut GpuContext) -> Result<(), String> {
-
-    #[cfg(feature = "gpu")]{
+    #[cfg(feature = "gpu")]
+    {
         // 1. Choose OpenCL platform
         let platforms = Platform::list();
         // println!("Available OpenCL platforms: {:?}", platforms);
@@ -64,7 +64,7 @@ fn init_ocl(gpu_ctx: &mut GpuContext) -> Result<(), String> {
             ));
         }
 
-        let device=  device.expect("Somehow still no OpenCL device found :thinking_face:");
+        let device = device.expect("Somehow still no OpenCL device found :thinking_face:");
 
         // 3. Create OpenCL context
         let context = Context::builder()
@@ -85,8 +85,12 @@ fn init_ocl(gpu_ctx: &mut GpuContext) -> Result<(), String> {
         gpu_ctx.programs = HashMap::new();
         Ok(())
     }
-    #[cfg(not(feature = "gpu"))]{
-        Err("GPU context is not enabled at compilation. Please enable the `gpu` feature.".to_string())
+    #[cfg(not(feature = "gpu"))]
+    {
+        Err(
+            "GPU context is not enabled at compilation. Please enable the `gpu` feature."
+                .to_string(),
+        )
     }
 }
 
@@ -99,8 +103,8 @@ impl GpuContext {
     /// * `Ok(GpuContext)` if OpenCL initialization succeeded and the context is ready.
     /// * `Err(String)` if initialization failed.
     pub fn create() -> Self {
-
-        #[cfg(feature = "gpu")]{
+        #[cfg(feature = "gpu")]
+        {
             let mut gpu_ctx = GpuContext {
                 enabled: false,
                 platform: None,
@@ -123,15 +127,17 @@ impl GpuContext {
             gpu_ctx
         }
 
-        #[cfg(not(feature = "gpu"))]{
+        #[cfg(not(feature = "gpu"))]
+        {
             let mut gpu_ctx = GpuContext {
                 enabled: false,
                 status: String::from("Created, not Initialized"),
             };
-            gpu_ctx.status = String::from("GPU context not configured at compilation. Please enable the `gpu` feature.");
+            gpu_ctx.status = String::from(
+                "GPU context not configured at compilation. Please enable the `gpu` feature.",
+            );
             gpu_ctx
         }
-
     }
     #[cfg(feature = "gpu")]
     pub fn get_or_create_buffer<'a>(
@@ -157,7 +163,6 @@ impl GpuContext {
             }
         }
     }
-
 
     #[cfg(feature = "gpu")]
     pub fn get_or_create_readonly_buffer<'a>(
@@ -187,23 +192,24 @@ impl GpuContext {
         }
     }
 
-
-
     pub fn is_initialized(&self) -> bool {
-        #[cfg(feature = "gpu")]{
+        #[cfg(feature = "gpu")]
+        {
             self.context.is_some() && self.device.is_some() && self.queue.is_some()
         }
-        #[cfg(not(feature = "gpu"))]{
+        #[cfg(not(feature = "gpu"))]
+        {
             false
         }
     }
 
     pub fn is_enabled(&self) -> bool {
-
-        #[cfg(feature = "gpu")]{
-            self.is_initialized() &&  self.enabled
+        #[cfg(feature = "gpu")]
+        {
+            self.is_initialized() && self.enabled
         }
-        #[cfg(not(feature = "gpu"))]{
+        #[cfg(not(feature = "gpu"))]
+        {
             false
         }
     }
@@ -212,16 +218,16 @@ impl GpuContext {
         self.enabled = enabled;
 
         if !self.is_initialized() {
-            self.status = String::from("GPU context not initialized, hence cannot enable or disable");
+            self.status =
+                String::from("GPU context not initialized, hence cannot enable or disable");
             return;
         }
         if enabled {
-                self.status = String::from("Enabled");
-            } else {
-                self.status = String::from("Disabled");
-            }
+            self.status = String::from("Enabled");
+        } else {
+            self.status = String::from("Disabled");
         }
-
+    }
 
     /// Initializes the OpenCL context, device, and command queue.
     ///
@@ -245,7 +251,6 @@ impl GpuContext {
     /// * `Err(String)` if compilation fails or context is not initialized
     #[cfg(feature = "gpu")]
     pub fn load_program(&mut self, src: &str, name: &str) -> Result<Arc<Program>, String> {
-
         if !self.is_enabled() {
             return Err("GPU context is not enabled".to_string());
         }
@@ -266,9 +271,9 @@ impl GpuContext {
     /// Fetches a cached program by name.
     #[cfg(feature = "gpu")]
     pub fn get_program(&self, name: &str) -> Option<Arc<Program>> {
-    if !self.is_enabled() {
-        return None; // GPU context is not enabled
-    }
+        if !self.is_enabled() {
+            return None; // GPU context is not enabled
+        }
         self.programs.get(name).cloned()
     }
 }

@@ -2,7 +2,6 @@ use crate::buffer_op;
 use crate::core::context::gpu::GpuContext;
 use crate::primitives::plane::Dimensions2d;
 
-
 /// Draws scanlines onto a buffer in **parallel** using multiple threads.
 /// Each scanline is defined as a sequence of (x_start, x_end, color) triplets for a specific y-coordinate.
 /// This function partitions the set of occupied scanlines (y-indices) into bands distributed across threads,
@@ -45,7 +44,6 @@ pub fn horizontal_lines_threaded(
 
     // ==[ GPU OpenCL path (if available) ]==
     if gpu_context.is_enabled() {
-
         println!(">>>>>>>>>>>>>. scanlines_threaded() Scanlines using GPU OpenCL");
 
         buffer_op::gpu::horizontal_lines::horizontal_lines(
@@ -57,7 +55,7 @@ pub fn horizontal_lines_threaded(
             &scanline_sizes,
             gpu_context,
         )
-            .expect("Failed to draw horizontal lines using GPU OpenCL");
+        .expect("Failed to draw horizontal lines using GPU OpenCL");
         return;
     }
 
@@ -95,11 +93,12 @@ pub fn horizontal_lines_threaded(
         }
     }
 
-
     // ==[ Spawn threads; each thread writes only to its band's rows ]==
     std::thread::scope(|scope| {
         for band in bands {
-            if band.is_empty() { continue; }
+            if band.is_empty() {
+                continue;
+            }
             // Get the Y-range for this band
             let min_y = *band.first().unwrap() as usize;
             let max_y = *band.last().unwrap() as usize;
@@ -107,10 +106,7 @@ pub fn horizontal_lines_threaded(
 
             // Safety: Each thread gets a unique, non-overlapping region of the buffer for its rows
             let band_buf = unsafe {
-                std::slice::from_raw_parts_mut(
-                    buf_ptr.add(min_y * width),
-                    n_rows * width,
-                )
+                std::slice::from_raw_parts_mut(buf_ptr.add(min_y * width), n_rows * width)
             };
 
             // Needed data for drawing (move/copy as needed)
@@ -125,27 +121,36 @@ pub fn horizontal_lines_threaded(
                 for &y in band {
                     let y_usize = y as usize;
                     // Skip Y values outside our band's rows or outside the buffer
-                    if y_usize < min_y || y_usize > max_y || y_usize >= band_buf_dimensions.h as usize {
+                    if y_usize < min_y
+                        || y_usize > max_y
+                        || y_usize >= band_buf_dimensions.h as usize
+                    {
                         continue;
                     }
 
                     let start = band_flat_data_ptrs[y_usize] as usize;
                     let size = band_scanline_sizes[y_usize] as usize;
-                    if size == 0 { continue; }
+                    if size == 0 {
+                        continue;
+                    }
                     let end = start + size;
-                    if end > band_flat_scanline_data.len() { continue; }
+                    if end > band_flat_scanline_data.len() {
+                        continue;
+                    }
                     let scanline: &[u32] = &band_flat_scanline_data[start..end];
 
                     let row_in_band = y_usize - min_y;
-                    let row_buf = &mut band_buf[row_in_band * band_width .. (row_in_band + 1) * band_width];
-
+                    let row_buf =
+                        &mut band_buf[row_in_band * band_width..(row_in_band + 1) * band_width];
 
                     // Each scanline is made of triplets: [x_start, x_end, color]
                     for segment in scanline.chunks_exact(3) {
                         let x_start = segment[0].clamp(0, (band_width - 1) as u32) as usize;
-                        let x_end   = segment[1].clamp(0, (band_width - 1) as u32) as usize;
-                        let color   = segment[2];
-                        if x_start > x_end { continue; }
+                        let x_end = segment[1].clamp(0, (band_width - 1) as u32) as usize;
+                        let color = segment[2];
+                        if x_start > x_end {
+                            continue;
+                        }
                         for x in x_start..=x_end {
                             row_buf[x] = color;
                         }

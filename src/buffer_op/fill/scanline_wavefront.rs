@@ -39,8 +39,8 @@ pub fn scanline_wavefront(buf: &mut [u32], buf_dimensions: &Dimensions2d, start_
         x_right: start_pixel.x,
     });
 
-    let mut xl:u32;
-    let mut xr:u32;
+    let mut xl: u32;
+    let mut xr: u32;
 
     while let Some(span) = stack.pop() {
         let y = span.y;

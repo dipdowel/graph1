@@ -59,14 +59,12 @@ impl<'a> WhiteNoise<'a> {
         target_buf: &mut [u32],
         props: Option<&'a WhiteNoiseProps>,
         seed: Option<u32>,
-        gpu_context:&mut GpuContext,
+        gpu_context: &mut GpuContext,
     ) {
         // Save new props, if provided
         if let Some(props) = props {
             self.props = props;
         }
-
-
 
         let WhiteNoiseProps {
             min_color,
@@ -75,11 +73,10 @@ impl<'a> WhiteNoise<'a> {
             max_alpha,
             operation,
             step,
-            noise_size
+            noise_size,
         } = self.props;
 
         let use_alpha = *min_alpha != *max_alpha && *min_alpha != 0xff;
-
 
         let noise = self.gray_rng.get_random_grays_32(
             noise_size.unwrap_or(target_buf.len()),
@@ -90,28 +87,26 @@ impl<'a> WhiteNoise<'a> {
             seed,
         );
 
-            #[cfg(feature = "gpu")]
-            if gpu_context.is_enabled() {
-                let seed = seed.unwrap_or(0);
-                gpu_white_noise::white_noise(
-                    target_buf,
-                    &noise,
-                    operation,
-                    use_alpha,
-                    *step,
-                    gpu_context,
-                )
-                .expect("GPU white noise generation failed");
-                return;
-            }
+        #[cfg(feature = "gpu")]
+        if gpu_context.is_enabled() {
+            let seed = seed.unwrap_or(0);
+            gpu_white_noise::white_noise(
+                target_buf,
+                &noise,
+                operation,
+                use_alpha,
+                *step,
+                gpu_context,
+            )
+            .expect("GPU white noise generation failed");
+            return;
+        }
 
         // let use_alpha = *min_alpha != *max_alpha && *min_alpha != 0xff;
         let mut step = step.unwrap_or(1);
         if step == 0 {
             step = 1;
         }
-
-
 
         let noise_len = noise.len();
 
@@ -124,7 +119,7 @@ impl<'a> WhiteNoise<'a> {
         } else {
             for i in (0..target_buf.len()).step_by(step) {
                 // The noise buffer is expected to be of the same size as the target buffer
-                target_buf[i] = noise[i  % noise_len];
+                target_buf[i] = noise[i % noise_len];
             }
         }
     }

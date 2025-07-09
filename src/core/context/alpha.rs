@@ -1,7 +1,6 @@
 #[derive(Debug, Default, Clone, Copy)]
 /// Available methods for alpha blending
 pub enum AlphaMethod {
-
     /// Use integer-based alpha blending, faster but less precise
     #[default]
     Int,
@@ -19,11 +18,8 @@ pub struct AlphaContext {
 
 impl AlphaContext {
     /// Create a new `AlphaContext` with default values
-    pub fn new( enabled:bool, method:AlphaMethod ) -> Self {
-        Self {
-            enabled,
-            method,
-        }
+    pub fn new(enabled: bool, method: AlphaMethod) -> Self {
+        Self { enabled, method }
     }
 
     /// Set the alpha blending method to `Int`
@@ -36,7 +32,6 @@ impl AlphaContext {
         self.method = AlphaMethod::Float;
     }
 }
-
 
 impl Default for AlphaContext {
     fn default() -> Self {

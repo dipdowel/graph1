@@ -8,7 +8,10 @@
 /// # Returns
 /// A vector of colors as `0xRR_GG_BB_AA` representing the gradient.
 pub fn linear(c1: u32, c2: u32, steps: usize) -> Vec<u32> {
-    assert!(steps > 1, "There must be at least two steps in the gradient.");
+    assert!(
+        steps > 1,
+        "There must be at least two steps in the gradient."
+    );
 
     // Extract the RGBA components from both of the colors
     let r1 = ((c1 >> 24) & 0xFF) as f32;
@@ -49,7 +52,6 @@ pub fn linear(c1: u32, c2: u32, steps: usize) -> Vec<u32> {
     gradient
 }
 
-
 /// Calculates and returns a specified step (color) in the gradient between two RGBA colors.
 /// The whole gradient is not calculated, so this function is faster than `linear()`.
 ///
@@ -63,8 +65,11 @@ pub fn linear(c1: u32, c2: u32, steps: usize) -> Vec<u32> {
 /// Color of the specified step of the gradient, as `0xRR_GG_BB_AA`
 
 pub fn linear_step(c1: u32, c2: u32, steps: usize, step: usize) -> u32 {
-    assert!(steps > 1, "There must be at least two steps in the gradient.");
-    let step = step.min(steps-1);
+    assert!(
+        steps > 1,
+        "There must be at least two steps in the gradient."
+    );
+    let step = step.min(steps - 1);
 
     // Extract the RGBA components from both of the colors
     let r1 = ((c1 >> 24) & 0xFF) as f32;
@@ -93,8 +98,6 @@ pub fn linear_step(c1: u32, c2: u32, steps: usize, step: usize) -> u32 {
     (r << 24) | (g << 16) | (b << 8) | a
 }
 
-
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -108,11 +111,9 @@ mod tests {
         // println!(">>> gradient: {:#010X?}",gradient);
         for i in 0..4 {
             let color = linear_step(c1, c2, 4, i);
-            assert_eq!(color, gradient[i]);     
+            assert_eq!(color, gradient[i]);
         }
-
     }
-
 
     #[test]
     fn test_simple() {

@@ -1,9 +1,9 @@
 use std::f64::consts::PI;
 
-use crate::draw::polygons::closed_perimeter;
 use crate::core::context::GraphContext;
-use crate::primitives::Pixel;
+use crate::draw::polygons::closed_perimeter;
 use crate::primitives::point::Point;
+use crate::primitives::Pixel;
 
 #[derive(Debug, Clone, Copy)]
 pub struct StarProperties {
@@ -26,7 +26,6 @@ pub struct StarProperties {
     pub skip_rendering: bool,
 }
 
-
 /// Renders a star with the specified properties into a given `GraphContext`
 /// The min allowed value of `StarProperties -> num_rays` is 2.
 /// # Parameters
@@ -40,7 +39,7 @@ pub fn star<UserData>(ctx: &mut GraphContext<UserData>, props: &StarProperties) 
         return Vec::new();
     }
 
-    let num_vertices:usize = (props.num_rays * 2) as usize;
+    let num_vertices: usize = (props.num_rays * 2) as usize;
     let num_sides = props.num_rays as f64;
 
     // This correction allows to render the star properly standing flat on its lower side
@@ -52,10 +51,10 @@ pub fn star<UserData>(ctx: &mut GraphContext<UserData>, props: &StarProperties) 
     // ************************************************************************
     // Calculate all the vertex positions
     // ************************************************************************
-    let mut vertices:Vec<Point<i32>> = Vec::with_capacity(num_vertices);
+    let mut vertices: Vec<Point<i32>> = Vec::with_capacity(num_vertices);
     vertices.resize(num_vertices, Point { x: 0, y: 0 });
 
-    for i in 0..num_vertices  {
+    for i in 0..num_vertices {
         let radius = if i % 2 == 0 {
             props.inner_radius
         } else {

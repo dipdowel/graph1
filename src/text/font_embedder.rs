@@ -5,16 +5,16 @@
    "CBF" stands for "Compact Bitmap Font". See `/README.md` for details.
 */
 
-use std::collections::HashMap;
-use std::io::{Cursor, Read};
 use crate::primitives::plane::{Dimensions2d, RectArea};
 use crate::primitives::point::POINT_ZERO;
 use crate::text::font::{PixelFont, PixelFontMeta, Spacing};
-use crate::text::{font, font_constants};
 use crate::text::utils::u16_vec_to_utf8_char;
+use crate::text::{font, font_constants};
 use crate::utils::color::bit_operations;
 use crate::utils::math::nearest_power_of_two_towards_zero;
 use crate::utils::pixel_copy::image_data;
+use std::collections::HashMap;
+use std::io::{Cursor, Read};
 
 // Embed fonts data
 const DATA_C_C_RED_ALERT_INET: &[u8] = include_bytes!("cbf_data/cc_red_alert_inet.cbf");

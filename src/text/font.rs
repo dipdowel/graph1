@@ -30,9 +30,9 @@ impl Default for Spacing {
 
 impl Spacing {
     /// Creates a new `Spacing` instance.
-    /// 
+    ///
     /// # Parameters
-    /// 
+    ///
     /// - `kerning_px`: Horizontal spacing between characters, in pixels.
     /// - `leading_px`: Vertical spacing between lines of characters, in pixels.
     pub fn new(kerning_px: u8, leading_px: u8) -> Self {
@@ -99,8 +99,6 @@ impl PixelFont {
         _src_kerning_px: u8,
         meta: PixelFontMeta,
     ) -> Self {
-
-
         /*
         // FIXME: What's up with `src_kerning_px`? Why is it not used?
         let mut src_kerning_px: u32 = src_kerning_px as u32;

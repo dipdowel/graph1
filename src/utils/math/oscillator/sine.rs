@@ -1,5 +1,5 @@
-use std::f64::consts::PI;
 use crate::primitives::numeric::Numeric;
+use std::f64::consts::PI;
 
 /// Calculates an oscillating value using a sine wave, constrained within a specified range.
 ///
@@ -39,7 +39,7 @@ pub fn sine<C: Numeric, LB: Numeric, UB: Numeric>(
     let upper_bound = upper_bound.to_f64();
     let lower_bound = lower_bound.to_f64();
     let counter = counter.to_f64();
-    
+
     // The line below causes the oscillation to speed up. There's a potential usage for it!
     // let angle = counter * frequency * 2.0 * PI;
 
@@ -50,7 +50,6 @@ pub fn sine<C: Numeric, LB: Numeric, UB: Numeric>(
     let scaled = midpoint + (angle.sin() * amplitude); // Scale to [lower_bound, upper_bound]
     scaled
 }
-
 
 #[cfg(test)]
 mod tests {
@@ -66,43 +65,70 @@ mod tests {
     #[test]
     fn test_oscillation_at_zero() {
         let value = sine(0.0, 0.01, 80.0, 160.0);
-        assert!(approx_equal(value, 120.0, 0.01), "Expected 120.0, got {}", value);
+        assert!(
+            approx_equal(value, 120.0, 0.01),
+            "Expected 120.0, got {}",
+            value
+        );
     }
 
     #[test]
     fn test_oscillation_at_quarter_period() {
         let value = sine(25.0, 0.01, 80.0, 160.0);
-        assert!(approx_equal(value, 160.0, 0.01), "Expected 160.0, got {}", value);
+        assert!(
+            approx_equal(value, 160.0, 0.01),
+            "Expected 160.0, got {}",
+            value
+        );
     }
 
     #[test]
     fn test_oscillation_at_half_period() {
         let value = sine(50.0, 0.01, 80.0, 160.0);
-        assert!(approx_equal(value, 120.0, 0.01), "Expected 120.0, got {}", value);
+        assert!(
+            approx_equal(value, 120.0, 0.01),
+            "Expected 120.0, got {}",
+            value
+        );
     }
 
     #[test]
     fn test_oscillation_at_three_quarters_period() {
         let value = sine(75.0, 0.01, 80.0, 160.0);
-        assert!(approx_equal(value, 80.0, 0.01), "Expected 80.0, got {}", value);
+        assert!(
+            approx_equal(value, 80.0, 0.01),
+            "Expected 80.0, got {}",
+            value
+        );
     }
 
     #[test]
     fn test_oscillation_full_period() {
         let value = sine(100.0, 0.01, 80.0, 160.0);
-        assert!(approx_equal(value, 120.0, 0.01), "Expected 120.0, got {}", value);
+        assert!(
+            approx_equal(value, 120.0, 0.01),
+            "Expected 120.0, got {}",
+            value
+        );
     }
 
     #[test]
     fn test_different_bounds() {
         let value = sine(25.0, 0.01, 50.0, 250.0);
-        assert!(approx_equal(value, 250.0, 0.01), "Expected 250.0, got {}", value);
+        assert!(
+            approx_equal(value, 250.0, 0.01),
+            "Expected 250.0, got {}",
+            value
+        );
     }
 
     #[test]
     fn test_different_frequency() {
         let value1 = sine(25.0, 0.01, 80.0, 160.0);
         let value2 = sine(25.0, 0.02, 80.0, 160.0);
-        assert_ne!(value1, value2, "Expected different values for different frequencies");
+        assert_ne!(
+            value1, value2,
+            "Expected different values for different frequencies"
+        );
     }
 }

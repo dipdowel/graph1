@@ -2,12 +2,11 @@
 pub mod buffer_op {
     pub mod copy {
         // pub mod region;
-        pub mod rect{
+        pub mod rect {
             mod to_another_buf;
             mod within_buf;
             pub use to_another_buf::to_another_buf;
             pub use within_buf::within_buf;
-
         }
     }
 
@@ -15,19 +14,17 @@ pub mod buffer_op {
         pub(crate) mod buffer;
         pub(crate) mod flood;
         pub(crate) mod scanline_wavefront;
-
     }
-    
+
     pub(crate) mod lines {
         pub(crate) mod horizontal_lines;
         pub(crate) mod horizontal_lines_threaded;
     }
-    pub use lines::horizontal_lines::*;
-    pub use lines::horizontal_lines_threaded::*;
     pub use fill::buffer::fill;
     pub use fill::flood::flood;
     pub use fill::scanline_wavefront::scanline_wavefront;
-
+    pub use lines::horizontal_lines::*;
+    pub use lines::horizontal_lines_threaded::*;
 
     pub mod buffer_fx {
         pub mod blur {
@@ -37,23 +34,36 @@ pub mod buffer_op {
         }
     }
 
-    pub(crate) mod gpu {
+    pub mod gpu {
         pub(crate) mod box_blur;
+        pub use box_blur::box_blur_get_kernel;
+        pub(crate) mod fade;
+        pub use fade::fade_get_kernel;
+
         pub(crate) mod fill;
-        pub(crate) mod scanline;
-        pub(crate) mod horizontal_lines;
+        pub use fill::fill_get_kernel;
         pub(crate) mod fill_rects;
+        pub use fill_rects::fill_rects_get_kernel;
         pub(crate) mod fill_rects_bucketed;
+        pub use fill_rects_bucketed::fill_rects_bucketed_get_kernel;
         pub(crate) mod fill_rects_spatial_tiles;
+        pub use fill_rects_spatial_tiles::fill_rects_spatial_tiles_get_kernel;
+        pub(crate) mod horizontal_lines;
+        pub use horizontal_lines::horizontal_lines_get_kernel;
 
+        pub mod kernel_bundle;
+        pub mod kernel_executor;
 
+        pub(crate) mod scanline;
+        pub use scanline::scanline_get_kernel;
 
-        pub(crate) mod kernel_executor;
-        pub(crate) mod kernel_bundle;
         pub(crate) mod white_noise;
+        pub use white_noise::get_white_noise_kernel;
+
+        #[cfg(feature = "gpu")]
+        pub use ocl::Kernel;
 
     }
-
 }
 
 //-=[ C }=------------------------------------------------------------------------------------------
@@ -69,7 +79,7 @@ pub mod core {
 
         pub mod alpha;
         mod bezier;
-        
+
         pub(crate) mod gpu;
 
         mod graph;
@@ -179,6 +189,7 @@ pub mod draw {
 //-=[ F }=------------------------------------------------------------------------------------------
 
 pub mod filters {
+    pub mod blur;
     pub mod image;
 }
 
@@ -242,9 +253,9 @@ pub mod primitives {
 //-=[ S }=------------------------------------------------------------------------------------------
 pub mod sprites {
     pub mod axonometric {
-        mod bar_3d;        
-        pub use bar_3d::*;
+        mod bar_3d;
         pub use bar_3d::Bar3DProps;
+        pub use bar_3d::*;
     }
 }
 
@@ -274,7 +285,6 @@ pub mod utils {
     pub mod clip {
         pub mod line;
     }
-
 
     /// Utils for processing colors
     pub mod color {

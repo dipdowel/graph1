@@ -1,5 +1,3 @@
-
-
 pub struct WinterFrost;
 impl WinterFrost {
     pub const FROST_BLUE: u32 = 0xc3_d9_ed_ff;

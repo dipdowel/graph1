@@ -1,5 +1,5 @@
-use crate::primitives::plane::RectArea;
 use crate::primitives::numeric::Numeric;
+use crate::primitives::plane::RectArea;
 
 /// Resolves a list of rectangles by removing those fully occluded by later rectangles
 /// and merging adjacent ones of the same color.
@@ -9,7 +9,9 @@ use crate::primitives::numeric::Numeric;
 ///
 /// # Returns
 /// - A simplified vector with occluded rectangles removed and adjacent merges applied.
-pub fn resolve_rectangles<T: Numeric + std::ops::Add<Output = T> + PartialEq>(rects: Vec<RectArea<T>>) -> Vec<RectArea<T>> {
+pub fn resolve_rectangles<T: Numeric + std::ops::Add<Output = T> + PartialEq>(
+    rects: Vec<RectArea<T>>,
+) -> Vec<RectArea<T>> {
     let mut visible: Vec<RectArea<T>> = Vec::new();
 
     // Step 1: Occlusion Culling
