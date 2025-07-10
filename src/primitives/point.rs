@@ -59,6 +59,45 @@ impl<T: Numeric> Point<T> {
         let dy = self.y.to_f64() - other.y.to_f64();
         (dx * dx + dy * dy).sqrt()
     }
+
+
+    /// Computes the interior collinear point along the line segment from `self` to `other`.
+    ///
+    /// This method computes a new point `c` on the line segment from `self` to `other`,
+    /// such that the distance from `self` to `c` is a given fraction `t` (clamped to [0.0, 1.0])
+    /// of the full segment length.
+    ///
+    /// For `t == 0.0`, returns a clone of `self`.
+    /// For `t == 1.0`, returns a clone of `other`.
+    ///
+    /// # Parameters
+    /// - `other`: The other point that forms the segment with `self`.
+    /// - `t`: A fraction representing the relative position between the two points.
+    ///         Values outside [0.0, 1.0] are clamped.
+    ///
+    /// # Returns
+    /// - A new `Point<T>` located `t`-fraction along the segment from `self` to `other`.
+    pub fn collinear_interior(&self, other: &Point<T>, t: f64) -> Point<T> {
+        let t_clamped = t.clamp(0.0, 1.0);
+
+        if t_clamped == 0.0 {
+            self.clone()
+        } else if t_clamped == 1.0 {
+            other.clone()
+        } else {
+            let x = self.x.to_f64() + t_clamped * (other.x.to_f64() - self.x.to_f64());
+            let y = self.y.to_f64() + t_clamped * (other.y.to_f64() - self.y.to_f64());
+            Point {
+                x: T::from_f64(x),
+                y: T::from_f64(y),
+            }
+        }
+        // TODO:
+        // TODO: WRITE UNIT TESTS FOR THIS METHOD!
+        // TODO: FOR REAL...
+        // TODO:
+    }
+
 }
 
 impl<T: Numeric> Add for Point<T> {
