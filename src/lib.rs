@@ -4,8 +4,10 @@ pub mod buffer_op {
         // pub mod region;
         pub mod rect {
             mod to_another_buf;
+            mod to_another_buf_multi_dst;
             mod within_buf;
             pub use to_another_buf::to_another_buf;
+            pub use to_another_buf_multi_dst::to_another_buf_multi_dst;
             pub use within_buf::within_buf;
         }
     }
