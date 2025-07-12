@@ -1,6 +1,7 @@
 use crate::core::context::GraphContext;
 use crate::primitives::math::MinMax;
 use std::thread;
+use crate::primitives::point::Point;
 
 /// Applies a circular spray effect using the current brush.
 /// Random points within the brush circle are colored. Uses multithreading when beneficial.
@@ -14,10 +15,9 @@ use std::thread;
 ///
 pub fn circular_spray<UserData>(
     ctx: &mut GraphContext<UserData>,
-    x: u32,
-    y: u32,
+    center: &Point,
     density: u32,
-    colors: &Vec<u32>,
+    colors: &[u32],
     radius: f64,
 ) {
     // TODO: Consider adding support for Alpha!
@@ -44,8 +44,8 @@ pub fn circular_spray<UserData>(
         let dx = ctx.rng.get_u32(&MinMax { min, max }) as i32 - rad;
         let dy = ctx.rng.get_u32(&MinMax { min, max }) as i32 - rad;
         if (dx * dx + dy * dy) as f64 <= radius * radius {
-            let px = x as i32 + dx;
-            let py = y as i32 + dy;
+            let px = center.x as i32 + dx;
+            let py = center.y as i32 + dy;
             let color_idx = points.len() % colors_len;
             points.push((px, py, color_idx));
         }

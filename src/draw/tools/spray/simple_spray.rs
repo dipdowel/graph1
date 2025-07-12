@@ -2,23 +2,23 @@ use crate::core::context::GraphContext;
 use crate::draw::tools::brush::Brush;
 use crate::draw::tools::spray::circular::circular_spray;
 use crate::draw::tools::spray::rectangular::rectangular_spray;
+use crate::primitives::point::Point;
 
 pub fn simple<UserData>(
     ctx: &mut GraphContext<UserData>,
-    x: u32,
-    y: u32,
+    center: &Point,
     density: u32,
-    colors: &Vec<u32>,
+    colors: &[u32],
 ) {
     // TODO: Consider adding GPU support for spray!
     // TODO: Consider adding support for Alpha!
 
     match ctx.brush {
         Brush::Circle { radius } => {
-            circular_spray(ctx, x, y, density, colors, radius);
+            circular_spray(ctx, &center, density, colors, radius);
         }
         Brush::Rectangle { size } => {
-            rectangular_spray(ctx, x, y, density, colors, &size);
+            rectangular_spray(ctx, &center, density, colors, &size);
         }
     }
 }

@@ -2,6 +2,7 @@ use crate::core::context::GraphContext;
 use crate::primitives::math::MinMax;
 use crate::primitives::plane::Dimensions2d;
 use std::thread;
+use crate::primitives::point::Point;
 
 /// Applies a simple spray effect using the current brush.
 /// Random points within the brush rectangle are colored. Uses multithreading when beneficial.
@@ -22,10 +23,9 @@ use std::thread;
 /// Falls back to single-threaded if too few points or only one thread requested.
 pub fn rectangular_spray<UserData>(
     ctx: &mut GraphContext<UserData>,
-    x: u32,
-    y: u32,
+    center: &Point,
     density: u32,
-    colors: &Vec<u32>,
+    colors: &[u32],
     size: &Dimensions2d,
 ) {
     // TODO: Consider adding support for Alpha!
@@ -53,8 +53,8 @@ pub fn rectangular_spray<UserData>(
     // Collect all spray points: (frame_x, frame_y, color_index)
     let mut points = Vec::with_capacity(density as usize);
     for ((&rnd_x, &rnd_y), i) in random_xs.iter().zip(random_ys.iter()).zip(0..) {
-        let px = x as i32 + rnd_x as i32 - size.w as i32 / 2;
-        let py = y as i32 + rnd_y as i32 - size.h as i32 / 2;
+        let px = center.x as i32 + rnd_x as i32 - size.w as i32 / 2;
+        let py = center.y as i32 + rnd_y as i32 - size.h as i32 / 2;
         points.push((px, py, i % colors_len));
     }
 
