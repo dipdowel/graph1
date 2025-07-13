@@ -486,7 +486,7 @@ impl Numeric for f32 {
     }
 
     fn is_integer(&self) -> bool {
-        self.fract() == 0.0
+        false
     }
 
     fn get_type() -> NumericType {
@@ -554,7 +554,7 @@ impl Numeric for f64 {
     }
 
     fn is_integer(&self) -> bool {
-        self.fract() == 0.0
+        false
     }
 
     fn get_type() -> NumericType {
