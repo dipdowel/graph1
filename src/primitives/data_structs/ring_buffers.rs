@@ -10,6 +10,7 @@
 //
 //
 
+use core::ops::Index;
 
 /// A fixed-size, stack-allocated ring buffer that overwrites the oldest values when full.
 ///
@@ -199,6 +200,41 @@ impl<T: Clone + Default> DynamicRingBuffer<T> {
     }
 }
 
+
+
+impl<T: Copy, const N: usize> Index<usize> for RingBuffer<T, N> {
+    type Output = T;
+
+    /// Returns a reference to the value at the given logical (FIFO) index.
+    ///
+    /// # Panics
+    /// Panics if the index is out of bounds.
+    fn index(&self, index: usize) -> &Self::Output {
+        if index >= self.len {
+            panic!("Index out of bounds: the len is {} but the index is {}", self.len, index);
+        }
+        let idx = (self.head + index) % N;
+        &self.buffer[idx]
+    }
+}
+
+impl<T> Index<usize> for DynamicRingBuffer<T> {
+    type Output = T;
+
+    /// Returns a reference to the value at the given logical (FIFO) index.
+    ///
+    /// # Panics
+    /// Panics if the index is out of bounds.
+    fn index(&self, index: usize) -> &Self::Output {
+        if index >= self.len {
+            panic!("Index out of bounds: the len is {} but the index is {}", self.len, index);
+        }
+        let idx = (self.head + index) % self.capacity;
+        &self.buffer[idx]
+    }
+}
+
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -296,4 +332,47 @@ mod tests {
         let _ = DynamicRingBuffer::<i32>::with_capacity(0);
     }
 
+    #[test]
+    fn ring_buffer_indexing() {
+        let mut buf = RingBuffer::<i32, 3>::new();
+        buf.push(10);
+        buf.push(20);
+        buf.push(30);
+        assert_eq!(buf[0], 10);
+        assert_eq!(buf[1], 20);
+        assert_eq!(buf[2], 30);
+
+        buf.push(40); // Overwrites 10
+        assert_eq!(buf[0], 20);
+        assert_eq!(buf[2], 40);
+    }
+
+    #[test]
+    #[should_panic(expected = "Index out of bounds")]
+    fn ring_buffer_index_out_of_bounds() {
+        let buf = RingBuffer::<i32, 3>::new();
+        let _ = buf[0];
+    }
+
+    #[test]
+    fn dynamic_ring_buffer_indexing() {
+        let mut buf = DynamicRingBuffer::<i32>::with_capacity(3);
+        buf.push(100);
+        buf.push(200);
+        buf.push(300);
+        assert_eq!(buf[0], 100);
+        assert_eq!(buf[1], 200);
+        assert_eq!(buf[2], 300);
+
+        buf.push(400); // Overwrites 100
+        assert_eq!(buf[0], 200);
+        assert_eq!(buf[2], 400);
+    }
+
+    #[test]
+    #[should_panic(expected = "Index out of bounds")]
+    fn dynamic_ring_buffer_index_out_of_bounds() {
+        let buf = DynamicRingBuffer::<i32>::with_capacity(2);
+        let _ = buf[0];
+    }
 }
