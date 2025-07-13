@@ -52,6 +52,41 @@ pub fn linear(c1: u32, c2: u32, steps: usize) -> Vec<u32> {
     gradient
 }
 
+/// Constructs a compound gradient by chaining together multiple linear gradients.
+///
+/// Each sub-gradient is defined by a triplet of `(start_color, end_color, steps)`, and
+/// the final result is a concatenation of all of them. Internally, this function reuses
+/// the `linear()` function.
+///
+/// # Arguments
+/// * `sub_gradients` - A vector of `(c1, c2, steps)` triplets defining individual gradients.
+/// * `delete_border_duplicate` - If true, removes the first color of each sub-gradient except the first one,
+///  which prevents duplication of the endpoint colors between adjacent gradients.
+///
+/// # Returns
+/// A concatenated vector of `0xRR_GG_BB_AA` colors representing the full compound gradient.
+pub fn linear_compound(sub_gradients: &[(u32, u32, usize)], delete_border_duplicate:bool) -> Vec<u32> {
+    let mut full_gradient = Vec::new();
+
+    for (i, &(c1, c2, steps)) in sub_gradients.iter().enumerate() {
+        if steps < 2 {
+            continue; // skip invalid or degenerate sub-gradients
+        }
+
+        let mut sub = linear(c1, c2, steps);
+
+        // Avoid duplicating endpoints between adjacent gradients
+        if i > 0 && delete_border_duplicate {
+            sub.remove(0);
+        }
+
+        full_gradient.extend(sub);
+    }
+
+    full_gradient
+}
+
+
 /// Calculates and returns a specified step (color) in the gradient between two RGBA colors.
 /// The whole gradient is not calculated, so this function is faster than `linear()`.
 ///
