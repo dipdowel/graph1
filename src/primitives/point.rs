@@ -100,6 +100,15 @@ impl<T: Numeric> Point<T> {
 
 }
 
+impl<T: Numeric> Default for Point<T> {
+    fn default() -> Self {
+        Self {
+            x: T::zero(),
+            y: T::zero(),
+        }
+    }
+}
+
 impl<T: Numeric> Add for Point<T> {
     type Output = Self;
 
