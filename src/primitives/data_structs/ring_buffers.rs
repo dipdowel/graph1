@@ -72,14 +72,21 @@ impl<T: Copy + Default, const N: usize> RingBuffer<T, N> {
 
     /// Retrieves the first (the oldest) element in the buffer, if any.
     pub fn first(&self) -> Option<&T> {
-        //FIXME: NOT IMPLEMENTED YET!!!!
-        None
+        if self.len > 0 {
+            Some(&self.buffer[self.head])
+        } else {
+            None
+        }
     }
 
     /// Retrieves the last (the newest) element in the buffer, if any.
     pub fn last(&self) -> Option<&T> {
-        //FIXME: NOT IMPLEMENTED YET!!!!
-        None
+        if self.len > 0 {
+            let idx = (self.head + self.len - 1) % N;
+            Some(&self.buffer[idx])
+        } else {
+            None
+        }
     }
 
 
@@ -102,6 +109,9 @@ pub struct DynamicRingBuffer<T> {
 impl<T: Clone + Default> DynamicRingBuffer<T> {
     /// Creates a new ring buffer with the given capacity.
     pub fn with_capacity(capacity: usize) -> Self {
+        if capacity == 0 {
+            panic!("Capacity must be greater than zero");
+        }
         let mut buffer = Vec::with_capacity(capacity);
         buffer.resize(capacity, T::default());
 
@@ -115,7 +125,7 @@ impl<T: Clone + Default> DynamicRingBuffer<T> {
 
     /// Pushes a value into the buffer, overwriting the oldest if full.
     pub fn push(&mut self, value: T) {
-        // 
+        //
         let index = (self.head + self.len) % self.capacity;
         self.buffer[index] = value;
 
@@ -148,15 +158,23 @@ impl<T: Clone + Default> DynamicRingBuffer<T> {
 
     /// Retrieves the first (the oldest) element in the buffer, if any.
     pub fn first(&self) -> Option<&T> {
-        //FIXME: NOT IMPLEMENTED YET!!!!
+        if self.len > 0 {
+            self.buffer.get(self.head)
+        } else {
             None
+        }
     }
 
     /// Retrieves the last (the newest) element in the buffer, if any.
     pub fn last(&self) -> Option<&T> {
-        //FIXME: NOT IMPLEMENTED YET!!!!
-        None
+        if self.len > 0 {
+            let idx = (self.head + self.len - 1) % self.capacity;
+            self.buffer.get(idx)
+        } else {
+            None
+        }
     }
+
 
 
     /// Resizes the buffer, discarding oldest values if shrinking.
@@ -237,4 +255,45 @@ mod tests {
         assert_eq!(buf.len(), 0);
         assert_eq!(buf.get(0), None);
     }
+
+    #[test]
+    fn ring_buffer_first_last() {
+        let mut buf = RingBuffer::<i32, 3>::new();
+        assert_eq!(buf.first(), None);
+        assert_eq!(buf.last(), None);
+        buf.push(10);
+        assert_eq!(buf.first(), Some(&10));
+        assert_eq!(buf.last(), Some(&10));
+        buf.push(20);
+        assert_eq!(buf.first(), Some(&10));
+        assert_eq!(buf.last(), Some(&20));
+        buf.push(30);
+        buf.push(40); // Overwrites 10
+        assert_eq!(buf.first(), Some(&20));
+        assert_eq!(buf.last(), Some(&40));
+    }
+
+    #[test]
+    fn dynamic_buffer_first_last() {
+        let mut buf = DynamicRingBuffer::<i32>::with_capacity(3);
+        assert_eq!(buf.first(), None);
+        assert_eq!(buf.last(), None);
+        buf.push(100);
+        assert_eq!(buf.first(), Some(&100));
+        assert_eq!(buf.last(), Some(&100));
+        buf.push(200);
+        assert_eq!(buf.first(), Some(&100));
+        assert_eq!(buf.last(), Some(&200));
+        buf.push(300);
+        buf.push(400); // Overwrites 100
+        assert_eq!(buf.first(), Some(&200));
+        assert_eq!(buf.last(), Some(&400));
+    }
+
+    #[test]
+    #[should_panic(expected = "Capacity must be greater than zero")]
+    fn dynamic_buffer_zero_capacity() {
+        let _ = DynamicRingBuffer::<i32>::with_capacity(0);
+    }
+
 }
