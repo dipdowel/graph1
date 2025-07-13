@@ -11,7 +11,19 @@ impl<T: Numeric> MinMax<T> {
     pub fn new(min: T, max: T) -> Self {
         Self { min, max }
     }
+    pub fn delta(&self) -> T {
+        self.max - self.min
+    }
+    pub fn contains(&self, value: T, inclusive:bool) -> bool {
+        if inclusive {
+            value >= self.min && value <= self.max
+        } else {
+            value > self.min && value < self.max
+        }
+    }
 }
+
+
 
 pub const MIN_MAX_U64: MinMax<u64> = MinMax {
     min: 0,
@@ -44,6 +56,9 @@ pub struct Range<T: Numeric> {
 impl<T: Numeric> Range<T> {
     pub fn new(start: T, end: T) -> Self {
         Self { start, end }
+    }
+    pub fn delta(&self) -> T {
+        self.end - self.start
     }
 }
 
