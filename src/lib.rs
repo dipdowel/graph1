@@ -229,6 +229,12 @@ pub mod primitives {
 
     pub mod containable;
 
+    pub mod data_structs{
+        pub mod ring_buffers;
+
+    }
+
+
     /// Aliases for complex or peculiar types
     pub mod helper_types;
 
