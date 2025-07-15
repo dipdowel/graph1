@@ -23,6 +23,33 @@ impl<T: Numeric> MinMax<T> {
     }
 }
 
+/// Interpolation methods for shaping a scaled transition curve.
+/// Optional parameters allow customizing the curve steepness or shape.
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub enum Interpolation {
+    /// Linear interpolation (no easing).
+    Linear,
+
+    /// Exponential "ease-in" curve (starts slow, ends fast).
+    /// `factor` controls steepness. Default = 2.0 (quadratic).
+    ExpIn(Option<f64>),
+
+    /// Exponential "ease-out" curve (starts fast, ends slow).
+    /// `factor` controls steepness. Default = 2.0 (quadratic).
+    ExpOut(Option<f64>),
+
+    /// Symmetric exponential ease-in-out.
+    /// Starts slow, speeds up in the middle, then slows down again.
+    /// `factor` controls steepness. Default = 2.0.
+    ExpInOut(Option<f64>),
+
+    /// Smoothstep interpolation (`3t² - 2t³`), smooth at both ends.
+    SmoothStep,
+
+    /// Sigmoid interpolation (S-shaped), models perceptual tapering.
+    /// `steepness` controls sharpness. Default = 12.0.
+    Sigmoid(Option<f64>),
+}
 
 
 pub const MIN_MAX_U64: MinMax<u64> = MinMax {
