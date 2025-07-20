@@ -43,8 +43,11 @@ pub enum Interpolation {
     /// `factor` controls steepness. Default = 2.0.
     ExpInOut(Option<f64>),
 
-    /// Smoothstep interpolation (`3t² - 2t³`), smooth at both ends.
+    /// Smoothstep interpolation (3t² - 2t³), smooth at both ends.
     SmoothStep,
+
+    /// Inverse smoothstep interpolation (1 - (3t² - 2t³)), fast at the ends and slow in the middle.
+    InverseSmoothStep,
 
     /// Sigmoid interpolation (S-shaped), models perceptual tapering.
     /// `steepness` controls sharpness. Default = 12.0.
