@@ -64,6 +64,26 @@ impl<T: Numeric + std::ops::Add<Output = T>> RectArea<T> {
         }
     }
 
+    /// Creates a new `RectArea` from a given center point, dimensions, and color.
+    ///
+    /// # Parameters
+    ///
+    /// - `x`: The x-coordinate of the geometric center.
+    /// - `y`: The y-coordinate of the geometric center.
+    /// - `w`: The width of the rectangle.
+    /// - `h`: The height of the rectangle.
+    /// - `color`: An optional color value (RGBA).
+    pub fn new_centered(x: T, y: T, w: T, h: T, color: Option<u32>) -> Self {
+        Self {
+            top_left: Point {
+                x: x - w.clone() / T::from_f64(2.0),
+                y: y - h.clone() / T::from_f64(2.0),
+            },
+            dimensions: Dimensions2d { w, h },
+            color,
+        }
+    }
+
     /// Creates a new square `RectArea`, with the given top-left point, side length, and color.
     pub fn square(x: T, y: T, side: T, color: Option<u32>) -> Self {
         Self {
@@ -71,6 +91,21 @@ impl<T: Numeric + std::ops::Add<Output = T>> RectArea<T> {
             dimensions: Dimensions2d {
                 w: side.clone(),
                 h: side.clone(),
+            },
+            color,
+        }
+    }
+
+    /// Creates a new square `RectArea`, with from the given center  point, side length, and color.
+    pub fn square_centered(x: T, y: T, side: T, color: Option<u32>) -> Self {
+        Self {
+            top_left: Point {
+                x: x - side.clone() / T::from_f64(2.0),
+                y: y - side.clone() / T::from_f64(2.0),
+            },
+            dimensions: Dimensions2d {
+                w: side.clone(),
+                h: side,
             },
             color,
         }
@@ -125,6 +160,15 @@ impl<T: Numeric + std::ops::Add<Output = T>> RectArea<T> {
             y: self.top_left.y + self.dimensions.h, /* - T::one() */
         }
     }
+
+    /// Returns the geometric center point of this rectangle.
+    pub fn get_center(&self) -> Point<T> {
+        Point {
+            x: self.top_left.x + self.dimensions.w / T::from_f64(2.0),
+            y: self.top_left.y + self.dimensions.h / T::from_f64(2.0),
+        }
+    }
+
 
     /// Checks whether a given line segment is completely outside this `RectArea`.
     ///
