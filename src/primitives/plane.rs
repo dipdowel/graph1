@@ -1,4 +1,5 @@
 use crate::primitives::numeric::Numeric;
+use crate::primitives::Pixel;
 use crate::primitives::point::Point;
 
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -110,6 +111,49 @@ impl<T: Numeric + std::ops::Add<Output = T>> RectArea<T> {
             color,
         }
     }
+
+    /// Creates a new square `RectArea`, from a given center point, side length, and color.
+    pub fn square_centered_from_point(center:&Point<T>, side: T, color: Option<u32>) -> Self {
+        Self::square_centered(center.x, center.y, side, color)
+    }
+
+    /// Creates a new `RectArea` centered at the given point, with specified width, height, and color.
+    pub fn new_centered_from_point(center: &Point<T>, w: T, h: T, color: Option<u32>) -> Self {
+        Self::new_centered(center.x, center.y, w, h, color)
+    }
+
+    /// Creates a new `RectArea` from a given point, with specified width, height, and color.
+    pub fn new_from_point(point: &Point<T>, w: T, h: T, color: Option<u32>) -> Self {
+        Self::new(point.x, point.y, w, h, color)
+    }
+
+    /// Creates a new square `RectArea` from a given point, with specified side length and color.
+    pub fn square_from_point(point: &Point<T>, side: T, color: Option<u32>) -> Self {
+        Self::square(point.x, point.y, side, color)
+    }
+
+    /// Creates a new square `RectArea`, from a given center pixel and side length.
+    pub fn square_centered_from_pixel(center:&Pixel, side: T) -> Self {
+        Self::square_centered(T::from_u32(center.x), T::from_u32(center.y), side, Some(center.color))
+    }
+
+    /// Creates a new `RectArea` centered at the given pixel, with specified width, height, and color.
+    pub fn new_centered_from_pixel(center: &Pixel, w: T, h: T) -> Self {
+        Self::new_centered(T::from_u32(center.x), T::from_u32(center.y), w, h, Some(center.color))
+    }
+
+
+    /// Creates a new `RectArea` from a given pixel, with specified width and height
+    pub fn new_from_pixel(pixel: &Pixel, w: T, h: T, color: Option<u32>) -> Self {
+        Self::new(T::from_u32(pixel.x), T::from_u32(pixel.y), w, h, Some(pixel.color))
+    }
+
+    /// Creates a new square `RectArea` from a given pixel, with specified side length
+    pub fn square_from_pixel(pixel: &Pixel, side: T) -> Self {
+        Self::square(T::from_u32(pixel.x), T::from_u32(pixel.y), side, Some(pixel.color))
+    }
+
+
 
     pub fn convert<U: Numeric>(self) -> RectArea<U> {
         RectArea {
@@ -453,4 +497,32 @@ mod tests {
         assert!(a.overlaps(&b));
         assert!(b.overlaps(&a));
     }
+    #[test]
+    fn test_new_centered() {
+        let rect = RectArea::new_centered(50, 50, 20, 10, Some(0xff00ff00));
+        assert_eq!(rect.top_left.x, 40);
+        assert_eq!(rect.top_left.y, 45);
+        assert_eq!(rect.dimensions.w, 20);
+        assert_eq!(rect.dimensions.h, 10);
+        assert_eq!(rect.color, Some(0xff00ff00));
+    }
+
+    #[test]
+    fn test_square_centered() {
+        let rect = RectArea::square_centered(100, 100, 40, Some(0xffff0000));
+        assert_eq!(rect.top_left.x, 80);
+        assert_eq!(rect.top_left.y, 80);
+        assert_eq!(rect.dimensions.w, 40);
+        assert_eq!(rect.dimensions.h, 40);
+        assert_eq!(rect.color, Some(0xffff0000));
+    }
+
+    #[test]
+    fn test_get_center_matches_input() {
+        let original = RectArea::new_centered(75, 25, 30, 20, None);
+        let center = original.get_center();
+        assert_eq!(center.x, 75);
+        assert_eq!(center.y, 25);
+    }
+
 }
