@@ -525,4 +525,92 @@ mod tests {
         assert_eq!(center.y, 25);
     }
 
+
+    #[test]
+    fn test_square_centered_from_point() {
+        let center = Point::new(50, 50);
+        let rect = RectArea::square_centered_from_point(&center, 20, Some(0xff00ff00));
+        assert_eq!(rect.top_left.x, 40);
+        assert_eq!(rect.top_left.y, 40);
+        assert_eq!(rect.dimensions.w, 20);
+        assert_eq!(rect.dimensions.h, 20);
+        assert_eq!(rect.color, Some(0xff00ff00));
+    }
+
+    #[test]
+    fn test_new_centered_from_point() {
+        let center = Point::new(60, 40);
+        let rect = RectArea::new_centered_from_point(&center, 20, 10, Some(0x00ff00ff));
+        assert_eq!(rect.top_left.x, 50);
+        assert_eq!(rect.top_left.y, 35);
+        assert_eq!(rect.dimensions.w, 20);
+        assert_eq!(rect.dimensions.h, 10);
+        assert_eq!(rect.color, Some(0x00ff00ff));
+    }
+
+    #[test]
+    fn test_new_from_point() {
+        let point = Point::new(10, 15);
+        let rect = RectArea::new_from_point(&point, 30, 40, Some(0xdeadbeef));
+        assert_eq!(rect.top_left.x, 10);
+        assert_eq!(rect.top_left.y, 15);
+        assert_eq!(rect.dimensions.w, 30);
+        assert_eq!(rect.dimensions.h, 40);
+        assert_eq!(rect.color, Some(0xdeadbeef));
+    }
+
+    #[test]
+    fn test_square_from_point() {
+        let point = Point::new(5, 5);
+        let rect = RectArea::square_from_point(&point, 50, Some(0xabcdef01));
+        assert_eq!(rect.top_left.x, 5);
+        assert_eq!(rect.top_left.y, 5);
+        assert_eq!(rect.dimensions.w, 50);
+        assert_eq!(rect.dimensions.h, 50);
+        assert_eq!(rect.color, Some(0xabcdef01));
+    }
+
+    #[test]
+    fn test_square_centered_from_pixel() {
+        let pixel = Pixel { x: 80, y: 60, color: 0xffaabbcc };
+        let rect = RectArea::square_centered_from_pixel(&pixel, 40);
+        assert_eq!(rect.top_left.x, 60);
+        assert_eq!(rect.top_left.y, 40);
+        assert_eq!(rect.dimensions.w, 40);
+        assert_eq!(rect.dimensions.h, 40);
+        assert_eq!(rect.color, Some(0xffaabbcc));
+    }
+
+    #[test]
+    fn test_new_centered_from_pixel() {
+        let pixel = Pixel { x: 100, y: 50, color: 0x12345678 };
+        let rect = RectArea::new_centered_from_pixel(&pixel, 30, 10);
+        assert_eq!(rect.top_left.x, 85);
+        assert_eq!(rect.top_left.y, 45);
+        assert_eq!(rect.dimensions.w, 30);
+        assert_eq!(rect.dimensions.h, 10);
+        assert_eq!(rect.color, Some(0x12345678));
+    }
+
+    #[test]
+    fn test_new_from_pixel() {
+        let pixel = Pixel { x: 15, y: 25, color: 0x0badf00d };
+        let rect = RectArea::new_from_pixel(&pixel, 40, 60, Some(0x0badf00d));
+        assert_eq!(rect.top_left.x, 15);
+        assert_eq!(rect.top_left.y, 25);
+        assert_eq!(rect.dimensions.w, 40);
+        assert_eq!(rect.dimensions.h, 60);
+        assert_eq!(rect.color, Some(0x0badf00d));
+    }
+
+    #[test]
+    fn test_square_from_pixel() {
+        let pixel = Pixel { x: 200, y: 300, color: 0xbeefcafe };
+        let rect = RectArea::square_from_pixel(&pixel, 100);
+        assert_eq!(rect.top_left.x, 200);
+        assert_eq!(rect.top_left.y, 300);
+        assert_eq!(rect.dimensions.w, 100);
+        assert_eq!(rect.dimensions.h, 100);
+        assert_eq!(rect.color, Some(0xbeefcafe));
+    }
 }
