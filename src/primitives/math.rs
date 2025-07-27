@@ -104,6 +104,6 @@ pub struct Bound<T: Numeric> {
     pub upper: T,
 }
 
-/// A range of values.
+/// TODO: check if this belongs here
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct ColorPair(pub u32, pub u32);

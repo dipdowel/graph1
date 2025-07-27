@@ -61,6 +61,41 @@ impl<T: Numeric> Point<T> {
     }
 
 
+    /// Calculates the angle (in radians) from `self` to another point.
+    ///
+    /// This angle is measured counterclockwise from the positive X-axis
+    /// to the vector pointing from `self` to `other`.
+    ///
+    /// # Parameters
+    /// - `other`: The other point to compute the direction towards.
+    ///
+    /// # Returns
+    /// - The angle in radians, in the range `(-π, π]`.
+    pub fn angle_to(&self, other: &Point<T>) -> f64 {
+        let dx = other.x.to_f64() - self.x.to_f64();
+        let dy = other.y.to_f64() - self.y.to_f64();
+        dy.atan2(dx)
+    }
+
+    /// Calculates the angle (in degrees) from `self` to another point.
+    ///
+    /// This is a convenience method for applications like compass directions.
+    ///
+    /// # Parameters
+    /// - `other`: The other point to compute the direction towards.
+    ///
+    /// # Returns
+    /// - The angle in degrees, wrapped to the range `[0.0, 360.0)`.
+    pub fn angle_to_degrees(&self, other: &Point<T>) -> f64 {
+        let radians = self.angle_to(other);
+        let mut degrees = radians.to_degrees();
+        if degrees < 0.0 {
+            degrees += 360.0;
+        }
+        degrees
+    }
+
+
     /// Computes the interior collinear point along the line segment from `self` to `other`.
     ///
     /// This method computes a new point `c` on the line segment from `self` to `other`,
@@ -303,5 +338,30 @@ mod tests {
         let pix = p.to_pixel(0xff00ff);
         assert_eq!(pix.x, 2);
         assert_eq!(pix.y, 4);
+    }
+}
+
+#[cfg(test)]
+mod angle_tests {
+    use super::*;
+
+    #[test]
+    fn test_angle_to_basic_directions() {
+        let origin = Point::new(0.0, 0.0);
+
+        assert!((origin.angle_to(&Point::new(1.0, 0.0)) - 0.0).abs() < 1e-6); // right
+        assert!((origin.angle_to(&Point::new(0.0, 1.0)) - std::f64::consts::FRAC_PI_2).abs() < 1e-6); // up
+        assert!((origin.angle_to(&Point::new(-1.0, 0.0)) - std::f64::consts::PI).abs() < 1e-6); // left
+        assert!((origin.angle_to(&Point::new(0.0, -1.0)) + std::f64::consts::FRAC_PI_2).abs() < 1e-6); // down
+    }
+
+    #[test]
+    fn test_angle_to_degrees_wraparound() {
+        let origin = Point::new(0.0, 0.0);
+
+        assert!((origin.angle_to_degrees(&Point::new(1.0, 0.0)) - 0.0).abs() < 1e-6);
+        assert!((origin.angle_to_degrees(&Point::new(0.0, 1.0)) - 90.0).abs() < 1e-6);
+        assert!((origin.angle_to_degrees(&Point::new(-1.0, 0.0)) - 180.0).abs() < 1e-6);
+        assert!((origin.angle_to_degrees(&Point::new(0.0, -1.0)) - 270.0).abs() < 1e-6);
     }
 }
