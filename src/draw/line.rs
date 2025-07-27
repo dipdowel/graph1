@@ -16,13 +16,17 @@ fn draw_line_bresenham<UserData>(
 ) {
     if x0 == x1 && y0 != y1 {
         let start = Point::new(x0, y0.min(y1));
-        let length = (y1 - y0).abs() as u32;
+        // let length = (y1 - y0).abs() as u32;
+        let length = (y1 - y0).abs() as u32 + 1; // `+1` is supposed to fix a bug in case of a vertical line
+
         vertical(ctx, &start, length, Some(color));
         return;
     }
     if y0 == y1 && x0 != x1 {
         let start = Point::new(x0.min(x1), y0);
-        let length = (x1 - x0).abs() as u32;
+        // let length = (x1 - x0).abs() as u32;
+        let length = (x1 - x0).abs() as u32 + 1;  // `+1` is supposed to fix a bug in case of a horizontal line
+
         horizontal(ctx, &start, length, Some(color));
         return;
     }
