@@ -101,8 +101,8 @@ impl<T: Numeric + std::ops::Add<Output = T>> RectArea<T> {
     pub fn square_centered(x: T, y: T, side: T, color: Option<u32>) -> Self {
         Self {
             top_left: Point {
-                x: x - side.clone() / T::from_f64(2.0),
-                y: y - side.clone() / T::from_f64(2.0),
+                x: x.saturating_sub( side.clone() / T::from_f64(2.0)),
+                y: y.saturating_sub( side.clone() / T::from_f64(2.0)),
             },
             dimensions: Dimensions2d {
                 w: side.clone(),

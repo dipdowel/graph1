@@ -368,6 +368,10 @@ pub mod utils {
         }
     }
 
+    pub mod field {
+        pub mod field_xy;
+    }
+
     pub mod grid {
 
         pub mod uniform {
