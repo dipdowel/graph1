@@ -63,7 +63,12 @@ pub mod buffer_op {
         pub use white_noise::get_white_noise_kernel;
 
         #[cfg(feature = "gpu")]
+        /// OpenCL Kernel, exposed for the user code
         pub use ocl::Kernel;
+
+        #[cfg(feature = "gpu")]
+        /// OpenCL Buffer, exposed for the user code
+        pub use ocl::Buffer;
 
     }
 }
