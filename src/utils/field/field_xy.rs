@@ -55,13 +55,12 @@ impl<'a, T: Numeric, UserData, PointState: Clone> FieldXYInfluencer<'a, T, UserD
     pub fn get_magnitude(&self) -> &Point<T> {
         &self.magnitude
     }
-    // pub fn get_influence_data(&self) -> Option<&InfluenceData> {
-    //     if &self.influence_data {
-    //        return Some(&self.influence_data);
-    //     }
-    //         None
-    //
-    // }
+
+    pub fn set_magnitude(&mut self, magnitude: Point<T>) {
+        self.magnitude = magnitude;
+    }
+
+
 }
 
 /// Represents a strategy for applying influence from an influencer to a field point.
