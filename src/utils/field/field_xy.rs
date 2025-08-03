@@ -1,34 +1,40 @@
-use crate::core::context::GraphContext;
 use crate::primitives::numeric::Numeric;
-use crate::primitives::plane::RectArea;
+use crate::primitives::plane::{Dimensions2d, RectArea};
 use crate::primitives::point::Point;
 use std::cell::RefCell;
-use std::ops::Deref;
 
-type InfluenceFn<T, UserData, PointState: Clone> = fn(
-    &mut GraphContext<UserData>,
-    &FieldXYInfluencer<T, UserData, PointState>,
+/// Function type that defines how an influencer affects a point in the field.
+type InfluenceFn<T, PointState: Clone> = fn(
+    win_dimensions: Dimensions2d,
+    &FieldXYInfluencer<T, PointState>,
     &mut FieldXYPoint<T, PointState>,
     &FieldXY<T, PointState>,
 );
 
-//// Represents a point that influences a field of points in 2D space.
-pub struct FieldXYInfluencer<'a, T: Numeric, UserData, PointState: Clone> {
-    location: Point<T>,
-    /** Any additional data that can be used to influence a point */
-    // influence_data: Option<InfluenceData>,
-    magnitude: Point<T>,
-    // field: &'a FieldXY<T>
-    field: Option<&'a FieldXY<T, PointState>>,
+//// An influencer is a point that influences a field of points in 2D space.
+#[derive(Debug, Clone)]
+pub struct FieldXYInfluencer<'a, T: Numeric, PointState: Clone> {
 
-    pub function: InfluenceFn<T, UserData, PointState>,
+    /// The location of the influencer in the field, represented as a Point.
+    location: Point<T>,
+
+    /// The magnitude of the influence along the x and y axes (represented as a Point).
+    /// This can be used to define the strength and direction of the influence.
+    magnitude: Point<T>,
+
+    /// Optional reference to the field that this influencer is associated with.
+    field: Option<&'a FieldXY<'a, T, PointState>>,
+
+    /// The function that defines how the influencer affects the points in the field.
+    pub function: InfluenceFn<T, PointState>,
 }
 
-impl<'a, T: Numeric, UserData, PointState: Clone> FieldXYInfluencer<'a, T, UserData, PointState> {
+
+impl<'a, T: Numeric, PointState: Clone> FieldXYInfluencer<'a, T, PointState> {
     pub fn new(
         location: Point<T>,
         magnitude: Point<T>,
-        function: InfluenceFn<T, UserData, PointState>,
+        function: InfluenceFn<T, PointState>,
     ) -> Self {
         FieldXYInfluencer {
             location,
@@ -38,42 +44,43 @@ impl<'a, T: Numeric, UserData, PointState: Clone> FieldXYInfluencer<'a, T, UserD
         }
     }
 
-    pub fn set_field(&mut self, field: &'a FieldXY<T, PointState>) {
-        self.field = Some(field);
-        // Ensure the location is within the bounds of the field rectangle
-        // self.location.x = self.location.x.clamp(field_rect.top_left.x, field_rect.bottom_right().x);
-        // self.location.y = self.location.y.clamp(field_rect.top_left.y, field_rect.bottom_right().y);
+    pub fn default() -> Self {
+        FieldXYInfluencer {
+            location: Point::new(T::zero(), T::zero()),
+            magnitude: Point::new(T::zero(), T::zero()),
+            field: None,
+            function: |_, _, _, _| panic!(" no influencer function provided! "),
+        }
     }
 
+    /// Sets the field that this influencer is associated with.
+    pub fn set_field(&mut self, field: &'a FieldXY<T, PointState>) {
+        self.field = Some(field);
+    }
+
+    /// Returns the current location of the influencer.
     pub fn get_location(&self) -> &Point<T> {
         &self.location
     }
 
+    /// Sets the location of the influencer.
     pub fn set_location(&mut self, location: Point<T>) {
         self.location = location;
     }
+
+    /// Returns the current magnitude of the influence.
     pub fn get_magnitude(&self) -> &Point<T> {
         &self.magnitude
     }
 
+    /// Sets the magnitude of the influence.
     pub fn set_magnitude(&mut self, magnitude: Point<T>) {
         self.magnitude = magnitude;
     }
-
-
 }
 
-/// Represents a strategy for applying influence from an influencer to a field point.
-// pub trait InfluenceStrategy<T: Numeric> {
-//     fn apply(
-//         &mut self,
-//         target: &mut FieldXYPoint<T>,
-//         influencer: &FieldXYInfluencer<T>,
-//         // field: &FieldXY<T>,
-//     );
-// }
 
-/// Represents a point in a 2D field that can be influenced by an influencer.
+/// Represents a point in a 2D field that can be influenced by an influencer (e.g., a mouse cursor).
 #[derive(Debug, Copy, Clone)]
 pub struct FieldXYPoint<T: Numeric, PointState: Clone> {
     /** 1-d index of the field point */
@@ -84,8 +91,7 @@ pub struct FieldXYPoint<T: Numeric, PointState: Clone> {
     location: Point<T>,
     /** How sensitive the point is to an influencer */
     sensitivity: Point<T>,
-
-    /** State of each field point, can be used to store additional information */
+    /** State of each field point, can be used to store any extra information about the point */
     state: PointState,
 }
 
@@ -106,62 +112,60 @@ impl<T: Numeric, PointState: Clone> FieldXYPoint<T, PointState> {
         }
     }
 
+    /// Returns the coordinates of the point in the field.
     pub fn get_location(&self) -> &Point<T> {
         &self.location
     }
+
+    /// Sets the coordinates of the point in the field.
     pub fn set_location(&mut self, location: Point<T>) {
         self.location = location;
     }
 
+    /// Returns the current state of the point (
     pub fn get_state(&self) -> &PointState {
         &self.state
     }
 
+    /// Sets the state of the point.
     pub fn set_state(&mut self, state: PointState) {
         self.state = state;
     }
-
-
 }
 
-// impl<T: Numeric> FieldXYPoint<T> {
-//     pub fn apply_influence<Strategy: InfluenceStrategy<T>>(
-//         &mut self,
-//         strategy: &mut Strategy,
-//         influencer: &FieldXYInfluencer<T>,
-//         field: &FieldXY<T>
-//     ) {
-//         // strategy.apply(self, &influencer,  &field);
-//         strategy.apply(self, &influencer);
-//     }
-// }
 
+/// Represents a 2D field of points that can be influenced by an influencer.
 #[derive(Debug, Clone)]
-pub struct FieldXY<T: Numeric, PointState: Clone> {
-    /** Points of the field */
+pub struct FieldXY<'a, T: Numeric, PointState: Clone> {
+    /// Points of the field
     points: RefCell<Vec<FieldXYPoint<T, PointState>>>,
-    // field_matrix: RefCell<Vec<Vec<FieldXYPoint<T>>>>,
-    // points: Vec<FieldXYPoint<T>>,
+    /// The rectangular area that defines the field's boundaries.
     field_rect: RectArea<T>,
+    /// The influencer that affects the points in the field.
+    influencer: FieldXYInfluencer<'a, T, PointState>,
+    /// Dimensions of the window of the application
+    win_dimensions: Dimensions2d,
 }
 
-impl<T: Numeric, PointState: Clone> FieldXY<T, PointState> {
+impl<'a, T: Numeric, PointState: Clone> FieldXY<'a, T, PointState> {
     pub fn new(
         field_rect: RectArea<T>,
         point_template: FieldXYPoint<T, PointState>,
         num_points: usize,
+        win_dimensions: Dimensions2d,
+        influencer: FieldXYInfluencer<'a, T, PointState>,
     ) -> Self {
         let cols = (num_points as f64).sqrt().ceil() as usize;
         let rows = (num_points + cols - 1) / cols;
-        // let mut points: Vec<FieldXYPoint<T>> = Vec::with_capacity(num_points);
+
         let step_x = field_rect.dimensions.w.to_u32() / cols as u32;
         let step_y = field_rect.dimensions.h.to_u32() / rows as u32;
 
-        // let field_matrix: RefCell<Vec<Vec<FieldXYPoint<T>>>> = RefCell::new(vec![vec![]; rows]);
+
         let points: RefCell<Vec<FieldXYPoint<T, PointState>>> =
             RefCell::new(Vec::with_capacity(num_points));
-        let mut field_matrix: Vec<Vec<&FieldXYPoint<T, PointState>>> = vec![vec![]; rows];
-        // let mut points: Vec<FieldXYPoint<T>> = Vec::with_capacity(num_points);
+        // let mut field_matrix: Vec<Vec<&FieldXYPoint<T, PointState>>> = vec![vec![]; rows];
+
 
         for row in 0..rows {
             for col in 0..cols {
@@ -181,29 +185,80 @@ impl<T: Numeric, PointState: Clone> FieldXY<T, PointState> {
                     point_template.state.clone(),
                 );
                 // field_matrix[row][col] = &point;
-
                 points.borrow_mut().push(point);
             }
         }
 
-        FieldXY { points, field_rect }
+        FieldXY {
+            points,
+            field_rect,
+            influencer,
+            win_dimensions,
+        }
     }
+
+    pub fn default() -> Self {
+        FieldXY {
+            points: RefCell::new(Vec::new()),
+            field_rect: RectArea {
+                top_left: Point::new(T::zero(), T::zero()),
+                dimensions: Dimensions2d {
+                    w: T::zero(),
+                    h: T::zero(),
+                },
+                color: None,
+            },
+            influencer: FieldXYInfluencer::default(),
+            win_dimensions: Dimensions2d { w: 0, h: 0 },
+        }
+    }
+
+    /// Returns a reference to the points in the field.
     pub fn get_points(&self) -> &RefCell<Vec<FieldXYPoint<T, PointState>>> {
         &self.points
     }
 
-    // pub fn get_field_matrix(&self) -> &Vec<Vec<FieldXYPoint<T>>> {
-    //     &self.field_matrix
-    // }
-    // pub fn get_field_rect(&self) -> &RectArea<T> {
-    //     &self.field_rect
-    // }
-    // pub fn get_point(&self, index: usize) -> Option<&FieldXYPoint<T>> {
-    //     let point = self.points.get(index);
-    //     if let Some(p) = point {
-    //         return Some(&p);
-    //     }
-    //     None
+
+    ///
+    pub fn get_field_rect(&self) -> &RectArea<T> {
+        &self.field_rect
+    }
+
+    /// Sets the influencer function and updates the window dimensions.
+    pub fn set_influencer_fn(
+        &mut self,
+        win_dimensions: Dimensions2d,
+        influencer: FieldXYInfluencer<'a, T, PointState>,
+    ) {
+        self.influencer = influencer;
+        self.win_dimensions = win_dimensions;
+    }
+
+    pub fn update_win_dimensions(&mut self, win_dimensions: Dimensions2d) {
+        self.win_dimensions = win_dimensions;
+    }
+
+    /// Returns a mutable reference to the influencer.
+    pub fn borrow_influencer_mut(&mut self) -> &mut FieldXYInfluencer<'a, T, PointState> {
+        &mut self.influencer
+    }
+
+    /// Applies the influence of the influencer to points in the field.
+    /// If the `win_dimensions` is zero, it returns an error.
+    /// Otherwise, it iterates over the points and applies the influence function to each point.
+    pub fn influence(&mut self) -> Result<(), String> {
+        if self.win_dimensions.is_zero() {
+            return Err(String::from(
+                "win_dimensions is zero, cannot apply influence",
+            ));
+        }
+        for point in self.points.borrow_mut().iter_mut() {
+            (self.influencer.function)(self.win_dimensions, &self.influencer, point, self);
+        }
+        Ok(())
+    }
+    // pub fn get_point(&self, index: usize) -> Option<&FieldXYPoint<T, PointState>> {
+    //     self.points.borrow().get(index)
     // }
     // pub fn get_point_2d(&self, index_2d: &Point<usize>) -> Option<FieldXYPoint<T>> {
     //     if let Some(row) = self.field_matrix.get(index_2d.y) {
@@ -239,14 +294,4 @@ impl<T: Numeric, PointState: Clone> FieldXY<T, PointState> {
     //             && p.location.y <= max_y
     //     })
     // }
-
-    pub fn apply_influencer_fn<UserData>(
-        &self,
-        ctx: &mut GraphContext<UserData>,
-        influencer: &FieldXYInfluencer<T, UserData, PointState>,
-    ) {
-        for point in self.points.borrow_mut().iter_mut() {
-            (influencer.function)(ctx, influencer, point, self);
-        }
-    }
 }
