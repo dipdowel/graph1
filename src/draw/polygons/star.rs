@@ -26,6 +26,8 @@ pub struct StarProperties {
     pub skip_rendering: bool,
 }
 
+const MAX_RAYS: u32 = 180;
+
 /// Renders a star with the specified properties into a given `GraphContext`
 /// The min allowed value of `StarProperties -> num_rays` is 2.
 /// # Parameters
@@ -39,8 +41,10 @@ pub fn star<UserData>(ctx: &mut GraphContext<UserData>, props: &StarProperties) 
         return Vec::new();
     }
 
-    let num_vertices: usize = (props.num_rays * 2) as usize;
-    let num_sides = props.num_rays as f64;
+    let num_rays = props.num_rays.min(MAX_RAYS);
+
+    let num_vertices: usize = (num_rays * 2) as usize;
+    let num_sides = num_rays as f64;
 
     // This correction allows to render the star properly standing flat on its lower side
     let angular_correction = (num_sides - 2.0) * 180.0 / num_sides / 2.0;

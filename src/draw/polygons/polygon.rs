@@ -22,8 +22,11 @@ pub struct PolygonProperties {
     pub skip_rendering: bool,
 }
 
+const MAX_POLYGON_SIDES: u32 = 100;
+
 /// Renders a polygon with the specified properties into a given `GraphContext`.
 /// The min allowed value of `PolygonProperties -> num_sides` is 3.
+/// The max allowed value of `PolygonProperties -> num_sides` is 100, anything above will be clamped to 100.
 /// # Parameters
 /// * `ctx` - A mutable reference to the `GraphContext`
 /// * `props` - Properties of the polygon to render
@@ -38,7 +41,7 @@ pub fn polygon<UserData>(
         return Vec::new();
     }
 
-    let num_sides = props.num_sides as f64;
+    let num_sides = props.num_sides.min(MAX_POLYGON_SIDES) as f64;
 
     // This correction allows to render a polygon properly standing flat on its lower side
     let angular_correction = (num_sides - 2.0) * 180.0 / num_sides / 2.0;
