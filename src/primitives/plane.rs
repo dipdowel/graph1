@@ -37,6 +37,11 @@ impl<T: Numeric> Dimensions2d<T> {
     pub fn square(side: T) -> Self {
         Self { w: side, h: side }
     }
+
+    /// Returns true if either width or height is zero.
+    pub fn is_zero(&self) -> bool {
+        self.w == T::zero() || self.h == T::zero()
+    }
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
