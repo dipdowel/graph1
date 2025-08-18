@@ -175,7 +175,21 @@ sudo apt-get install  ocl-icd-opencl-dev clinfo ocl-icd-libopencl1 opencl-header
 
 ## 🎓 License
 
-Graph1 is open-source. See file [LICENSE](LICENSE).
+This project uses multiple licenses:
+
+- **Source code**: Licensed under the [MIT License](LICENSES/MIT.txt).
+- **Font "Matriks Uaxactun"**: Licensed separately under custom terms in [FONT-MATRIKS-UAXACTUN](LICENSES/FONT-MATRIKS-UAXACTUN.txt).
+
+### SPDX Notice
+The project’s overall license expression is:
+```
+SPDX-License-Identifier: MIT AND LicenseRef-FONT-MATRIKS-UAXACTUN
+```
+
+### Important Notes
+- The font **may only be used when the Graph1 library is included as a dependency** in a Rust project and must remain embedded in the library.
+- Any project that embeds or redistributes the font through Graph1 must also include the [FONT-MATRIKS-UAXACTUN license file](LICENSES/FONT-MATRIKS-UAXACTUN.txt).
+
 
 ---
 
@@ -184,7 +198,7 @@ Graph1 is open-source. See file [LICENSE](LICENSE).
 
 
 
-<br /><br />
+
 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
 ## NB: Below is an older version of the README.md file. 

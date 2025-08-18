@@ -19,11 +19,13 @@ use std::io::{Cursor, Read};
 // Embed fonts data
 const DATA_C_C_RED_ALERT_INET: &[u8] = include_bytes!("cbf_data/cc_red_alert_inet.cbf");
 const DATA_C_C_RED_ALERT_LAN: &[u8] = include_bytes!("cbf_data/cc_red_alert_lan.cbf");
+const DATA_MATRIKS_UAXACTUN: &[u8] = include_bytes!("cbf_data/MatriksUaxactun.cbf");
 
 // List of available embedded fonts
 pub enum EmbeddedFonts {
     CCRedAlertInet,
     CCRedAlertLan,
+    MatriksUaxactun
 }
 
 fn validate_cbf_basics(cbf_magic_number: u16, cbf_ver: u16) {
@@ -60,6 +62,7 @@ pub fn instantiate_embedded_font(
     let embedded_font_data: &[u8] = match font_name {
         EmbeddedFonts::CCRedAlertInet => DATA_C_C_RED_ALERT_INET,
         EmbeddedFonts::CCRedAlertLan => DATA_C_C_RED_ALERT_LAN,
+        EmbeddedFonts::MatriksUaxactun => DATA_MATRIKS_UAXACTUN,
         // _ => DATA_C_C_RED_ALERT_INET,
     };
 
