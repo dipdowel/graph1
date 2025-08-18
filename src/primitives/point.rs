@@ -164,8 +164,8 @@ impl<T: Numeric> Sub for Point<T> {
     /// Returns a new point where x = self.x - rhs.x and y = self.y - rhs.y.
     fn sub(self, rhs: Self) -> Self::Output {
         Self {
-            x: self.x - rhs.x,
-            y: self.y - rhs.y,
+            x: self.x.saturating_sub(rhs.x),
+            y: self.y.saturating_sub(rhs.y),
         }
     }
 }
