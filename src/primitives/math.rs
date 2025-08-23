@@ -1,4 +1,5 @@
 use crate::primitives::numeric::Numeric;
+use crate::primitives::point::Point;
 
 /// A structure that holds the minimum and maximum values of a type.
 ///
@@ -22,6 +23,39 @@ impl<T: Numeric> MinMax<T> {
         }
     }
 }
+
+/// A structure representing a 2D displacement vector.
+/// It holds horizontal (`dx`) and vertical (`dy`) displacement components.
+#[derive(Debug, Clone, Copy, PartialEq)]
+struct Displacement<T: Numeric> {
+    pub dx: T,
+    pub dy: T,
+}
+
+impl<T: Numeric> Displacement<T> {
+    pub fn new(dx: T, dy: T) -> Self {
+        Self { dx, dy }
+    }
+
+    /// Applies the displacement to a given point, returning a new point.
+    /// The original point remains unchanged.
+    pub fn displace(&self, point:&Point<T>) -> Point<T> {
+        Point    {
+            x: point.x + self.dx,
+            y: point.y + self.dy,
+        }
+    }
+
+
+    /// Applies the displacement to a given point, modifying it in place.
+    /// (The original point is changed)
+    pub fn displace_mut(&self, point:&mut Point<T>) {
+        point.x = point.x + self.dx;
+        point.y = point.y + self.dy;
+    }
+}
+
+
 
 /// Interpolation methods for shaping a scaled transition curve.
 /// Optional parameters allow customizing the curve steepness or shape.
@@ -107,3 +141,59 @@ pub struct Bound<T: Numeric> {
 /// TODO: check if this belongs here
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct ColorPair(pub u32, pub u32);
+
+
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_displacement() {
+        let disp = Displacement::new(5, -3);
+        let point = Point { x: 10, y: 10 };
+        let new_point = disp.displace(&point);
+        assert_eq!(new_point, Point { x: 15, y: 7 });
+
+        let mut point_mut = Point { x: 10, y: 10 };
+        disp.displace_mut(&mut point_mut);
+        assert_eq!(point_mut, Point { x: 15, y: 7 });
+    }
+    #[test]
+    fn test_min_max_contains() {
+        let range = MinMax::new(10, 20);
+        assert!(range.contains(15, false));
+        assert!(!range.contains(10, false));
+        assert!(!range.contains(20, false));
+        assert!(range.contains(10, true));
+        assert!(range.contains(20, true));
+    }
+    #[test]
+    fn test_min_max() {
+        let range = MinMax::new(5, 15);
+        assert_eq!(range.delta(), 10);
+    }
+    #[test]
+    fn test_range() {
+        let range = Range::new(3, 8);
+        assert_eq!(range.delta(), 5);
+    }
+    #[test]
+    fn test_shell() {
+        let shell = Shell { inner: 2, outer: 5 };
+        assert_eq!(shell.inner, 2);
+        assert_eq!(shell.outer, 5);
+    }
+    #[test]
+    fn test_bound() {
+        let bound = Bound { lower: -1, upper: 1 };
+        assert_eq!(bound.lower, -1);
+        assert_eq!(bound.upper, 1);
+    }
+    #[test]
+    fn test_color_pair() {
+        let colors = ColorPair(0xff0000, 0x00ff00);
+        assert_eq!(colors.0, 0xff0000);
+        assert_eq!(colors.1, 0x00ff00);
+    }
+}
