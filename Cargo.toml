@@ -1,6 +1,6 @@
 [package]
 name = "graph1"
-version = "0.1.0"
+version = "0.0.5-alpha"
 edition = "2021"
 license = "MIT AND LicenseRef-FONT-MATRIKS-UAXACTUN"
 license-file = "LICENSE"
@@ -19,15 +19,12 @@ gpu = ["ocl"]
 default = []
 
 
-
 [dev-dependencies]
-criterion = { version = "0.5.1", features = ["html_reports"] }
+#criterion = { version = "0.5.1", features = ["html_reports"] }
 
 #[[bench]]
 #name = "graph1_benchmark"
 #harness = false
-
-
 
 
 [profile.release]
