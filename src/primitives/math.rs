@@ -27,7 +27,7 @@ impl<T: Numeric> MinMax<T> {
 /// A structure representing a 2D displacement vector.
 /// It holds horizontal (`dx`) and vertical (`dy`) displacement components.
 #[derive(Debug, Clone, Copy, PartialEq)]
-struct Displacement<T: Numeric> {
+pub struct Displacement<T: Numeric> {
     pub dx: T,
     pub dy: T,
 }
