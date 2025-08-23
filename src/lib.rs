@@ -22,6 +22,21 @@ pub mod buffer_op {
         pub(crate) mod horizontal_lines;
         pub(crate) mod horizontal_lines_threaded;
     }
+
+
+    pub mod scale {
+        pub mod scale_direction;
+        pub mod rect {
+            mod to_another_buf;
+            mod to_another_buf_multi_dst;
+            mod within_buf;
+            pub use to_another_buf::to_another_buf;
+            pub use to_another_buf_multi_dst::to_another_buf_multi_dst;
+            pub use within_buf::within_buf;
+        }
+    }
+
+
     pub use fill::buffer::fill;
     pub use fill::flood::flood;
     pub use fill::scanline_wavefront::scanline_wavefront;
@@ -452,6 +467,9 @@ pub mod utils {
     pub mod pixel_copy {
         pub mod image_data;
     }
+
+
+
 }
 
 // pub mod draw;
