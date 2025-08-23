@@ -62,8 +62,31 @@ fn scale_to_another_buf_thread(
         }
     }
 }
-
-/// Multithreaded scaling of a rectangular region from one buffer into another.
+/// ## NB: This function is still experimental, might not work 100% correctly.
+/// ==============================================================================
+/// Scales a rectangular region from the source buffer into a destination buffer,
+/// using nearest-neighbor algorithm. Supports both upscaling (pixel replication)
+/// and downscaling (block sampling with optional displacement).
+///
+/// The scaling can be executed in parallel across multiple threads. When
+/// downscaling, the `src_pixel_displacement` determines which pixel within each
+/// block of size `scale_factor x scale_factor` is chosen as the representative.
+///
+/// # Parameters
+/// - `src_buf`: Source buffer containing pixels (RGBA packed as `u32`).
+/// - `src_dims`: Dimensions of the source buffer.
+/// - `src_area`: The rectangular region in the source buffer to scale.
+/// - `dst_buf`: Destination buffer where the scaled region is written.
+/// - `dst_dims`: Dimensions of the destination buffer.
+/// - `dst_start`: Top-left point in the destination where scaling begins.
+/// - `scale_factor`: Integer factor for scaling (≥1).
+/// - `src_pixel_displacement`: Optional displacement `(dx, dy)` inside each
+///   source block (used only for downscaling).
+/// - `direction`: Whether to scale up or down (`ScaleDirection::Up` / `Down`).
+/// - `num_threads`: Number of worker threads to use.
+///   - `0` = no-op
+///   - `1` = single-threaded
+///   - `>1` = multithreaded row partitioning
 pub fn to_another_buf(
     src_buf: &[u32],
     src_dims: &Dimensions2d<u32>,

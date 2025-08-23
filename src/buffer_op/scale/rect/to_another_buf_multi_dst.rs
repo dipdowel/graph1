@@ -70,7 +70,33 @@ fn scale_to_multi_dst_thread(
     }
 }
 
-/// Parallel scaling to multiple destination positions.
+/// ## NB: This function is still experimental, might not work 100% correctly.
+/// ==============================================================================
+/// Scales a rectangular region from the source buffer into multiple positions
+/// in the same destination buffer, using nearest-neighbor scaling.
+/// Supports both upscaling and downscaling.
+///
+/// Each destination point in `dst_starts` acts as a top-left placement
+/// for the scaled result. When downscaling, the `src_pixel_displacement`
+/// parameter allows selecting a pixel inside each block.
+///
+/// The scaling can be multithreaded across horizontal bands of the region.
+///
+/// # Parameters
+/// - `src_buf`: Source buffer with pixels (RGBA as `u32`).
+/// - `src_dims`: Dimensions of the source buffer.
+/// - `src_area`: Rectangular region of the source to scale.
+/// - `dst_buf`: Destination buffer (mutable).
+/// - `dst_dims`: Dimensions of the destination buffer.
+/// - `dst_starts`: A list of placement points for writing scaled results.
+/// - `scale_factor`: Integer scaling factor (≥1).
+/// - `src_pixel_displacement`: Optional `(dx, dy)` pixel offset used for
+///   block sampling when downscaling.
+/// - `direction`: Scaling mode (`Up` = enlarge, `Down` = shrink).
+/// - `num_threads`: Number of threads.
+///   - `0` = no-op
+///   - `1` = single-threaded
+///   - `>1` = parallel row partitioning
 pub fn to_another_buf_multi_dst(
     src_buf: &[u32],
     src_dims: &Dimensions2d<u32>,

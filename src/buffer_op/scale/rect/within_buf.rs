@@ -3,9 +3,27 @@ use crate::primitives::plane::{Dimensions2d, RectArea};
 use crate::primitives::point::Point;
 use crate::primitives::math::Displacement;
 
-
-/// Scale a rectangular region within the same buffer.
-/// Supports both upscaling and downscaling with nearest neighbor.
+/// ## NB: This function is still experimental, might not work 100% correctly.
+/// ==============================================================================
+/// Scales a rectangular region inside a single buffer into another region
+/// of the same buffer. Supports both nearest-neighbor upscaling and
+/// downscaling.
+///
+/// When downscaling, the `src_pixel_displacement` parameter determines
+/// which pixel inside each `scale_factor x scale_factor` block of the
+/// source region is chosen for output.
+///
+/// This function does not use threading and runs in a single loop.
+///
+/// # Parameters
+/// - `buf`: Buffer containing pixels (RGBA as `u32`), used as both source and destination.
+/// - `dims`: Dimensions of the buffer.
+/// - `src_area`: The rectangular region in the buffer to scale.
+/// - `dst_start`: Top-left point where the scaled region should be written.
+/// - `scale_factor`: Integer factor for scaling (≥1).
+/// - `src_pixel_displacement`: Optional displacement `(dx, dy)` inside source
+///   blocks (applies only for downscaling).
+/// - `direction`: Whether to scale up or down (`ScaleDirection`).
 pub fn within_buf(
     buf: &mut [u32],
     dims: &Dimensions2d<u32>,
