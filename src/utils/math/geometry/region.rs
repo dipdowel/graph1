@@ -6,6 +6,18 @@ use crate::primitives::ratio::Ratio;
 use crate::primitives::Pixel;
 use std::sync::atomic::{AtomicUsize, Ordering};
 
+/// FIXME: Consider moving to `primitives`!
+/// FIXME: Consider moving to `primitives`!
+/// FIXME: Consider moving to `primitives`!
+/// FIXME: Consider moving to `primitives`!
+/// FIXME: Consider moving to `primitives`!
+/// FIXME: Consider moving to `primitives`!
+/// FIXME: Consider moving to `primitives`!
+/// FIXME: Consider moving to `primitives`!
+/// FIXME: Consider moving to `primitives`!
+/// FIXME: Consider moving to `primitives`!
+/// FIXME: Consider moving to `primitives`!
+
 /// Global counter for assigning unique IDs to Region instances
 // Even though we have not cared that much about thread safety yet,
 // maybe we should finally start doing it

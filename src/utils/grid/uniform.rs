@@ -1,8 +1,8 @@
 use crate::primitives::numeric::Numeric;
 use crate::primitives::plane::{Dimensions2d, RectArea};
 use crate::utils::math::geometry::region::Region;
-
 use crate::primitives::neighborhood::NeighborhoodType;
+use crate::utils::grid::render::GridLike;
 
 /// A 2D uniform grid of rectangular `Region` cells
 /// The cell indices are positive integers, starting from (0, 0) in the top-left corner.
@@ -18,6 +18,7 @@ pub struct UniformGrid<T: Numeric> {
     /// Number of columns in the grid
     pub cols: usize,
 }
+
 
 impl<T: Numeric> UniformGrid<T> {
     /// Constructs a new grid based on the provided props
@@ -204,6 +205,13 @@ impl<T: Numeric> UniformGrid<T> {
         self.rows * self.cols
     }
 }
+
+impl<T: Numeric> GridLike<T> for UniformGrid<T> {
+    fn regions(&self) -> Vec<Region<T>> {
+        self.iter().cloned().collect()
+    }
+}
+
 
 /// A single neighbor: index and reference to the Region cell
 #[derive(Debug)]

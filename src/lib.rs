@@ -23,7 +23,6 @@ pub mod buffer_op {
         pub(crate) mod horizontal_lines_threaded;
     }
 
-
     pub mod scale {
         pub mod scale_direction;
         pub mod rect {
@@ -35,7 +34,6 @@ pub mod buffer_op {
             pub use within_buf::within_buf;
         }
     }
-
 
     pub use fill::buffer::fill;
     pub use fill::flood::flood;
@@ -84,7 +82,6 @@ pub mod buffer_op {
         #[cfg(feature = "gpu")]
         /// OpenCL Buffer, exposed for the user code
         pub use ocl::Buffer;
-
     }
 }
 
@@ -246,14 +243,12 @@ pub mod fx {
 
 /// Building blocks: essential structs, traits, types, constants, etc.
 pub mod primitives {
-
+    pub mod align;
     pub mod containable;
 
-    pub mod data_structs{
+    pub mod data_structs {
         pub mod ring_buffers;
-
     }
-
 
     /// Aliases for complex or peculiar types
     pub mod helper_types;
@@ -393,15 +388,12 @@ pub mod utils {
     }
 
     pub mod grid {
+         pub mod custom;
+        pub mod uniform;
 
-        pub mod uniform {
-            mod neighbors;
-            mod render;
-            mod uniform_grid;
-            // pub use neighbors::*;
-            pub use render::*;
-            pub use uniform_grid::*;
-        }
+        mod render;
+        pub use render::render;
+
     }
 
     /// Various math utilities and constants
@@ -467,9 +459,6 @@ pub mod utils {
     pub mod pixel_copy {
         pub mod image_data;
     }
-
-
-
 }
 
 // pub mod draw;
