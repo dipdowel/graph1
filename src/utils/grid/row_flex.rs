@@ -6,9 +6,9 @@ use crate::primitives::data_structs::ring_buffers::{DynamicRingBuffer, RingBuffe
 use crate::primitives::point::Point;
 use crate::utils::grid::render::GridLike;
 
-/// A single row in a `CustomGrid`.
+/// A single row in a `RowFlexGrid`.
 #[derive(Debug, Clone)]
-pub struct CustomGridRow<T: Numeric> {
+pub struct FlexRow<T: Numeric> {
     /// Height of the row in pixels.
     pub height: T,
     /// Widths of the cells in this row.
@@ -19,7 +19,7 @@ pub struct CustomGridRow<T: Numeric> {
     pub align: Align,
 }
 
-impl<T: Numeric> CustomGridRow<T> {
+impl<T: Numeric> FlexRow<T> {
     /// Computes the total width of the row (sum of cell widths).
     pub fn total_width(&self) -> T {
         self.widths.iter().copied().fold(T::zero(), |acc, w| acc + w)
@@ -30,7 +30,7 @@ impl<T: Numeric> CustomGridRow<T> {
         self.widths.len()
     }
 
-    /// Creates a new `CustomGridRow`.
+    /// Creates a new `FlexRow` to be used in `RowFlexGrid`.
     /// # Parameters
     /// - `height`: Height of the row.
     /// - `widths`: Widths of the cells in this row.
@@ -48,18 +48,18 @@ impl<T: Numeric> CustomGridRow<T> {
 
 /// A 2D grid where each row can have arbitrary cell widths and height.
 #[derive(Debug, Clone)]
-pub struct CustomGrid<T: Numeric> {
+pub struct RowFlexGrid<T: Numeric> {
     /// Rows of the grid.
-    pub rows: Vec<CustomGridRow<T>>,
+    pub rows: Vec<FlexRow<T>>,
     /// Optional fixed grid width. If `None`, width is determined by the widest row.
     pub grid_width: Option<T>,
     /// Origin point of the grid (top-left corner).
     pub origin: Point<T>,
 }
 
-impl<T: Numeric> CustomGrid<T> {
-    /// Creates a new `CustomGrid` with optional rows and an origin.
-    pub fn new(origin: Point<T>, rows: Option<Vec<CustomGridRow<T>>>, grid_width: Option<T>) -> Self {
+impl<T: Numeric> RowFlexGrid<T> {
+    /// Creates a new `RowFlexGrid` with optional rows and an origin.
+    pub fn new(origin: Point<T>, rows: Option<Vec<FlexRow<T>>>, grid_width: Option<T>) -> Self {
         Self {
             rows: rows.unwrap_or_default(),
             grid_width,
@@ -68,7 +68,7 @@ impl<T: Numeric> CustomGrid<T> {
     }
 
     /// Adds a new row to the grid.
-    pub fn add_row(&mut self, row: CustomGridRow<T>) {
+    pub fn add_row(&mut self, row: FlexRow<T>) {
         self.rows.push(row);
     }
 
@@ -138,7 +138,7 @@ impl<T: Numeric> CustomGrid<T> {
 
 }
 
-impl<T: Numeric> GridLike<T> for CustomGrid<T> {
+impl<T: Numeric> GridLike<T> for RowFlexGrid<T> {
     fn regions(&self) -> Vec<Region<T>> {
         self.to_regions()
     }
