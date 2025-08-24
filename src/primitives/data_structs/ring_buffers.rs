@@ -7,10 +7,10 @@
 
 //
 //
-//
-//
-
 use core::ops::Index;
+use core::iter::FromIterator;
+//
+//
 
 /// A fixed-size, stack-allocated ring buffer that overwrites the oldest values when full.
 ///
@@ -193,6 +193,18 @@ impl<T: Clone + Default> DynamicRingBuffer<T> {
         self.len = items_to_copy;
     }
 
+    /// Extends the buffer by pushing all elements from the given iterator.
+    /// Oldest elements are overwritten if the iterator has more items than the remaining capacity.
+    ///
+    /// # Parameters
+    /// - `iter`: An iterator over items to be added to the ring buffer.
+    pub fn extend<I: IntoIterator<Item = T>>(&mut self, iter: I) {
+        for item in iter {
+            self.push(item);
+        }
+    }
+
+
     /// Clears all contents without changing capacity.
     pub fn clear(&mut self) {
         self.head = 0;
@@ -233,6 +245,34 @@ impl<T> Index<usize> for DynamicRingBuffer<T> {
         &self.buffer[idx]
     }
 }
+
+
+
+impl<T: Clone + Default> FromIterator<T> for DynamicRingBuffer<T> {
+    /// Builds a `DynamicRingBuffer` from any iterator.
+    ///
+    /// If the iterator is empty, creates a buffer with capacity 1.
+    ///
+    /// # Parameters
+    /// - `iter`: An iterator yielding items to insert into the buffer.
+    ///
+    /// # Returns
+    /// A new `DynamicRingBuffer` with elements from the iterator.
+    fn from_iter<I: IntoIterator<Item = T>>(iter: I) -> Self {
+        let collected: Vec<T> = iter.into_iter().collect();
+        let capacity = collected.len().max(1);
+        let mut buffer = vec![T::default(); capacity];
+        buffer[..collected.len()].clone_from_slice(&collected);
+
+        Self {
+            buffer,
+            capacity,
+            head: 0,
+            len: collected.len(),
+        }
+    }
+}
+
 
 
 #[cfg(test)]
