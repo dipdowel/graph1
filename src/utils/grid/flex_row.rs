@@ -48,7 +48,7 @@ impl<T: Numeric> FlexRow<T> {
 
 /// A 2D grid where each row can have arbitrary cell widths and height.
 #[derive(Debug, Clone)]
-pub struct RowFlexGrid<T: Numeric> {
+pub struct FlexRowGrid<T: Numeric> {
     /// Rows of the grid.
     pub rows: Vec<FlexRow<T>>,
     /// Optional fixed grid width. If `None`, width is determined by the widest row.
@@ -57,7 +57,7 @@ pub struct RowFlexGrid<T: Numeric> {
     pub origin: Point<T>,
 }
 
-impl<T: Numeric> RowFlexGrid<T> {
+impl<T: Numeric> FlexRowGrid<T> {
     /// Creates a new `RowFlexGrid` with optional rows and an origin.
     pub fn new(origin: Point<T>, rows: Option<Vec<FlexRow<T>>>, grid_width: Option<T>) -> Self {
         Self {
@@ -138,7 +138,7 @@ impl<T: Numeric> RowFlexGrid<T> {
 
 }
 
-impl<T: Numeric> GridLike<T> for RowFlexGrid<T> {
+impl<T: Numeric> GridLike<T> for FlexRowGrid<T> {
     fn regions(&self) -> Vec<Region<T>> {
         self.to_regions()
     }

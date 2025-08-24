@@ -388,7 +388,7 @@ pub mod utils {
     }
 
     pub mod grid {
-         pub mod row_flex;
+         pub mod flex_row;
         pub mod uniform;
 
         mod render;
