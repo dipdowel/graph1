@@ -11,10 +11,11 @@ use crate::text::font::{PixelFont, PixelFontMeta, Spacing};
 use crate::text::utils::u16_vec_to_utf8_char;
 use crate::text::{font, font_constants};
 use crate::utils::color::bit_operations;
-use crate::utils::math::nearest_power_of_two_towards_zero;
-use crate::utils::pixel_copy::image_data;
 use std::collections::HashMap;
 use std::io::{Cursor, Read};
+use crate::buffer_op::scale;
+
+use crate::buffer_op::scale::scale_direction::ScaleDirection;
 
 // Embed fonts data
 const DATA_C_C_RED_ALERT_INET: &[u8] = include_bytes!("cbf_data/cc_red_alert_inet.cbf");
@@ -89,7 +90,7 @@ pub fn instantiate_external_font(
 ) -> PixelFont {
     let mut font_data = Cursor::new(font_data);
 
-    let scale_factor: u8 = nearest_power_of_two_towards_zero(font_scale_factor as u32) as u8;
+    let scale_factor = font_scale_factor;
 
     // Buffer to hold the font header
     let mut buffer = vec![0u8; 14 * 2];
@@ -238,26 +239,25 @@ pub fn instantiate_external_font(
             *value = *value * scale_factor;
         }
 
-        font_image_buf_dim.w = font_image_buf_dim.w * (scale_factor as u32);
-        font_image_buf_dim.h = font_image_buf_dim.h * (scale_factor as u32);
-
+        font_image_buf_dim.w = font_image_buf_dim.w * scale_factor as u32;
+        font_image_buf_dim.h = font_image_buf_dim.h * scale_factor as u32;
         font_image_buf.resize((font_image_buf_dim.w * font_image_buf_dim.h) as usize, 0);
 
-        image_data::scale_up(
-            &mut font_image_buf,
-            &font_image_buf_dim,
-            &POINT_ZERO,
+        scale::rect::to_another_buf(
             &src_font_image,
             &src_font_image_dim,
             &RectArea {
                 top_left: POINT_ZERO,
-                dimensions: Dimensions2d {
-                    w: font_image_width,
-                    h: font_image_height,
-                },
+                dimensions: src_font_image_dim.clone(),
                 color: None,
             },
-            scale_factor,
+            &mut font_image_buf,
+            &font_image_buf_dim,
+            &POINT_ZERO,
+            scale_factor as u32,
+            None,                    // No displacement
+            ScaleDirection::Up,
+            1,
         );
     }
 
