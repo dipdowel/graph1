@@ -415,4 +415,60 @@ mod tests {
         let buf = DynamicRingBuffer::<i32>::with_capacity(2);
         let _ = buf[0];
     }
+
+    #[test]
+    fn dynamic_buffer_extend_within_capacity() {
+        let mut buf = DynamicRingBuffer::<i32>::with_capacity(5);
+        buf.push(1);
+        buf.push(2);
+        buf.extend(vec![3, 4]);
+        assert_eq!(buf.len(), 4);
+        assert_eq!(buf.get(0), Some(&1));
+        assert_eq!(buf.get(1), Some(&2));
+        assert_eq!(buf.get(2), Some(&3));
+        assert_eq!(buf.get(3), Some(&4));
+    }
+
+    #[test]
+    fn dynamic_buffer_extend_over_capacity() {
+        let mut buf = DynamicRingBuffer::<i32>::with_capacity(3);
+        buf.extend(vec![10, 20, 30, 40]); // exceeds capacity
+        assert_eq!(buf.len(), 3);
+        // Oldest (10) should be overwritten
+        assert_eq!(buf.get(0), Some(&20));
+        assert_eq!(buf.get(1), Some(&30));
+        assert_eq!(buf.get(2), Some(&40));
+    }
+
+    #[test]
+    fn dynamic_buffer_from_iterator_basic() {
+        let buf: DynamicRingBuffer<i32> = (1..=3).collect();
+        assert_eq!(buf.len(), 3);
+        assert_eq!(buf.get(0), Some(&1));
+        assert_eq!(buf.get(1), Some(&2));
+        assert_eq!(buf.get(2), Some(&3));
+    }
+
+    #[test]
+    fn dynamic_buffer_from_iterator_empty() {
+        let buf: DynamicRingBuffer<i32> = [].into_iter().collect();
+        assert_eq!(buf.len(), 0);
+        // Still has minimum capacity of 1
+        assert_eq!(buf.is_full(), false);
+        assert_eq!(buf.get(0), None);
+    }
+
+    #[test]
+    fn dynamic_buffer_extend_and_overwrite() {
+        let mut buf = DynamicRingBuffer::<i32>::with_capacity(3);
+        buf.extend(vec![1, 2, 3]);
+        buf.extend(vec![4, 5]); // pushes past capacity
+        assert_eq!(buf.len(), 3);
+        // Should now contain [3, 4, 5]
+        assert_eq!(buf.get(0), Some(&3));
+        assert_eq!(buf.get(1), Some(&4));
+        assert_eq!(buf.get(2), Some(&5));
+    }
+
+
 }
