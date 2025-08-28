@@ -31,12 +31,7 @@ impl<T: Numeric> FlexRow<T> {
 
     /// Creates a new `FlexRow` to be used in `FlexRowGrid`.
     pub fn new(height: T, widths: Vec<T>, colors: Vec<u32>, align: Align) -> Self {
-        Self {
-            height,
-            widths,
-            colors,
-            align,
-        }
+        Self { height, widths, colors, align }
     }
 }
 
@@ -54,12 +49,7 @@ pub struct FlexRowGrid<T: Numeric> {
 impl<T: Numeric> FlexRowGrid<T> {
     /// Creates a new `FlexRowGrid` with optional row descriptors and an origin.
     pub fn new(origin: Point<T>, rows: Option<Vec<FlexRow<T>>>, grid_width: Option<T>) -> Self {
-        let mut grid = Self {
-            rows: Vec::new(),
-            grid_width,
-            origin,
-        };
-
+        let mut grid = Self { rows: Vec::new(), grid_width, origin };
         if let Some(row_descs) = rows {
             for desc in row_descs {
                 grid.add_row(desc);
@@ -107,26 +97,15 @@ impl<T: Numeric> FlexRowGrid<T> {
 
     /// Computes the total height of the grid.
     pub fn total_height(&self) -> T {
-        self.rows
-            .iter()
-            .map(|r| r.first().map(|cell| cell.rect_area().dimensions.h).unwrap_or(T::zero()))
-            .fold(T::zero(), |acc, h| acc + h)
+        self.rows.iter().map(|r| r.first().map(|cell| cell.rect_area().dimensions.h).unwrap_or(T::zero())).fold(T::zero(), |acc, h| acc + h)
     }
 
     /// Computes the effective grid width (either user-defined or max row width).
     pub fn effective_width(&self) -> T {
-        if let Some(w) = self.grid_width {
-            w
-        } else {
-            self.rows
-                .iter()
-                .map(|r| {
-                    r.iter()
-                        .map(|cell| cell.rect_area().dimensions.w)
-                        .fold(T::zero(), |acc, w| acc + w)
-                })
-                .max_by(|a, b| a.partial_cmp(b).unwrap())
-                .unwrap_or(T::zero())
+        if let Some(w) = self.grid_width { w } else {
+            self.rows.iter().map(|r| {
+                r.iter().map(|cell| cell.rect_area().dimensions.w).fold(T::zero(), |acc, w| acc + w)
+            }).max_by(|a, b| a.partial_cmp(b).unwrap()).unwrap_or(T::zero())
         }
     }
 
@@ -136,8 +115,14 @@ impl<T: Numeric> FlexRowGrid<T> {
     }
 }
 
+
+
 impl<T: Numeric> GridLike<T> for FlexRowGrid<T> {
-    fn cells_as_rects(&self) -> Vec<RectArea<T>> {
-        self.to_rects()
+    type RectIter<'a> = std::iter::Map<std::iter::Flatten<std::slice::Iter<'a, Vec<Region<T>>>>, fn(&Region<T>) -> RectArea<T>> where T: 'a, Self: 'a;
+
+
+    fn cells_as_rects<'a>(&'a self) -> Self::RectIter<'a> {
+        fn to_rect<T: Numeric>(region: &Region<T>) -> RectArea<T> { region.rect_area() }
+        self.rows.iter().flatten().map(to_rect::<T>)
     }
 }

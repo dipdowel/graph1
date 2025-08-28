@@ -205,15 +205,17 @@ impl<T: Numeric> UniformGrid<T> {
         self.rows * self.cols
     }
 
-    /// Returns the rectangular areas of all cells in the grid.
-    fn to_rects(&self) -> Vec<RectArea<T>> {
-        self.cells.iter().map(|c| c.rect_area()).collect()
-    }
 }
 
 impl<T: Numeric> GridLike<T> for UniformGrid<T> {
-    fn cells_as_rects(&self) -> Vec<RectArea<T>> {
-        self.to_rects()
+    type RectIter<'a> = std::iter::Map<
+        std::slice::Iter<'a, Region<T>>,
+        fn(&Region<T>) -> RectArea<T>
+    > where T: 'a, Self: 'a;
+
+    fn cells_as_rects<'a>(&'a self) -> Self::RectIter<'a> {
+        fn to_rect<T: Numeric>(region: &Region<T>) -> RectArea<T> { region.rect_area() }
+        self.cells.iter().map(to_rect::<T>)
     }
 }
 
