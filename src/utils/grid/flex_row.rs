@@ -95,6 +95,16 @@ impl<T: Numeric> FlexRowGrid<T> {
         self.rows.push(region_row);
     }
 
+    /// Returns a reference to a cell by row and column.
+    pub fn get_cell(&self, row: usize, col: usize) -> Option<&Region<T>> {
+        self.rows.get(row).and_then(|r| r.get(col))
+    }
+
+    /// Returns a mutable reference to a cell by row and column.
+    pub fn get_cell_mut(&mut self, row: usize, col: usize) -> Option<&mut Region<T>> {
+        self.rows.get_mut(row).and_then(|r| r.get_mut(col))
+    }
+
     /// Computes the total height of the grid.
     pub fn total_height(&self) -> T {
         self.rows
