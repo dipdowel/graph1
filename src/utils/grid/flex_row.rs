@@ -130,14 +130,14 @@ impl<T: Numeric> FlexRowGrid<T> {
         }
     }
 
-    /// Returns the rectangular regions of all cells in the grid.
-    fn to_regions(&self) -> Vec<Region<T>> {
-        self.rows.iter().flatten().cloned().collect()
+    /// Returns the rectangular areas of all cells in the grid.
+    fn to_rects(&self) -> Vec<RectArea<T>> {
+        self.rows.iter().flatten().map(|c| c.rect_area()).collect()
     }
 }
 
 impl<T: Numeric> GridLike<T> for FlexRowGrid<T> {
-    fn regions(&self) -> Vec<Region<T>> {
-        self.to_regions()
+    fn cells_as_rects(&self) -> Vec<RectArea<T>> {
+        self.to_rects()
     }
 }

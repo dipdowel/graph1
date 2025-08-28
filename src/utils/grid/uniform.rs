@@ -204,14 +204,18 @@ impl<T: Numeric> UniformGrid<T> {
     pub fn num_cells(&self) -> usize {
         self.rows * self.cols
     }
-}
 
-impl<T: Numeric> GridLike<T> for UniformGrid<T> {
-    fn regions(&self) -> Vec<Region<T>> {
-        self.iter().cloned().collect()
+    /// Returns the rectangular areas of all cells in the grid.
+    fn to_rects(&self) -> Vec<RectArea<T>> {
+        self.cells.iter().map(|c| c.rect_area()).collect()
     }
 }
 
+impl<T: Numeric> GridLike<T> for UniformGrid<T> {
+    fn cells_as_rects(&self) -> Vec<RectArea<T>> {
+        self.to_rects()
+    }
+}
 
 /// A single neighbor: index and reference to the Region cell
 #[derive(Debug)]
