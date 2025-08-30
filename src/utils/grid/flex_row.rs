@@ -134,25 +134,6 @@ impl<T: Numeric> FlexRowGrid<T> {
         }
     }
 
-    /// Ensures that the bounding width is at least as wide as the widest row.
-    /// If the bounding width is not set, it will be set to the widest row width.
-    fn challenge_effective_width(&mut self, new_max_width_candidate: T) {
-        if self.props.bounding_width.is_none() {
-            self.props.widest_row_width = self.props.widest_row_width.maxi(new_max_width_candidate);
-        }
-
-        let bounding_width = self.props.bounding_width.unwrap_or(T::zero());
-        let widest_row_width = self.props.widest_row_width;
-
-        if widest_row_width > bounding_width {
-            self.props.bounding_width = Some(widest_row_width);
-        }
-
-        if new_max_width_candidate > bounding_width {
-            self.props.widest_row_width = new_max_width_candidate;
-            self.props.bounding_width = Some(new_max_width_candidate);
-        }
-    }
 
     /// Recalculates cached properties of the grid.
     /// Must be called after any modification to the grid structure (adding/removing rows, resizing, etc.)
