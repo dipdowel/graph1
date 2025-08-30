@@ -41,28 +41,28 @@ pub struct FlexRowGrid<T: Numeric> {
     /// Rows of the grid, each row is a vector of `Region` cells.
     pub rows: Vec<Vec<Region<T>>>,
     /// Optional fixed grid width. If `None`, width is determined by the widest row.
-    pub grid_width: Option<T>,
+    /// Cannot be less than the widest row.
+    pub bounding_width: Option<T>,
     /// Origin point of the grid (top-left corner).
     pub origin: Point<T>,
 }
 
 impl<T: Numeric> FlexRowGrid<T> {
     /// Creates a new `FlexRowGrid` with optional row descriptors and an origin.
-    pub fn new(origin: Point<T>, rows: Option<Vec<FlexRow<T>>>, grid_width: Option<T>) -> Self {
-        let mut grid = Self { rows: Vec::new(), grid_width, origin };
+    pub fn new(origin: Point<T>, rows: Option<Vec<FlexRow<T>>>, bounding_width: Option<T>) -> Self {
+        let mut grid = Self { rows: Vec::new(), bounding_width, origin };
         if let Some(row_descs) = rows {
             for desc in row_descs {
                 grid.add_row(desc);
             }
         }
-
         grid
     }
 
     /// Adds a new row from a `FlexRow` descriptor to the grid.
     pub fn add_row(&mut self, row: FlexRow<T>) {
         let row_width = row.total_width();
-        let effective_width = self.grid_width.unwrap_or(row_width);
+        let effective_width = self.bounding_width.unwrap_or(row_width);
 
         let mut current_x = match row.align {
             Align::Left => self.origin.x,
@@ -102,7 +102,7 @@ impl<T: Numeric> FlexRowGrid<T> {
 
     /// Computes the effective grid width (either user-defined or max row width).
     pub fn effective_width(&self) -> T {
-        if let Some(w) = self.grid_width { w } else {
+        if let Some(w) = self.bounding_width { w } else {
             self.rows.iter().map(|r| {
                 r.iter().map(|cell| cell.rect_area().dimensions.w).fold(T::zero(), |acc, w| acc + w)
             }).max_by(|a, b| a.partial_cmp(b).unwrap()).unwrap_or(T::zero())
