@@ -875,12 +875,15 @@ mod tests {
         assert_eq!(a.mini(a), 10);
         assert_eq!(b.maxi(b), 20);
 
-
         let x: i32 = -5;
         let y: i32 = 15;
         assert_eq!(x.mini(y), -5);
         assert_eq!(x.maxi(y), 15);
 
+        // Equal signed integers
+        let i: i32 = -123;
+        assert_eq!(i.mini(i), i);
+        assert_eq!(i.maxi(i), i);
 
         // Floats
         let f1: f32 = 1.5;
@@ -888,14 +891,21 @@ mod tests {
         assert!((f1.mini(f2) - 1.5).abs() < f32::EPSILON);
         assert!((f1.maxi(f2) - 2.5).abs() < f32::EPSILON);
 
-
         let f3: f64 = -100.0;
         let f4: f64 = -200.0;
         assert!((f3.mini(f4) + 200.0).abs() < f64::EPSILON);
         assert!((f3.maxi(f4) + 100.0).abs() < f64::EPSILON);
 
+        // Equal floats
+        let f_equal_f32: f32 = 3.1415;
+        assert!((f_equal_f32.mini(f_equal_f32) - f_equal_f32).abs() < f32::EPSILON);
+        assert!((f_equal_f32.maxi(f_equal_f32) - f_equal_f32).abs() < f32::EPSILON);
 
-        // Equal values
+        let f_equal_f64: f64 = -42.42;
+        assert!((f_equal_f64.mini(f_equal_f64) - f_equal_f64).abs() < f64::EPSILON);
+        assert!((f_equal_f64.maxi(f_equal_f64) - f_equal_f64).abs() < f64::EPSILON);
+
+        // Equal values (unsigned)
         let z: usize = 42;
         assert_eq!(z.mini(z), 42);
         assert_eq!(z.maxi(z), 42);
