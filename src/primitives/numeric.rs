@@ -863,4 +863,41 @@ mod tests {
         assert_eq!((123.8_f32).to_i32(), 124);
         assert_eq!((-1.9_f32).to_i32(), -2);
     }
+    #[test]
+    fn test_numeric_mini_maxi() {
+        // Integers
+        let a: u32 = 10;
+        let b: u32 = 20;
+        assert_eq!(a.mini(b), 10);
+        assert_eq!(a.maxi(b), 20);
+        assert_eq!(b.mini(a), 10);
+        assert_eq!(b.maxi(a), 20);
+        assert_eq!(a.mini(a), 10);
+        assert_eq!(b.maxi(b), 20);
+
+
+        let x: i32 = -5;
+        let y: i32 = 15;
+        assert_eq!(x.mini(y), -5);
+        assert_eq!(x.maxi(y), 15);
+
+
+        // Floats
+        let f1: f32 = 1.5;
+        let f2: f32 = 2.5;
+        assert!((f1.mini(f2) - 1.5).abs() < f32::EPSILON);
+        assert!((f1.maxi(f2) - 2.5).abs() < f32::EPSILON);
+
+
+        let f3: f64 = -100.0;
+        let f4: f64 = -200.0;
+        assert!((f3.mini(f4) + 200.0).abs() < f64::EPSILON);
+        assert!((f3.maxi(f4) + 100.0).abs() < f64::EPSILON);
+
+
+        // Equal values
+        let z: usize = 42;
+        assert_eq!(z.mini(z), 42);
+        assert_eq!(z.maxi(z), 42);
+    }
 }
