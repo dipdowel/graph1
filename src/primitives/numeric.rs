@@ -1,5 +1,6 @@
 use std::fmt::{Debug, Display};
 use std::ops::{Add, Div, Mul, Rem, RemAssign, Sub};
+use std::iter::Sum;
 
 /// Enum representing supported numeric types.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -39,6 +40,7 @@ pub trait Numeric:
     // TODO: Think about adding *Assing traits, like AddAssign, SubAssign, etc.
     + Rem<Output = Self>
     + RemAssign
+    + Sum
 {
     /// Convert this value to `f64`.
     fn to_f64(self) -> f64;
@@ -565,6 +567,8 @@ impl Numeric for f64 {
         self - rhs
     }
 }
+
+
 
 #[cfg(test)]
 mod tests {
