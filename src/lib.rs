@@ -33,6 +33,19 @@ pub mod buffer_op {
             pub use to_another_buf_multi_dst::to_another_buf_multi_dst;
             pub use within_buf::within_buf;
         }
+
+        pub mod up {
+            pub mod sparse {
+
+                mod to_another_buf_sparse;
+                // mod to_another_buf_multi_dst;
+                // mod within_buf;
+                // pub use to_another_buf_sparse::to_another_buf;
+                pub use to_another_buf_sparse::to_another_buf;
+                // pub use to_another_buf_multi_dst::to_another_buf_multi_dst;
+                // pub use within_buf::within_buf;
+        }
+        }
     }
 
     pub use fill::buffer::fill;
