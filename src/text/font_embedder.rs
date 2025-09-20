@@ -21,12 +21,14 @@ use crate::buffer_op::scale::scale_direction::ScaleDirection;
 const DATA_C_C_RED_ALERT_INET: &[u8] = include_bytes!("cbf_data/cc_red_alert_inet.cbf");
 const DATA_C_C_RED_ALERT_LAN: &[u8] = include_bytes!("cbf_data/cc_red_alert_lan.cbf");
 const DATA_MATRIKS_UAXACTUN: &[u8] = include_bytes!("cbf_data/MatriksUaxactun.cbf");
+const DATA_MATRIKS_UAXACTUN_MONO: &[u8] = include_bytes!("cbf_data/MatriksUaxactunMono.cbf");
 
 // List of available embedded fonts
 pub enum EmbeddedFonts {
     CCRedAlertInet,
     CCRedAlertLan,
-    MatriksUaxactun
+    MatriksUaxactun,
+    MatriksUaxactunMono
 }
 
 fn validate_cbf_basics(cbf_magic_number: u16, cbf_ver: u16) {
@@ -64,6 +66,7 @@ pub fn instantiate_embedded_font(
         EmbeddedFonts::CCRedAlertInet => DATA_C_C_RED_ALERT_INET,
         EmbeddedFonts::CCRedAlertLan => DATA_C_C_RED_ALERT_LAN,
         EmbeddedFonts::MatriksUaxactun => DATA_MATRIKS_UAXACTUN,
+        EmbeddedFonts::MatriksUaxactunMono => DATA_MATRIKS_UAXACTUN_MONO,
         // _ => DATA_C_C_RED_ALERT_INET,
     };
 
