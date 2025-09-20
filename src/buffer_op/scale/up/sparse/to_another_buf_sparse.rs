@@ -49,6 +49,7 @@ fn scale_to_another_buf_sparse_thread(
     }
 }
 
+/// ## NB: This function is still experimental, might not work 100% correctly.
 /// ==============================================================================
 /// Sparse Upscaling Function
 /// ------------------------------------------------------------------------------

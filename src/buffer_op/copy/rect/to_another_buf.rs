@@ -71,8 +71,8 @@ pub fn to_another_buf(
     x_end = x_end.min(src_dims.w);
     y_end = y_end.min(src_dims.h);
 
-    let region_width = (x_end - x_start).min(dst_dims.w.saturating_sub(dst_start.x));
-    let region_height = (y_end - y_start).min(dst_dims.h.saturating_sub(dst_start.y));
+    let region_width = (  x_end.saturating_sub(x_start)).min(dst_dims.w.saturating_sub(dst_start.x));
+    let region_height = (y_end.saturating_sub(y_start)).min(dst_dims.h.saturating_sub(dst_start.y));
     x_end = x_start + region_width;
     y_end = y_start + region_height;
 
