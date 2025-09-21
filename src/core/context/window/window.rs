@@ -1,11 +1,12 @@
 use crate::core::context::window::window_quadrants::Quadrants;
+use crate::core::context_utils::context_snapshot::ContextSnapshot;
 use crate::core::default_colors;
 use crate::primitives::plane::{Dimensions2d, RectArea};
 use crate::primitives::point::Point;
 use crate::primitives::Pixel;
 use crate::utils::math::geometry::region::Region;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 /// A collection of window properties, such as width, height, and background color,
 /// Width and height are exposed as `u32`, `usize`, and `i32` for convenience in calculations.
 pub struct WindowContext {
@@ -134,6 +135,15 @@ impl WindowContext {
 
     pub fn contains(&self, rect: &RectArea) -> bool {
         self.rect_area.contains(rect)
+    }
+}
+
+impl ContextSnapshot for WindowContext {
+    fn get_context(&self) -> Self {
+        self.clone()
+    }
+    fn set_context(&mut self, ctx: Self) {
+        *self = ctx;
     }
 }
 
