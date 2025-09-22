@@ -239,10 +239,10 @@ mod tests {
         for _ in 0..100 {
             let rand_u32 = rng.get_u32(&MinMax::new(0, 10));
             // println!("rand_u32: {:?}", rand_u32);
-            assert!(rand_u32 > 0 && rand_u32 < 10);
+            assert!(rand_u32 >= 0 && rand_u32 < 10);
 
             let rand_u32 = rng.get_u32(&MinMax::new(0, 10));
-            assert!(rand_u32 > 0 && rand_u32 < 10);
+            assert!(rand_u32 >= 0 && rand_u32 < 10);
         }
     }
 
