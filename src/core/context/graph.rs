@@ -1,7 +1,6 @@
 use crate::core::context::alpha::AlphaMethod;
 use crate::core::context::line_context::LineContext;
 use crate::core::context::{AlphaContext, BezierContext, WindowContext};
-use crate::core::default_rng_seeds::{DEFAULT_SEED, DEFAULT_SEED_64};
 use crate::draw::tools::brush::Brush;
 use crate::utils::math::rng::XorShiftRng;
 use std::ptr;
@@ -16,6 +15,10 @@ pub enum FrameBufferStatus {
     ErrorBadBufferIndex = 100,
     /// An error occurred while trying to copy frame buffers
     ErrorPixelOutOfBounds = 200,
+
+    /// Removing the active buffer is not allowed!
+    ErrorCannotRemoveActiveFrameBuf = 300,
+
     /*
     /// Attempt to perform an indirect operation on the active buffer
     ErrorBufferIsActive = 300,
@@ -24,6 +27,10 @@ pub enum FrameBufferStatus {
     WarningResizedToZero = 1000,
     /// Warning: the source and destination frame buffers are the same.
     WarningSameSourceAndDestination = 1001,
+
+    /// Warning: Too many buffers requested to be removed.
+    /// The number of removed buffers was capped so that at least one buffer remains.
+    WarningBuffersRemovalWasCapped = 1100,
 }
 
 #[derive(Debug)]
@@ -130,6 +137,10 @@ impl<UserData: Default> GraphContext<UserData> {
         let frame_buf: Vec<u32>;
         let mut frame_bufs: Vec<Vec<u32>> = Vec::new();
 
+
+
+
+
         // Only one frame buffer is needed, so it is created directly as the active frame buffer.
         if num_frame_bufs == 1 {
             frame_buf = vec![bg_color; num_pixels];
@@ -137,6 +148,10 @@ impl<UserData: Default> GraphContext<UserData> {
             // Initialize the active frame buffer with a dummy.
             // TODO: check if we can actually avoid allocating memory for the dummy and still be able to use
             // TODO: `std::mem::swap` (or maybe something like `std::mem::take`?)
+
+            // TODO: TRY TO USE `Vec::new()` (an empty vector) FOR THE DUMMY!
+            // TODO: Chances are, everything will keep working, because the dummy is never actually used for rendering,
+            // TODO: and the overall memory footprint may become one frame_buf smaller!
 
             frame_buf = vec![TRANSPARENT_BLACK; num_pixels];
             // Create additional frame buffers
@@ -160,7 +175,7 @@ impl<UserData: Default> GraphContext<UserData> {
                 method: AlphaMethod::Int,
             },
             num_threads,
-            rng: XorShiftRng::new(DEFAULT_SEED, DEFAULT_SEED_64),
+            rng: XorShiftRng::default(),
             line: line.unwrap_or_default(),
             brush: Brush::default(),
             gpu_context: GpuContext::create(),
@@ -200,6 +215,74 @@ impl<UserData> GraphContext<UserData> {
         }
         Ok(())
     }
+/*
+    // FIXME:
+    // FIXME: This function is a part of an effort for adding and removing frame buffers dynamically.
+    // FIXME: Instead of initializing them statically at the creation of the contex
+    // FIXME: This function is not implemented and not tested yet!
+    // FIXME:
+    // FIXME:
+    /// NB!: DON'T USE THIS FUNCTION!
+    /// TODO: 1. FIX THE DOCS! Too long, too detailed.
+    /// TODO: 2. Test the function!
+    /// TODO: 3. See the TODO above `frame_buf = vec![TRANSPARENT_BLACK; num_pixels];`
+    /// Resizes the window context, the active frame buffer, and the back frame buffers, if any.
+    ///
+    /// This function guarantees that all *real* frame buffers are resized to the new resolution.
+    /// The "dummy" buffer (which lives in the slot of the currently active buffer inside
+    /// `self.frame_bufs`) does not represent an actual framebuffer and therefore should not
+    /// consume memory proportional to the window size. To ensure all *real* buffers are resized
+    /// uniformly without special-case logic, we temporarily swap the dummy into `self.frame_buf`
+    /// and put the real active buffer back into its slot in `self.frame_bufs`. That way, every
+    /// element of `self.frame_bufs` contains an actual framebuffer during the resize loop.
+    ///
+    /// After resizing, we swap again to restore the original invariant:
+    /// - `self.frame_buf` contains the currently active framebuffer.
+    /// - `self.frame_bufs[self.active_frame_buf_index]` contains the dummy placeholder.
+    ///
+    /// # Arguments
+    /// * `w` - The new width of the window.
+    /// * `h` - The new height of the window.
+    ///
+    /// # Returns
+    /// * `Ok(())` on success.
+    /// * `Err(FrameBufferStatus::WarningResizedToZero)` if the new resolution is zero
+    ///   (in which case the buffers are still resized, but to zero pixels).
+    pub fn resize__new(&mut self, w: u32, h: u32) -> Result<(), FrameBufferStatus> {
+        panic!("Not implemented / tested!");
+        // Resize the window (this updates width, height, and quadrants).
+        self.win.resize(w, h);
+
+        // Compute new total number of pixels.
+        let num_pixels = self.win.get_num_pixels();
+
+        // --- Step A: Swap dummy into self.frame_buf ---
+        // This ensures that all entries in self.frame_bufs are "real" buffers
+        // that should be resized, including the one that was active.
+        std::mem::swap(
+            &mut self.frame_buf,
+            &mut self.frame_bufs[self.active_frame_buf_index],
+        );
+
+        // --- Step B: Resize all real buffers uniformly ---
+        for buf in &mut self.frame_bufs {
+            buf.resize(num_pixels, self.win.background_color);
+        }
+
+        // --- Step C: Swap back to restore the invariant ---
+        std::mem::swap(
+            &mut self.frame_buf,
+            &mut self.frame_bufs[self.active_frame_buf_index],
+        );
+
+        // If the resolution is zero, signal a warning (but still resized correctly).
+        if num_pixels == 0 {
+            return Err(FrameBufferStatus::WarningResizedToZero);
+        }
+
+        Ok(())
+    }
+*/
 
     /// Sets the pixel at (x, y) in the frame buffer to the specified color.
     /// If the coordinates are out of bounds, the pixel will not be set,
@@ -262,6 +345,21 @@ impl<UserData> GraphContext<UserData> {
         }
         Err(FrameBufferStatus::ErrorBadBufferIndex)
     }
+
+    // pub fn add_frame_bufs(&mut self, bg_colors:Vec<u32>) -> usize {
+        // let num_pixels = self.win.get_num_pixels();
+        // let bg_color = self.win.background_color;
+        // self.frame_bufs.push(vec![bg_color; num_pixels]);
+        // 234
+    // }
+
+    // pub fn remove_frame_bufs(&mut self, something:usize)  {
+        // let num_pixels = self.win.get_num_pixels();
+        // let bg_color = self.win.background_color;
+        // self.frame_bufs.push(vec![bg_color; num_pixels]);
+    // }
+
+
 
     /// Copies the contents of the source frame buffer to the destination frame buffer.
     /// If the source and destination indices are the same, no operation is performed,

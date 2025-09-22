@@ -3,6 +3,12 @@ use crate::utils::math::rng::helpers::normalize_xor_shift_input::{
     normalize_input, NormalizedInput,
 };
 
+/// Default 32bit seed value with few repeating bits patterns.
+pub const DEFAULT_SEED: u32 = 0xA3C59AC3;
+/// Default 64bit seed value with few repeating bits patterns.
+pub const DEFAULT_SEED_64: u64 = 0x1D2C3F4A5B6E7F8D;
+
+
 /// A Simple Random Number Generator (RNG) based on the XOR-Shift algorithm.
 ///
 /// **NB:** Do not use this for cryptographic purposes!
@@ -134,6 +140,12 @@ impl XorShiftRng {
 
     pub fn set_seed_64(&mut self, seed: u64) {
         self.state_64 = seed;
+    }
+}
+
+impl Default for XorShiftRng {
+    fn default() -> Self {
+        Self::new(DEFAULT_SEED, DEFAULT_SEED_64)
     }
 }
 

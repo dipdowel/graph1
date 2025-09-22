@@ -141,7 +141,6 @@ pub mod core {
 
     /// Default colors used in the library if no custom colors specified
     pub mod default_colors;
-    pub(crate) mod default_rng_seeds;
 }
 //-=[ D }=------------------------------------------------------------------------------------------
 
@@ -260,6 +259,7 @@ pub mod primitives {
     pub mod containable;
 
     pub mod data_structs {
+        pub mod variant;
         pub mod ring_buffers;
     }
 
@@ -284,6 +284,10 @@ pub mod primitives {
 
     /// `Ratio` - a representation of a ratio of two numbers and operations on it.
     pub mod ratio;
+
+    /// Various state constants and types.
+    /// ("state" in the most generic sense of the word)
+    pub mod state;
 }
 
 //-=[ S }=------------------------------------------------------------------------------------------
@@ -303,6 +307,7 @@ pub mod test {
 pub mod text {
 
     pub mod char_width_map;
+    pub mod char_grid;
     pub mod font;
     pub mod font_constants;
     pub mod font_embedder;
@@ -402,6 +407,7 @@ pub mod utils {
 
     pub mod grid {
          pub mod flex_row;
+        pub mod grid_position;
         pub mod uniform;
 
         mod render;
