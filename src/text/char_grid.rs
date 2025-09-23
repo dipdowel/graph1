@@ -148,6 +148,12 @@ impl MonospacedCharGrid {
         }
     }
 
+
+    /// Returns a link to the cell at row 0 and column 0
+    pub fn get_proto_cell(&self) -> &RectArea {
+        &self.grid.proto_cell
+    }
+
     /// Get the top-left position of the grid
     pub fn top_left(&self) -> Point {
         self.grid.proto_cell.top_left.clone()
