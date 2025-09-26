@@ -10,6 +10,7 @@ Graph1 is a zero-dependency Rust library for pixel-level 2D graphics, drawing, a
 ## ✨ Features
 
 - **Zero dependencies** — no external crates used.
+  - (Unless you opt in for experimental GPU support).
 - **Cross-platform** — works on any platform with Rust support.
 - **Multithreading** — parallel rendering for large framebuffers.
 - **Compositing** — alpha blending with integer and float support.
