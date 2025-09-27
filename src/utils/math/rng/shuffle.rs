@@ -7,10 +7,9 @@ use crate::utils::math::rng::XorShiftRng;
 pub enum ShuffleSliceError {
     EmptySlice,
     SliceTooBig,
-    RngFault,
 }
 
-const SAFEGUARD_LIMIT: usize = 64;
+
 
 /// Shuffle the items in the slice in place using the provided RNG
 /// using `Fisher-Yates shuffle` algorithm.
@@ -55,9 +54,7 @@ mod tests {
     fn test_shuffle() {
         let mut rng = XorShiftRng::new(RNG_SEED_32, RNG_SEED_64);
 
-        // The original test data generated as `(1..=3000_000).collect()` increments `safeguard_counter` till 9,
-        // so `const SAFEGUARD_LIMIT: usize = 64` tries should be sufficient.
-        let original_test_data: Vec<u32> = (1..=8000_000).collect();
+        let original_test_data: Vec<u32> = (1..=4096).collect();
         let mut data = Vec::from(original_test_data.clone());
 
         // Ensure the data is initially in the original order
