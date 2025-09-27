@@ -12,7 +12,8 @@ pub enum ShuffleSliceError {
 
 const SAFEGUARD_LIMIT: usize = 64;
 
-/// Shuffle the items in the slice in place using the provided RNG.
+/// Shuffle the items in the slice in place using the provided RNG
+/// using `Fisher-Yates shuffle` algorithm.
 /// **NB!:** This function modifies the original slice.
 /// # Arguments
 /// * `items` - The slice of items to be shuffled
@@ -21,7 +22,6 @@ const SAFEGUARD_LIMIT: usize = 64;
 /// * `Ok(())` if the shuffle was successful
 /// * `Err(ShuffleSliceError)` if the slice is empty or too large
 pub fn slice<T>(items: &mut [T], rng: &mut XorShiftRng) ->Result<(), ShuffleSliceError> {
-
     let target_len = items.len();
 
     if items.is_empty() {
@@ -36,46 +36,16 @@ pub fn slice<T>(items: &mut [T], rng: &mut XorShiftRng) ->Result<(), ShuffleSlic
         return Ok(());
     }
 
-
-    let mut seen = HashSet::with_capacity(items.len());
-    let mut unique_randoms:Vec<usize> = Vec::with_capacity(items.len());
-
-    let mut safeguard_counter = 0;
-
-    // Generate unique random indices until we have enough
-    while unique_randoms.len() < target_len {
-        let random_values: Vec<u32> = rng.get_vec_u32(
-            target_len*2,
-            &MinMax {
-                min: 0,
-                max: target_len as u32,
-            },
-        );
-        for rand_val in random_values {
-            if seen.insert(rand_val) {
-                unique_randoms.push(rand_val as usize);
-            }
-        }
-        println!(">> safeguard_counter: {}", safeguard_counter);
-        if safeguard_counter == SAFEGUARD_LIMIT {
-            return Err(ShuffleSliceError::RngFault);
-        }
-
-        safeguard_counter += 1;
+    for i in (1..target_len).rev() {
+        let j = rng.get_u32(&MinMax::new(0, (i + 1) as u32)) as usize;
+        items.swap(i, j);
     }
 
-
-
-    for (i, random_value) in unique_randoms.iter().enumerate() {
-        items.swap(i, *random_value as usize);
-    }
-
-     Ok(())
+    Ok(())
 }
-
 #[cfg(test)]
 mod tests {
- 
+
     const RNG_SEED_32: u32 = 619;
     const RNG_SEED_64: u64 = 421;
 
@@ -87,7 +57,7 @@ mod tests {
 
         // The original test data generated as `(1..=3000_000).collect()` increments `safeguard_counter` till 9,
         // so `const SAFEGUARD_LIMIT: usize = 64` tries should be sufficient.
-        let original_test_data: Vec<u32> = (1..=1024).collect();
+        let original_test_data: Vec<u32> = (1..=8000_000).collect();
         let mut data = Vec::from(original_test_data.clone());
 
         // Ensure the data is initially in the original order
