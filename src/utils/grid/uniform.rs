@@ -97,6 +97,11 @@ impl<T: Numeric> UniformGrid<T> {
         self.cells.iter_mut()
     }
 
+    /// Returns all cells as a vector of references
+    pub fn cells(&self) -> Vec<&Region<T>> {
+        self.cells.iter().collect()
+    }
+
     /// Resizes the number of rows and columns, keeping cell size and top-left the same.
     /// * If new_rows or new_cols are less than the current ones, the columns and/or rows will be truncated.
     /// * If new_rows or new_cols are greater than the current ones, the new cells will be added correspondingly after the existing ones.
