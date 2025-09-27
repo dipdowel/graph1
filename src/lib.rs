@@ -311,6 +311,8 @@ pub mod text {
     pub mod font;
     pub mod font_constants;
     pub mod font_embedder;
+    pub mod helpers;
+    
     pub mod printer;
 
     pub mod utils;

@@ -205,6 +205,44 @@ impl<T: Numeric> UniformGrid<T> {
         self.rows * self.cols
     }
 
+    /// NB: UNTESTED FUNCTION!
+    /// TODO: ADD TESTS!!!!
+    /// Returns all cells in a specific column as a vector of references
+    /// # Parameters
+    /// - `col_index`: The index of the column to retrieve (0-based)
+    /// # Returns
+    /// An `Option` containing a vector of references to the cells in the specified column,
+    /// or `None` if the column index is out of bounds.
+    pub fn get_column(&self, col_index:usize) -> Option<Vec<&Region<T>>> {
+        if col_index >= self.cols {
+            return None;
+        }
+        let mut column_cells = Vec::with_capacity(self.rows);
+        for row in 0..self.rows {
+            if let Some(cell) = self.get_cell(row, col_index) {
+                column_cells.push(cell);
+            }
+        }
+        Some(column_cells)
+    }
+
+    /// NB: UNTESTED FUNCTION!
+    /// TODO: ADD TESTS!!!!
+    /// Returns all cells in a specific row as a vector of references
+    /// # Parameters
+    /// - `row_index`: The index of the row to retrieve (0-based)
+    /// # Returns
+    /// An `Option` containing a vector of references to the cells in the specified row,
+    /// or `None` if the row index is out of bounds.
+    pub fn get_row(&self, row_index:usize) -> Option<Vec<&Region<T>>> {
+        if row_index >= self.rows {
+            return None;
+        }
+        let start_idx = row_index * self.cols;
+        let end_idx = start_idx + self.cols;
+        Some(self.cells[start_idx..end_idx].iter().collect())
+    }
+
 }
 
 impl<T: Numeric> GridLike<T> for UniformGrid<T> {
