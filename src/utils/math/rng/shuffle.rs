@@ -10,16 +10,15 @@ pub enum ShuffleSliceError {
     SliceTooBig,
 }
 
-
-/// Shuffle the items in the slice in place using the provided RNG
-/// using `Fisher-Yates shuffle` algorithm.
-/// **NB!:** This function modifies the original slice.
+/// Shuffle the items in the slice in place using the provided RNG.
+/// Uses the Fisher-Yates algorithm (O(n) time).
+/// **NB:** The shuffling is not suitable for cryptographic purposes!
 /// # Arguments
 /// * `items` - The slice of items to be shuffled
 /// * `rng` - The random number generator to use for shuffling
 /// # Returns
 /// * `Ok(())` if the shuffle was successful
-/// * `Err(ShuffleSliceError)` if the slice is empty or too large
+/// * `Err(ShuffleSliceError)` if the slice is empty or too large (>= u32::MAX)
 pub fn slice<T>(items: &mut [T], rng: &mut XorShiftRng) ->Result<(), ShuffleSliceError> {
     let target_len = items.len();
 
@@ -65,7 +64,10 @@ mod tests {
         // Ensure the data is initially in the original order
         assert_eq!(data, original_test_data);
         // Shuffle the data
-        slice(&mut data, &mut rng).ok();
+
+
+        assert!( slice(&mut data, &mut rng).is_ok() );
+
         // Ensure the data has been shuffled (not equal to original)
         assert_ne!(data, original_test_data);
 
@@ -80,6 +82,7 @@ mod tests {
         let mut data: Vec<u32> = Vec::new();
 
         let result = slice(&mut data, &mut rng);
+        assert!(matches!(result, Err(ShuffleSliceError::EmptySlice)));
         assert!(matches!(result, Err(ShuffleSliceError::EmptySlice)));
     }
 
