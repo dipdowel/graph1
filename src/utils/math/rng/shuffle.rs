@@ -25,6 +25,11 @@ pub fn slice<T>(items: &mut [T], rng: &mut XorShiftRng) ->Result<(), ShuffleSlic
         return Err(ShuffleSliceError::SliceTooBig);
     }
 
+    // No need to shuffle if there's only one item
+    if items.len() == 1 {
+        return Ok(());
+    }
+
 
     let random_u32: Vec<u32> = rng.get_vec_u32(
         items.len(),
