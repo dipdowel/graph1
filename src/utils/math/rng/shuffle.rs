@@ -1,14 +1,14 @@
-use std::collections::HashSet;
 use crate::primitives::math::MinMax;
 use crate::utils::math::rng::XorShiftRng;
 
 
 #[derive(Debug)]
 pub enum ShuffleSliceError {
+    /// The provided slice is empty
     EmptySlice,
+    /// The provided slice is too large (>= u32::MAX)
     SliceTooBig,
 }
-
 
 
 /// Shuffle the items in the slice in place using the provided RNG
@@ -54,13 +54,18 @@ mod tests {
     fn test_shuffle() {
         let mut rng = XorShiftRng::new(RNG_SEED_32, RNG_SEED_64);
 
-        let original_test_data: Vec<u32> = (1..=4096).collect();
+        let part1: Vec<u32> = (0..=4095).collect();
+        let part2: Vec<u32> = (0..=1023).collect();
+        let mut test_data: Vec<u32> = part1.iter().chain(&part2).cloned().collect();
+        test_data.sort();
+        let original_test_data: Vec<u32> = test_data;
+
         let mut data = Vec::from(original_test_data.clone());
 
         // Ensure the data is initially in the original order
         assert_eq!(data, original_test_data);
         // Shuffle the data
-        slice(&mut data, &mut rng);
+        slice(&mut data, &mut rng).ok();
         // Ensure the data has been shuffled (not equal to original)
         assert_ne!(data, original_test_data);
 
