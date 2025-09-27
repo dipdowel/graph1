@@ -471,6 +471,9 @@ pub mod utils {
             /// Generates random grayscale colors in a range (still an RGBA color)
             pub mod gray;
 
+            /// Provides shuffling functionality (e.g. for vectors)
+            pub mod shuffle;
+
             /// A XOR-Shift Random Number Generator
             mod xor_shift;
             pub use xor_shift::XorShiftRng;
