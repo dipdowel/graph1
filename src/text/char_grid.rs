@@ -67,6 +67,14 @@ fn get_char_cell_dims(font: &PixelFont) -> Option<Dimensions2d> {
 }
 
 
+/// Create a uniform grid of character cells based on a monospaced font.
+/// Each cell in the grid corresponds to a character position, with dimensions based on the font's
+/// glyph size plus any additional spacing (kerning and leading).
+/// # Arguments
+/// * `font` - The pixel font to be used (must be monospaced)
+/// * `dimensions_input` - Either a list of strings (rows of characters) or explicit dimensions
+/// * `top_left` - The top-left position of the grid
+/// * `color` - Optional color to apply to all cells in the grid
 pub fn make_monospaced_char_grid(
     font: &PixelFont,
     dimensions_input: Variant<&[&str], Dimensions2d>,
@@ -97,9 +105,5 @@ pub fn make_monospaced_char_grid(
     };
 
     let grid = UniformGrid::new(proto_cell, grid_dimensions.h, grid_dimensions.w, colors);
-
-
         Some(grid)
-
 }
-
