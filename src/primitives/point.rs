@@ -179,8 +179,10 @@ impl<T: Numeric> Point<T> {
     }
 }
 
-/// An often-used constant for a point at the origin (0, 0).
+/// The origin Point: (0, 0).
 pub const POINT_ZERO: Point = Point { x: 0, y: 0 };
+
+/// A Point with both coordinates set to one: (1, 1).
 pub const POINT_ONE: Point = Point { x: 1, y: 1 };
 
 /// A generic 3D-point: `(x: u32, y:u32, z:u32)`. Other `Numeric` types can be used instead of `u32`.

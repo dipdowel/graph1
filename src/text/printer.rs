@@ -1,7 +1,7 @@
 use crate::core::context::GraphContext;
 use crate::primitives::helper_types::PixelColorTransformerFn;
 use crate::primitives::plane::Dimensions2d;
-use crate::primitives::point::Point;
+use crate::primitives::point::{Point, POINT_ZERO};
 use crate::text::font::PixelFont;
 use crate::utils::pixel_copy::image_data;
 
@@ -85,6 +85,41 @@ pub fn print_line<UserData>(
     result.h = font.img_dimensions.h;
     return result;
 }
+
+
+
+/// Measures the dimensions of a line of text that would be printed using a specified font.
+/// # Parameters
+/// - `font`: A font to be used for rendering the text.
+/// - `text_str`: A line of text to be measured.
+/// # Returns
+/// Dimensions of the line of text, in pixels
+pub fn get_line_dimensions(
+    font: &PixelFont,
+    text_str: &str,
+) -> Dimensions2d {
+    let mut result: Dimensions2d = Dimensions2d { w: 0, h: 0 };
+    if text_str.len() == 0 {
+        return result;
+    }
+
+    let mut dst_point: Point = POINT_ZERO.clone();
+
+    for text_char in text_str.chars() {
+        let the_glyph = font.get_glyph(&text_char);
+        dst_point.x += the_glyph.dimensions.w + font.spacing.kerning_px as u32;
+        result.w += the_glyph.dimensions.w + font.spacing.kerning_px as u32;
+    }
+
+    // The last kerning is extra and should not be counted
+    result.w -= font.spacing.kerning_px as u32;
+    result.h = font.img_dimensions.h;
+    return result;
+}
+
+
+
+
 
 /// Returns a vector of widths in the same order in which lines are ordered in the `text`
 /// NB: The last element of the vector is special, it's an extra copy of the width of the widest line!
@@ -185,3 +220,54 @@ pub fn print<UserData>(
 
     return result;
 }
+
+/// Measures the dimensions of a block of text that would be printed using a specified font.
+/// # Parameters
+/// - `font`: A font to be used for rendering the text.
+/// - `text`: The lines of text to be measured. Each element in the array is a line of text.
+/// - `alignment`: The alignment of the text.
+///
+/// # Returns
+/// Dimensions of the block of text, in pixels
+pub fn get_text_dimensions(
+    font: &PixelFont,
+    text: &[&str],
+    alignment: Align,
+) -> Dimensions2d {
+    // Do nothing if there was no text provided
+    if text.len() < 1 {
+        return Dimensions2d { w: 0, h: 0 };
+    };
+
+    let mut position = POINT_ZERO.clone();
+    let original_position = POINT_ZERO.clone();
+
+    let mut result: Dimensions2d = Dimensions2d { w: 0, h: 0 };
+
+    // height of the line of text + leading
+    let full_line_height = font.img_dimensions.h + font.spacing.leading_px as u32;
+
+    let mut line_index: usize = 0;
+
+    let mut line_widths = get_line_widths(font, text);
+    let longest_line_width = line_widths.pop().unwrap_or(0);
+
+    for text_line in text {
+        position.x = match alignment {
+            Align::Right => {
+                original_position.x + (longest_line_width - line_widths[line_index]) as u32
+            }
+            Align::Center => {
+                original_position.x + ((longest_line_width - line_widths[line_index]) / 2) as u32
+            }
+            Align::Left => original_position.x,
+        };
+        position.y += full_line_height;
+        result.h += full_line_height;
+        line_index += 1;
+    }
+    result.w = longest_line_width as u32;
+    return result;
+}
+
+// TODO: write unit tests for at least `get_line_widths()` and `get_text_dimensions()`
