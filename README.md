@@ -179,7 +179,7 @@ sudo apt-get install  ocl-icd-opencl-dev clinfo ocl-icd-libopencl1 opencl-header
 This project uses multiple licenses:
 
 - **Source code**: Licensed under the [MIT License](LICENSES/MIT.txt).
-- **Font "Matriks Uaxactun"**: Licensed separately under custom terms in [FONT-MATRIKS-UAXACTUN](LICENSES/FONT-MATRIKS-UAXACTUN.txt).
+- **Font family "Matriks Uaxactun"**: Licensed separately under custom terms in [FONT-MATRIKS-UAXACTUN](LICENSES/FONT-MATRIKS-UAXACTUN.txt).
 
 ### SPDX Notice
 The project’s overall license expression is:
@@ -188,14 +188,14 @@ SPDX-License-Identifier: MIT AND LicenseRef-FONT-MATRIKS-UAXACTUN
 ```
 
 ### Important Notes
-- The font **may only be used when the Graph1 library is included as a dependency** in a Rust project and must remain embedded in the library.
-- Any project that embeds or redistributes the font through Graph1 must also include the [FONT-MATRIKS-UAXACTUN license file](LICENSES/FONT-MATRIKS-UAXACTUN.txt).
+- The font family **may only be used when the Graph1 library is included as a dependency** in a Rust project and must remain embedded in the library.
+- Any project that embeds or redistributes the font family through Graph1 must also include the [FONT-MATRIKS-UAXACTUN license file](LICENSES/FONT-MATRIKS-UAXACTUN.txt).
 
 
 ---
 
 ## 🚨 TODOs
-- Add documentation on custom font loading
+- Add documentation on how to load custom fonts
 
 
 
