@@ -1,23 +1,24 @@
 SPDX-License-Identifier: LicenseRef-FONT-MATRIKS-UAXACTUN
 
-LICENSE AGREEMENT FOR FONT "MATRIKS UAXACTUN"
+LICENSE AGREEMENT FOR FONT FAMILY "MATRIKS UAXACTUN"
 
 Copyright (c) 2025 Marcel van Deijl. All rights reserved.
 
-The font "Matriks Uaxactun" (the "Font") was created by Marcel van Deijl specifically
-for use with the Graph1 library (the "Library").
+The font family "Matriks Uaxactun" (the "Font Family") was created by Marcel van Deijl specifically
+for use with the Graph1 library (the "Library"). The Font Family includes all the fonts with names
+starting with "Matriks Uaxactun".
 
 A non-exclusive, perpetual, worldwide license is granted to users who include the Library
-as a dependency in their project's `Cargo.toml` to use the Font solely as embedded within
-and accessed through the Library. The Font may not be extracted, modified, redistributed,
+as a dependency in their project's `Cargo.toml` to use the Font Family solely as embedded within
+and accessed through the Library. The Font Family may not be extracted, modified, redistributed,
 or used independently without prior written permission from the copyright holder.
 
 Any distribution of the Library must include this license agreement in unmodified form,
-so that recipients are informed of the Font's licensing terms.
+so that recipients are informed of the Font Family's licensing terms.
 
 Any project that includes the Library as a dependency and thereby embeds or makes use
-of the Font must include this license agreement in unmodified form, so that all recipients
-of the project are informed of the Font's licensing terms.
+of the Font Family must include this license agreement in unmodified form, so that all recipients
+of the project are informed of the Font Family's licensing terms.
 
 Contact:
 - Email: designisfijn@icloud.com
