@@ -49,7 +49,7 @@ fn validate_cbf_basics(cbf_magic_number: u16, cbf_ver: u16) {
 /// # Parameters
 ///
 /// - `font_name`: The name of the embedded font to instantiate.
-/// - `font_scale_factor`: scale up the font size, valid values are powers of two (1,2,4,8, etc.)
+/// - `font_scale_factor`: scale up the font size
 /// - `spacing`: Kerning and Leading
 /// - `default_char`: An optional character to use as the default character if a specified character is not found.
 ///
@@ -78,7 +78,7 @@ pub fn instantiate_embedded_font(
 /// # Parameters
 ///
 /// - `font_data`: A font data in CBF format
-/// - `font_scale_factor`: scale up the font size, valid values are powers of two (1,2,4,8, etc.)
+/// - `font_scale_factor`: scale up the font size
 /// - `spacing`: Kerning and Leading
 /// - `default_char`: An optional character to use as the default character if a specified character is not found.
 ///
