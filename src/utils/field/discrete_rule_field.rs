@@ -154,13 +154,60 @@ impl<CellState: Clone> DiscreteRuleField<CellState> {
         self.grid.get(index)
     }
 
+    /// Gets a mutable reference to a cell at the given coordinates (with boundary policy applied).
+    /// This allows direct modification of the cell state.
+    ///
+    /// # Example
+    /// ```ignore
+    /// if let Some(cell) = field.get_cell_mut(Point::new(5, 5)) {
+    ///     cell.state = new_state;
+    /// }
+    /// ```
+    pub fn get_cell_mut(&mut self, coords: Point<usize>) -> Option<&mut Cell<CellState>> {
+        let adjusted = self.apply_boundary_policy(coords)?;
+        let index = self.coords_to_index(adjusted);
+        self.grid.get_mut(index)
+    }
+
     /// Gets a cell at the given coordinates without boundary checks (unsafe but fast).
     pub fn get_cell_unchecked(&self, coords: Point<usize>) -> &Cell<CellState> {
         let index = self.coords_to_index(coords);
         &self.grid[index]
     }
 
+    /// Gets a mutable cell at the given coordinates without boundary checks (unsafe but fast).
+    ///
+    /// # Safety
+    /// The caller must ensure that coordinates are within bounds.
+    /// Out of bounds access will panic.
+    ///
+    /// # Example
+    /// ```ignore
+    /// let coords = Point::new(5, 5);
+    /// if coords.x < field.dimensions().w && coords.y < field.dimensions().h {
+    ///     let cell = field.get_cell_unchecked_mut(coords);
+    ///     cell.state = new_state;
+    /// }
+    /// ```
+    pub fn get_cell_unchecked_mut(&mut self, coords: Point<usize>) -> &mut Cell<CellState> {
+        let index = self.coords_to_index(coords);
+        &mut self.grid[index]
+    }
+
     /// Sets a cell state at the given coordinates.
+    ///
+    /// # Arguments
+    /// * `coords` - The coordinates of the cell to modify
+    /// * `state` - The new state to set
+    ///
+    /// # Returns
+    /// * `Ok(())` if the cell was successfully updated
+    /// * `Err(String)` if the coordinates are invalid
+    ///
+    /// # Example
+    /// ```ignore
+    /// field.set_cell(Point::new(5, 5), new_state)?;
+    /// ```
     pub fn set_cell(&mut self, coords: Point<usize>, state: CellState) -> Result<(), String> {
         let adjusted = self
             .apply_boundary_policy(coords)
@@ -186,9 +233,14 @@ impl<CellState: Clone> DiscreteRuleField<CellState> {
             NeighborhoodType::Immediate => {
                 // Moore neighborhood (8 neighbors)
                 let offsets = [
-                    (-1, -1), (0, -1), (1, -1),
-                    (-1, 0),           (1, 0),
-                    (-1, 1),  (0, 1),  (1, 1),
+                    (-1, -1),
+                    (0, -1),
+                    (1, -1),
+                    (-1, 0),
+                    (1, 0),
+                    (-1, 1),
+                    (0, 1),
+                    (1, 1),
                 ];
                 for (dx, dy) in offsets.iter() {
                     if let Some(coord) = self.apply_offset(center, *dx, *dy) {
@@ -357,10 +409,7 @@ impl<CellState: Clone> DiscreteRuleField<CellState> {
         match self.boundary_policy {
             BoundaryPolicy::Clamp => {
                 if new_x < 0 || new_y < 0 {
-                    return Some(Point::new(
-                        new_x.max(0) as usize,
-                        new_y.max(0) as usize,
-                    ));
+                    return Some(Point::new(new_x.max(0) as usize, new_y.max(0) as usize));
                 }
                 Some(Point::new(
                     (new_x as usize).min(self.dimensions.w - 1),
@@ -375,8 +424,11 @@ impl<CellState: Clone> DiscreteRuleField<CellState> {
                 Some(Point::new(wrapped_x as usize, wrapped_y as usize))
             }
             BoundaryPolicy::Mirror => {
-                if new_x < 0 || new_x >= self.dimensions.w as i32
-                    || new_y < 0 || new_y >= self.dimensions.h as i32 {
+                if new_x < 0
+                    || new_x >= self.dimensions.w as i32
+                    || new_y < 0
+                    || new_y >= self.dimensions.h as i32
+                {
                     let mirrored_x = if new_x < 0 {
                         (-new_x) as usize
                     } else if new_x >= self.dimensions.w as i32 {
@@ -516,7 +568,9 @@ mod tests {
         );
 
         // Set center cell to a different value
-        field.set_cell(Point::new(1, 1), SimpleState { value: 8 }).unwrap();
+        field
+            .set_cell(Point::new(1, 1), SimpleState { value: 8 })
+            .unwrap();
 
         // Update should average neighbors
         field.update();
@@ -526,4 +580,3 @@ mod tests {
         assert!(center_cell.state.value <= 8);
     }
 }
-
