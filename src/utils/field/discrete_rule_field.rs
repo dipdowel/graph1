@@ -1,6 +1,5 @@
 use crate::primitives::neighborhood::NeighborhoodType;
 use crate::primitives::plane::Dimensions2d;
-use crate::primitives::point::Point;
 use crate::primitives::math::GridCoord;
 use std::fmt::Debug;
 
@@ -107,35 +106,84 @@ pub struct DiscreteRuleField<CellState: Clone> {
 }
 
 impl<CellState: Clone> DiscreteRuleField<CellState> {
-    /// Creates a new discrete rule field with uniform rule assignment.
-    /// All cells will initially use the provided default rule.
-    /// Individual cells can be assigned custom rules using `set_cell_rule()`.
+    /// Creates a new discrete rule field with optional per-cell rule overrides.
+    /// All cells will initially use the provided default rule unless overridden.
+    ///
+    /// # Arguments
+    /// * `dimensions` - Grid dimensions (width × height)
+    /// * `initial_state` - Initial state for all cells
+    /// * `boundary_policy` - How to handle edge cells
+    /// * `default_rule_set` - Default rule applied to all cells
+    /// * `custom_rule_sets` - Optional list of (coordinate, rule) pairs for per-cell overrides
+    /// * `update_neighborhood` - Neighborhood type for updates
+    ///
+    /// # Returns
+    /// * `Ok(Self)` if field was created successfully
+    /// * `Err(String)` if any custom rule coordinate is out of bounds
+    ///
+    /// # Example
+    /// ```ignore
+    /// let field = DiscreteRuleField::new(
+    ///     Dimensions2d::new(10, 10),
+    ///     initial_state,
+    ///     BoundaryPolicy::Wrap,
+    ///     default_rule,
+    ///     Some(vec![
+    ///         (Point::new(5, 5), heat_source_rule),
+    ///         (Point::new(8, 3), custom_rule),
+    ///     ]),
+    ///     NeighborhoodType::Immediate,
+    /// )?;
+    /// ```
     pub fn new(
         dimensions: Dimensions2d<usize>,
         initial_state: CellState,
         boundary_policy: BoundaryPolicy,
-        rule_set: RuleSet<CellState>,
+        default_rule_set: RuleSet<CellState>,
+        custom_rule_sets: Option<Vec<(GridCoord, RuleSet<CellState>)>>,
         update_neighborhood: NeighborhoodType,
-    ) -> Self {
+    ) -> Result<Self, String> {
         let capacity = dimensions.w * dimensions.h;
         let grid = vec![Cell::new(initial_state.clone()); capacity];
         let next_grid = vec![Cell::new(initial_state); capacity];
-        let rule_indices = vec![None; capacity]; // All cells use default rule
+        let mut rule_indices = vec![None; capacity]; // All cells use default rule initially
+        let mut override_rules = Vec::new();
 
-        DiscreteRuleField {
+        // Process custom rule sets if provided
+        if let Some(custom_rules) = custom_rule_sets {
+            for (coords, rule_set) in custom_rules {
+                // Validate coordinates
+                if coords.x >= dimensions.w || coords.y >= dimensions.h {
+                    return Err(format!(
+                        "Custom rule coordinate ({}, {}) is out of bounds (field size: {}×{})",
+                        coords.x, coords.y, dimensions.w, dimensions.h
+                    ));
+                }
+
+                // Add override rule
+                let override_idx = override_rules.len();
+                override_rules.push(rule_set);
+
+                // Map cell to override rule
+                let cell_index = coords.y * dimensions.w + coords.x;
+                rule_indices[cell_index] = Some(override_idx);
+            }
+        }
+
+        Ok(DiscreteRuleField {
             grid,
             next_grid,
             dimensions,
             boundary_policy,
-            default_rule: rule_set,
-            override_rules: Vec::new(),
+            default_rule: default_rule_set,
+            override_rules,
             rule_indices,
             update_config: UpdateConfig::new(
                 update_neighborhood,
-                Point::new(dimensions.w / 2, dimensions.h / 2),
+                GridCoord::new(dimensions.w / 2, dimensions.h / 2),
                 false,
             )
-        }
+        })
     }
 
     /// Returns the dimensions of the field.
@@ -460,7 +508,7 @@ impl<CellState: Clone> DiscreteRuleField<CellState> {
             let mut cells = Vec::with_capacity(self.dimensions.w * self.dimensions.h);
             for y in 0..self.dimensions.h {
                 for x in 0..self.dimensions.w {
-                    cells.push(Point::new(x, y));
+                    cells.push(GridCoord::new(x, y));
                 }
             }
             return cells;
@@ -489,23 +537,23 @@ impl<CellState: Clone> DiscreteRuleField<CellState> {
     }
 
     /// Converts 2D coordinates to a 1D index (row-major order).
-    fn coords_to_index(&self, coords: Point<usize>) -> usize {
+    fn coords_to_index(&self, coords: GridCoord) -> usize {
         coords.y * self.dimensions.w + coords.x
     }
 
     /// Converts a 1D index to 2D coordinates.
-    pub fn index_to_coords(&self, index: usize) -> Point<usize> {
-        Point::new(index % self.dimensions.w, index / self.dimensions.w)
+    pub fn index_to_coords(&self, index: usize) -> GridCoord {
+        GridCoord::new(index % self.dimensions.w, index / self.dimensions.w)
     }
 
     /// Applies boundary policy to coordinates.
     fn apply_boundary_policy(&self, coords: GridCoord) -> Option<GridCoord> {
         match self.boundary_policy {
-            BoundaryPolicy::Clamp => Some(Point::new(
+            BoundaryPolicy::Clamp => Some(GridCoord::new(
                 coords.x.min(self.dimensions.w - 1),
                 coords.y.min(self.dimensions.h - 1),
             )),
-            BoundaryPolicy::Wrap => Some(Point::new(
+            BoundaryPolicy::Wrap => Some(GridCoord::new(
                 coords.x % self.dimensions.w,
                 coords.y % self.dimensions.h,
             )),
@@ -520,7 +568,7 @@ impl<CellState: Clone> DiscreteRuleField<CellState> {
                 } else {
                     coords.y
                 };
-                Some(Point::new(x, y))
+                Some(GridCoord::new(x, y))
             }
         }
     }
@@ -533,9 +581,9 @@ impl<CellState: Clone> DiscreteRuleField<CellState> {
         match self.boundary_policy {
             BoundaryPolicy::Clamp => {
                 if new_x < 0 || new_y < 0 {
-                    return Some(Point::new(new_x.max(0) as usize, new_y.max(0) as usize));
+                    return Some(GridCoord::new(new_x.max(0) as usize, new_y.max(0) as usize));
                 }
-                Some(Point::new(
+                Some(GridCoord::new(
                     (new_x as usize).min(self.dimensions.w - 1),
                     (new_y as usize).min(self.dimensions.h - 1),
                 ))
@@ -545,7 +593,7 @@ impl<CellState: Clone> DiscreteRuleField<CellState> {
                     % self.dimensions.w as i32;
                 let wrapped_y = ((new_y % self.dimensions.h as i32) + self.dimensions.h as i32)
                     % self.dimensions.h as i32;
-                Some(Point::new(wrapped_x as usize, wrapped_y as usize))
+                Some(GridCoord::new(wrapped_x as usize, wrapped_y as usize))
             }
             BoundaryPolicy::Mirror => {
                 if new_x < 0
@@ -567,12 +615,12 @@ impl<CellState: Clone> DiscreteRuleField<CellState> {
                     } else {
                         new_y as usize
                     };
-                    Some(Point::new(
+                    Some(GridCoord::new(
                         mirrored_x.min(self.dimensions.w - 1),
                         mirrored_y.min(self.dimensions.h - 1),
                     ))
                 } else {
-                    Some(Point::new(new_x as usize, new_y as usize))
+                    Some(GridCoord::new(new_x as usize, new_y as usize))
                 }
             }
         }
@@ -600,7 +648,7 @@ mod tests {
 
     fn simple_rule(
         grid: &DiscreteRuleField<SimpleState>,
-        cell_coords: Point<usize>,
+        cell_coords: GridCoord,
         neighborhood_type: NeighborhoodType,
         _boundary_policy: BoundaryPolicy,
     ) -> SimpleState {
@@ -629,8 +677,9 @@ mod tests {
             initial_state,
             BoundaryPolicy::Clamp,
             rule_set,
+            None, // No custom rules
             NeighborhoodType::Immediate,
-        );
+        ).unwrap();
 
         assert_eq!(field.dimensions().w, 10);
         assert_eq!(field.dimensions().h, 10);
@@ -648,10 +697,11 @@ mod tests {
             initial_state,
             BoundaryPolicy::Clamp,
             rule_set,
+            None,
             NeighborhoodType::Immediate,
-        );
+        ).unwrap();
 
-        let center = Point::new(2, 2);
+        let center = GridCoord::new(2, 2);
         let neighbors = field.get_neighbors(center, NeighborhoodType::Immediate);
 
         assert_eq!(neighbors.len(), 8); // Moore neighborhood has 8 neighbors
@@ -668,10 +718,11 @@ mod tests {
             initial_state,
             BoundaryPolicy::Clamp,
             rule_set,
+            None,
             NeighborhoodType::Orthogonal,
-        );
+        ).unwrap();
 
-        let center = Point::new(2, 2);
+        let center = GridCoord::new(2, 2);
         let neighbors = field.get_neighbors(center, NeighborhoodType::Orthogonal);
 
         assert_eq!(neighbors.len(), 4); // Von Neumann neighborhood has 4 neighbors
@@ -688,23 +739,24 @@ mod tests {
             initial_state,
             BoundaryPolicy::Clamp,
             rule_set,
+            None,
             NeighborhoodType::Immediate,
-        );
+        ).unwrap();
 
         // Set center cell to a different value
         field
-            .set_cell(Point::new(1, 1), SimpleState { value: 8 })
+            .set_cell(GridCoord::new(1, 1), SimpleState { value: 8 })
             .unwrap();
 
         // Update should average neighbors
         field.update(Some(UpdateConfig::new(
             NeighborhoodType::Immediate,
-            Point::new(1, 1),
+            GridCoord::new(1, 1),
             true,
         )));
 
         // After update, cells should have new values based on their neighbors
-        let center_cell = field.get_cell(Point::new(1, 1)).unwrap();
+        let center_cell = field.get_cell(GridCoord::new(1, 1)).unwrap();
         assert!(center_cell.state.value <= 8);
     }
 
@@ -719,13 +771,14 @@ mod tests {
             initial_state,
             BoundaryPolicy::Clamp,
             default_rule,
+            None,
             NeighborhoodType::Immediate,
-        );
+        ).unwrap();
 
         // Define a custom rule that always returns value 42
         fn custom_rule(
             _grid: &DiscreteRuleField<SimpleState>,
-            _cell_coords: Point<usize>,
+            _cell_coords: GridCoord,
             _neighborhood_type: NeighborhoodType,
             _boundary_policy: BoundaryPolicy,
         ) -> SimpleState {
@@ -735,7 +788,7 @@ mod tests {
         let custom_rule_set = RuleSet::new(NeighborhoodType::Orthogonal, custom_rule);
 
         // Set custom rule for specific cell
-        let custom_cell = Point::new(2, 2);
+        let custom_cell = GridCoord::new(2, 2);
         field.set_cell_rule(custom_cell, custom_rule_set).unwrap();
 
         // Verify the cell uses the custom rule
@@ -745,7 +798,7 @@ mod tests {
         // Update the field
         field.update(Some(UpdateConfig::new(
             NeighborhoodType::Immediate,
-            Point::new(2, 2),
+            GridCoord::new(2, 2),
             true,
         )));
 
@@ -754,7 +807,7 @@ mod tests {
         assert_eq!(cell_with_custom_rule.state.value, 42);
 
         // Other cells should use the default rule (averaging)
-        let other_cell = field.get_cell(Point::new(0, 0)).unwrap();
+        let other_cell = field.get_cell(GridCoord::new(0, 0)).unwrap();
         assert_eq!(other_cell.state.value, 0); // No neighbors with different values
 
         // Reset the cell rule
@@ -763,6 +816,101 @@ mod tests {
         // Verify it now uses the default rule
         let rule_after_reset = field.get_cell_rule(custom_cell);
         assert_eq!(rule_after_reset.neighborhood_type, NeighborhoodType::Immediate);
+    }
+
+    #[test]
+    fn test_constructor_with_custom_rules() {
+        let dimensions = Dimensions2d::new(5, 5);
+        let initial_state = SimpleState { value: 0 };
+        let default_rule = RuleSet::new(NeighborhoodType::Immediate, simple_rule);
+
+        // Define a custom rule that always returns value 99
+        fn custom_rule(
+            _grid: &DiscreteRuleField<SimpleState>,
+            _cell_coords: GridCoord,
+            _neighborhood_type: NeighborhoodType,
+            _boundary_policy: BoundaryPolicy,
+        ) -> SimpleState {
+            SimpleState { value: 99 }
+        }
+
+        let custom_rule_set = RuleSet::new(NeighborhoodType::Orthogonal, custom_rule);
+
+        // Create field with custom rules at construction
+        let custom_rules = vec![
+            (GridCoord::new(1, 1), custom_rule_set.clone()),
+            (GridCoord::new(3, 3), custom_rule_set.clone()),
+        ];
+
+        let mut field = DiscreteRuleField::<SimpleState>::new(
+            dimensions,
+            initial_state,
+            BoundaryPolicy::Clamp,
+            default_rule,
+            Some(custom_rules),
+            NeighborhoodType::Immediate,
+        ).unwrap();
+
+        // Verify custom rules are applied
+        let rule1 = field.get_cell_rule(GridCoord::new(1, 1));
+        assert_eq!(rule1.neighborhood_type, NeighborhoodType::Orthogonal);
+
+        let rule2 = field.get_cell_rule(GridCoord::new(3, 3));
+        assert_eq!(rule2.neighborhood_type, NeighborhoodType::Orthogonal);
+
+        // Verify other cells use default rule
+        let default_cell_rule = field.get_cell_rule(GridCoord::new(0, 0));
+        assert_eq!(default_cell_rule.neighborhood_type, NeighborhoodType::Immediate);
+
+        // Update and verify custom rule behavior
+        field.update(Some(UpdateConfig::new(
+            NeighborhoodType::Immediate,
+            GridCoord::new(2, 2),
+            true,
+        )));
+
+        let cell1 = field.get_cell(GridCoord::new(1, 1)).unwrap();
+        assert_eq!(cell1.state.value, 99);
+
+        let cell2 = field.get_cell(GridCoord::new(3, 3)).unwrap();
+        assert_eq!(cell2.state.value, 99);
+    }
+
+    #[test]
+    fn test_constructor_validates_coordinates() {
+        let dimensions = Dimensions2d::new(5, 5);
+        let initial_state = SimpleState { value: 0 };
+        let default_rule = RuleSet::new(NeighborhoodType::Immediate, simple_rule);
+
+        fn custom_rule(
+            _grid: &DiscreteRuleField<SimpleState>,
+            _cell_coords: GridCoord,
+            _neighborhood_type: NeighborhoodType,
+            _boundary_policy: BoundaryPolicy,
+        ) -> SimpleState {
+            SimpleState { value: 99 }
+        }
+
+        let custom_rule_set = RuleSet::new(NeighborhoodType::Orthogonal, custom_rule);
+
+        // Try to create field with out-of-bounds coordinate
+        let custom_rules = vec![
+            (GridCoord::new(10, 10), custom_rule_set), // Out of bounds!
+        ];
+
+        let result = DiscreteRuleField::<SimpleState>::new(
+            dimensions,
+            initial_state,
+            BoundaryPolicy::Clamp,
+            default_rule,
+            Some(custom_rules),
+            NeighborhoodType::Immediate,
+        );
+
+        assert!(result.is_err());
+        if let Err(error_msg) = result {
+            assert!(error_msg.contains("out of bounds"));
+        }
     }
 }
 
