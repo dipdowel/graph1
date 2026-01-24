@@ -1,6 +1,7 @@
 use crate::primitives::neighborhood::NeighborhoodType;
 use crate::primitives::plane::Dimensions2d;
 use crate::primitives::point::Point;
+use crate::primitives::math::GridCoord;
 use std::fmt::Debug;
 
 /// Defines how to handle cells at the edge of the grid.
@@ -36,7 +37,7 @@ impl<CellState: Clone> Cell<CellState> {
 /// Returns: The new state for the cell
 pub type RuleFn<CellState> = fn(
     grid: &DiscreteRuleField<CellState>,
-    cell_coords: Point<usize>,
+    cell_coords: GridCoord,
     neighborhood_type: NeighborhoodType,
     boundary_policy: BoundaryPolicy,
 ) -> CellState;
@@ -64,7 +65,7 @@ pub struct UpdateConfig {
     /// Neighborhood type used by the update function.
     pub update_neighborhood: NeighborhoodType,
     /// Center point of the update neighborhood.
-    pub update_neighborhood_center: Point<usize>,
+    pub update_neighborhood_center: GridCoord,
     /// If true, the whole field gets updated and `update_neighborhood` and `update_neighborhood_center` are ignored
     pub update_whole_field: bool,
 }
@@ -72,7 +73,7 @@ pub struct UpdateConfig {
 impl UpdateConfig {
     pub fn new(
         update_neighborhood: NeighborhoodType,
-        update_neighborhood_center: Point<usize>,
+        update_neighborhood_center: GridCoord,
         update_whole_field: bool,
     ) -> Self {
         UpdateConfig {
@@ -178,7 +179,7 @@ impl<CellState: Clone> DiscreteRuleField<CellState> {
     /// let custom_rule = RuleSet::new(NeighborhoodType::Orthogonal, my_rule_fn);
     /// field.set_cell_rule(Point::new(5, 5), custom_rule)?;
     /// ```
-    pub fn set_cell_rule(&mut self, coords: Point<usize>, rule_set: RuleSet<CellState>) -> Result<(), String> {
+    pub fn set_cell_rule(&mut self, coords: GridCoord, rule_set: RuleSet<CellState>) -> Result<(), String> {
         let adjusted = self
             .apply_boundary_policy(coords)
             .ok_or("Coordinates out of bounds")?;
@@ -214,7 +215,7 @@ impl<CellState: Clone> DiscreteRuleField<CellState> {
     /// ```ignore
     /// field.reset_cell_rule(Point::new(5, 5))?;
     /// ```
-    pub fn reset_cell_rule(&mut self, coords: Point<usize>) -> Result<(), String> {
+    pub fn reset_cell_rule(&mut self, coords: GridCoord) -> Result<(), String> {
         let adjusted = self
             .apply_boundary_policy(coords)
             .ok_or("Coordinates out of bounds")?;
@@ -243,7 +244,7 @@ impl<CellState: Clone> DiscreteRuleField<CellState> {
     /// ```ignore
     /// let rule = field.get_cell_rule(Point::new(5, 5));
     /// ```
-    pub fn get_cell_rule(&self, coords: Point<usize>) -> &RuleSet<CellState> {
+    pub fn get_cell_rule(&self, coords: GridCoord) -> &RuleSet<CellState> {
         let index = self.coords_to_index(coords);
         match self.rule_indices.get(index) {
             Some(Some(override_idx)) => &self.override_rules[*override_idx],
@@ -252,7 +253,7 @@ impl<CellState: Clone> DiscreteRuleField<CellState> {
     }
 
     /// Gets a cell at the given coordinates (with boundary policy applied).
-    pub fn get_cell(&self, coords: Point<usize>) -> Option<&Cell<CellState>> {
+    pub fn get_cell(&self, coords: GridCoord) -> Option<&Cell<CellState>> {
         let adjusted = self.apply_boundary_policy(coords)?;
         let index = self.coords_to_index(adjusted);
         self.grid.get(index)
@@ -267,14 +268,14 @@ impl<CellState: Clone> DiscreteRuleField<CellState> {
     ///     cell.state = new_state;
     /// }
     /// ```
-    pub fn get_cell_mut(&mut self, coords: Point<usize>) -> Option<&mut Cell<CellState>> {
+    pub fn get_cell_mut(&mut self, coords: GridCoord) -> Option<&mut Cell<CellState>> {
         let adjusted = self.apply_boundary_policy(coords)?;
         let index = self.coords_to_index(adjusted);
         self.grid.get_mut(index)
     }
 
     /// Gets a cell at the given coordinates without boundary checks (unsafe but fast).
-    pub fn get_cell_unchecked(&self, coords: Point<usize>) -> &Cell<CellState> {
+    pub fn get_cell_unchecked(&self, coords: GridCoord) -> &Cell<CellState> {
         let index = self.coords_to_index(coords);
         &self.grid[index]
     }
@@ -293,7 +294,7 @@ impl<CellState: Clone> DiscreteRuleField<CellState> {
     ///     cell.state = new_state;
     /// }
     /// ```
-    pub fn get_cell_unchecked_mut(&mut self, coords: Point<usize>) -> &mut Cell<CellState> {
+    pub fn get_cell_unchecked_mut(&mut self, coords: GridCoord) -> &mut Cell<CellState> {
         let index = self.coords_to_index(coords);
         &mut self.grid[index]
     }
@@ -312,7 +313,7 @@ impl<CellState: Clone> DiscreteRuleField<CellState> {
     /// ```ignore
     /// field.set_cell(Point::new(5, 5), new_state)?;
     /// ```
-    pub fn set_cell(&mut self, coords: Point<usize>, state: CellState) -> Result<(), String> {
+    pub fn set_cell(&mut self, coords: GridCoord, state: CellState) -> Result<(), String> {
         let adjusted = self
             .apply_boundary_policy(coords)
             .ok_or("Coordinates out of bounds")?;
@@ -328,9 +329,9 @@ impl<CellState: Clone> DiscreteRuleField<CellState> {
     /// Gets the neighbor coordinates based on the neighborhood type and center coordinates.
     pub fn get_neighbors(
         &self,
-        center: Point<usize>,
+        center: GridCoord,
         neighborhood: NeighborhoodType,
-    ) -> Vec<Point<usize>> {
+    ) -> Vec<GridCoord> {
         let mut neighbors = Vec::new();
 
         match neighborhood {
@@ -454,7 +455,7 @@ impl<CellState: Clone> DiscreteRuleField<CellState> {
     }
 
     /// Gets all cells that should be processed based on the update neighborhood.
-    fn get_cells_to_process(&self, config:&UpdateConfig) -> Vec<Point<usize>> {
+    fn get_cells_to_process(&self, config:&UpdateConfig) -> Vec<GridCoord> {
         if config.update_whole_field {
             let mut cells = Vec::with_capacity(self.dimensions.w * self.dimensions.h);
             for y in 0..self.dimensions.h {
@@ -479,7 +480,7 @@ impl<CellState: Clone> DiscreteRuleField<CellState> {
     }
 
     /// Gets the rule set for a specific cell.
-    fn get_rule_set_for_cell(&self, coords: Point<usize>) -> &RuleSet<CellState> {
+    fn get_rule_set_for_cell(&self, coords: GridCoord) -> &RuleSet<CellState> {
         let index = self.coords_to_index(coords);
         match self.rule_indices.get(index) {
             Some(Some(override_idx)) => &self.override_rules[*override_idx],
@@ -498,7 +499,7 @@ impl<CellState: Clone> DiscreteRuleField<CellState> {
     }
 
     /// Applies boundary policy to coordinates.
-    fn apply_boundary_policy(&self, coords: Point<usize>) -> Option<Point<usize>> {
+    fn apply_boundary_policy(&self, coords: GridCoord) -> Option<GridCoord> {
         match self.boundary_policy {
             BoundaryPolicy::Clamp => Some(Point::new(
                 coords.x.min(self.dimensions.w - 1),
@@ -525,7 +526,7 @@ impl<CellState: Clone> DiscreteRuleField<CellState> {
     }
 
     /// Applies an offset to coordinates with boundary policy handling.
-    fn apply_offset(&self, coords: Point<usize>, dx: i32, dy: i32) -> Option<Point<usize>> {
+    fn apply_offset(&self, coords: GridCoord, dx: i32, dy: i32) -> Option<GridCoord> {
         let new_x = coords.x as i32 + dx;
         let new_y = coords.y as i32 + dy;
 
