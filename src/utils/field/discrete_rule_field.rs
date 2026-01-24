@@ -109,7 +109,7 @@ impl<CellState: Clone> DiscreteRuleField<CellState> {
     /// Creates a new discrete rule field with uniform rule assignment.
     /// All cells will initially use the provided default rule.
     /// Individual cells can be assigned custom rules using `set_cell_rule()`.
-    pub fn new_uniform(
+    pub fn new(
         dimensions: Dimensions2d<usize>,
         initial_state: CellState,
         boundary_policy: BoundaryPolicy,
@@ -623,7 +623,7 @@ mod tests {
         let initial_state = SimpleState { value: 0 };
         let rule_set = RuleSet::new(NeighborhoodType::Immediate, simple_rule);
 
-        let field = DiscreteRuleField::<SimpleState>::new_uniform(
+        let field = DiscreteRuleField::<SimpleState>::new(
             dimensions,
             initial_state,
             BoundaryPolicy::Clamp,
@@ -642,7 +642,7 @@ mod tests {
         let initial_state = SimpleState { value: 0 };
         let rule_set = RuleSet::new(NeighborhoodType::Immediate, simple_rule);
 
-        let field = DiscreteRuleField::<SimpleState>::new_uniform(
+        let field = DiscreteRuleField::<SimpleState>::new(
             dimensions,
             initial_state,
             BoundaryPolicy::Clamp,
@@ -662,7 +662,7 @@ mod tests {
         let initial_state = SimpleState { value: 0 };
         let rule_set = RuleSet::new(NeighborhoodType::Orthogonal, simple_rule);
 
-        let field = DiscreteRuleField::<SimpleState>::new_uniform(
+        let field = DiscreteRuleField::<SimpleState>::new(
             dimensions,
             initial_state,
             BoundaryPolicy::Clamp,
@@ -682,7 +682,7 @@ mod tests {
         let initial_state = SimpleState { value: 1 };
         let rule_set = RuleSet::new(NeighborhoodType::Immediate, simple_rule);
 
-        let mut field = DiscreteRuleField::<SimpleState>::new_uniform(
+        let mut field = DiscreteRuleField::<SimpleState>::new(
             dimensions,
             initial_state,
             BoundaryPolicy::Clamp,
@@ -713,7 +713,7 @@ mod tests {
         let initial_state = SimpleState { value: 0 };
         let default_rule = RuleSet::new(NeighborhoodType::Immediate, simple_rule);
 
-        let mut field = DiscreteRuleField::<SimpleState>::new_uniform(
+        let mut field = DiscreteRuleField::<SimpleState>::new(
             dimensions,
             initial_state,
             BoundaryPolicy::Clamp,
