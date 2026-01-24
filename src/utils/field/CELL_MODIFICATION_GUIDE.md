@@ -183,13 +183,13 @@ fn main() {
     let initial_state = MyState { temperature: 20.0, color: 0xFF0000 };
     let rule_set = RuleSet::new(NeighborhoodType::Immediate, my_rule);
     
-    let mut field = DiscreteRuleField::new_uniform(
+    let mut field = DiscreteRuleField::new_simple(
         dimensions,
         initial_state,
         BoundaryPolicy::Wrap,
         rule_set,
         NeighborhoodType::Immediate,
-    );
+    )?;
     
     // Method 1: Set a specific cell
     field.set_cell(

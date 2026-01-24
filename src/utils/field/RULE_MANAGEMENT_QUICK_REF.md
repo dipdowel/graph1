@@ -13,13 +13,13 @@ let dimensions = Dimensions2d::new(100, 100);
 let initial_state = MyState { value: 0 };
 let default_rule = RuleSet::new(NeighborhoodType::Immediate, my_rule_fn);
 
-let mut field = DiscreteRuleField::new_uniform(
+let mut field = DiscreteRuleField::new_simple(
     dimensions,
     initial_state,
     BoundaryPolicy::Wrap,
     default_rule,
     NeighborhoodType::Immediate,
-);
+)?;
 ```
 
 ## Managing Rules

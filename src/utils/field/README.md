@@ -179,13 +179,13 @@ field.update(None);
 ```ignore
 // Create field with default rule
 let default_rule = RuleSet::new(NeighborhoodType::Immediate, averaging_rule);
-let mut field = DiscreteRuleField::new_uniform(
+let mut field = DiscreteRuleField::new_simple(
     dimensions,
     initial_state,
     BoundaryPolicy::Wrap,
     default_rule,
     NeighborhoodType::Immediate,
-);
+)?;
 
 // Set custom rule for specific cells (e.g., heat sources)
 fn heat_source_rule(...) -> MyState {

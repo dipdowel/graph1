@@ -106,12 +106,17 @@ pub struct DiscreteRuleField<CellState: Clone> {
 }
 
 impl<CellState: Clone> DiscreteRuleField<CellState> {
-    /// Creates a new discrete rule field with optional per-cell rule overrides.
-    /// All cells will initially use the provided default rule unless overridden.
+    /// Creates a new discrete rule field with flexible initial state generation.
+    /// Each cell's initial state is computed by the provided generator function.
     ///
     /// # Arguments
     /// * `dimensions` - Grid dimensions (width × height)
-    /// * `initial_state` - Initial state for all cells
+    /// * `init_fn` - Generator function called for each cell. Receives:
+    ///   - `index`: Linear cell index (0..capacity-1)
+    ///   - `dimensions`: Reference to grid dimensions
+    ///   - `coords`: Cell coordinates (x, y)
+    ///   - `init_data`: Reference to user-provided initialization data
+    /// * `init_data` - User data passed to the generator function (can be `&()` if unused)
     /// * `boundary_policy` - How to handle edge cells
     /// * `default_rule_set` - Default rule applied to all cells
     /// * `custom_rule_sets` - Optional list of (coordinate, rule) pairs for per-cell overrides
@@ -123,29 +128,61 @@ impl<CellState: Clone> DiscreteRuleField<CellState> {
     ///
     /// # Example
     /// ```ignore
+    /// // Simple uniform initialization
     /// let field = DiscreteRuleField::new(
     ///     Dimensions2d::new(10, 10),
-    ///     initial_state,
+    ///     |_, _, _, _| MyState { value: 0 },
+    ///     &(),
     ///     BoundaryPolicy::Wrap,
     ///     default_rule,
-    ///     Some(vec![
-    ///         (Point::new(5, 5), heat_source_rule),
-    ///         (Point::new(8, 3), custom_rule),
-    ///     ]),
+    ///     None,
+    ///     NeighborhoodType::Immediate,
+    /// )?;
+    ///
+    /// // Position-based initialization with custom data
+    /// struct InitData { scale: f32 }
+    /// let init_data = InitData { scale: 0.5 };
+    /// let field = DiscreteRuleField::new(
+    ///     Dimensions2d::new(10, 10),
+    ///     |idx, dims, coords, data| {
+    ///         MyState {
+    ///             value: (coords.x as f32 * data.scale) as u32
+    ///         }
+    ///     },
+    ///     &init_data,
+    ///     BoundaryPolicy::Wrap,
+    ///     default_rule,
+    ///     None,
     ///     NeighborhoodType::Immediate,
     /// )?;
     /// ```
-    pub fn new(
+    pub fn new<F, InitialStateData>(
         dimensions: Dimensions2d<usize>,
-        initial_state: CellState,
+        init_fn: F,
+        init_data: &InitialStateData,
         boundary_policy: BoundaryPolicy,
         default_rule_set: RuleSet<CellState>,
         custom_rule_sets: Option<Vec<(GridCoord, RuleSet<CellState>)>>,
         update_neighborhood: NeighborhoodType,
-    ) -> Result<Self, String> {
+    ) -> Result<Self, String>
+    where
+        F: Fn(usize, &Dimensions2d<usize>, GridCoord, &InitialStateData) -> CellState,
+    {
         let capacity = dimensions.w * dimensions.h;
-        let grid = vec![Cell::new(initial_state.clone()); capacity];
-        let next_grid = vec![Cell::new(initial_state); capacity];
+
+        // Initialize grid cells using the generator function
+        let mut grid = Vec::with_capacity(capacity);
+        let mut next_grid = Vec::with_capacity(capacity);
+
+        for index in 0..capacity {
+            let x = index % dimensions.w;
+            let y = index / dimensions.w;
+            let coords = GridCoord::new(x, y);
+            let state = init_fn(index, &dimensions, coords, init_data);
+            grid.push(Cell::new(state.clone()));
+            next_grid.push(Cell::new(state));
+        }
+
         let mut rule_indices = vec![None; capacity]; // All cells use default rule initially
         let mut override_rules = Vec::new();
 
@@ -184,6 +221,48 @@ impl<CellState: Clone> DiscreteRuleField<CellState> {
                 false,
             )
         })
+    }
+
+    /// Creates a new discrete rule field with uniform initial state (convenience constructor).
+    /// All cells will start with the same state, and only the default rule is used.
+    ///
+    /// # Arguments
+    /// * `dimensions` - Grid dimensions (width × height)
+    /// * `initial_state` - Initial state for all cells
+    /// * `boundary_policy` - How to handle edge cells
+    /// * `rule_set` - Rule applied to all cells
+    /// * `update_neighborhood` - Neighborhood type for updates
+    ///
+    /// # Returns
+    /// * `Ok(Self)` if field was created successfully
+    /// * `Err(String)` if creation fails
+    ///
+    /// # Example
+    /// ```ignore
+    /// let field = DiscreteRuleField::new_simple(
+    ///     Dimensions2d::new(10, 10),
+    ///     MyState { value: 0 },
+    ///     BoundaryPolicy::Clamp,
+    ///     RuleSet::new(NeighborhoodType::Immediate, my_rule),
+    ///     NeighborhoodType::Immediate,
+    /// )?;
+    /// ```
+    pub fn new_simple(
+        dimensions: Dimensions2d<usize>,
+        initial_state: CellState,
+        boundary_policy: BoundaryPolicy,
+        rule_set: RuleSet<CellState>,
+        update_neighborhood: NeighborhoodType,
+    ) -> Result<Self, String> {
+        Self::new(
+            dimensions,
+            |_, _, _, _| initial_state.clone(),
+            &(),
+            boundary_policy,
+            rule_set,
+            None, // No custom rule sets
+            update_neighborhood,
+        )
     }
 
     /// Returns the dimensions of the field.
@@ -672,12 +751,11 @@ mod tests {
         let initial_state = SimpleState { value: 0 };
         let rule_set = RuleSet::new(NeighborhoodType::Immediate, simple_rule);
 
-        let field = DiscreteRuleField::<SimpleState>::new(
+        let field = DiscreteRuleField::<SimpleState>::new_simple(
             dimensions,
             initial_state,
             BoundaryPolicy::Clamp,
             rule_set,
-            None, // No custom rules
             NeighborhoodType::Immediate,
         ).unwrap();
 
@@ -692,12 +770,11 @@ mod tests {
         let initial_state = SimpleState { value: 0 };
         let rule_set = RuleSet::new(NeighborhoodType::Immediate, simple_rule);
 
-        let field = DiscreteRuleField::<SimpleState>::new(
+        let field = DiscreteRuleField::<SimpleState>::new_simple(
             dimensions,
             initial_state,
             BoundaryPolicy::Clamp,
             rule_set,
-            None,
             NeighborhoodType::Immediate,
         ).unwrap();
 
@@ -713,12 +790,11 @@ mod tests {
         let initial_state = SimpleState { value: 0 };
         let rule_set = RuleSet::new(NeighborhoodType::Orthogonal, simple_rule);
 
-        let field = DiscreteRuleField::<SimpleState>::new(
+        let field = DiscreteRuleField::<SimpleState>::new_simple(
             dimensions,
             initial_state,
             BoundaryPolicy::Clamp,
             rule_set,
-            None,
             NeighborhoodType::Orthogonal,
         ).unwrap();
 
@@ -734,12 +810,11 @@ mod tests {
         let initial_state = SimpleState { value: 1 };
         let rule_set = RuleSet::new(NeighborhoodType::Immediate, simple_rule);
 
-        let mut field = DiscreteRuleField::<SimpleState>::new(
+        let mut field = DiscreteRuleField::<SimpleState>::new_simple(
             dimensions,
             initial_state,
             BoundaryPolicy::Clamp,
             rule_set,
-            None,
             NeighborhoodType::Immediate,
         ).unwrap();
 
@@ -766,12 +841,11 @@ mod tests {
         let initial_state = SimpleState { value: 0 };
         let default_rule = RuleSet::new(NeighborhoodType::Immediate, simple_rule);
 
-        let mut field = DiscreteRuleField::<SimpleState>::new(
+        let mut field = DiscreteRuleField::<SimpleState>::new_simple(
             dimensions,
             initial_state,
             BoundaryPolicy::Clamp,
             default_rule,
-            None,
             NeighborhoodType::Immediate,
         ).unwrap();
 
@@ -844,7 +918,8 @@ mod tests {
 
         let mut field = DiscreteRuleField::<SimpleState>::new(
             dimensions,
-            initial_state,
+            |_, _, _, _| initial_state,
+            &(),
             BoundaryPolicy::Clamp,
             default_rule,
             Some(custom_rules),
@@ -900,7 +975,8 @@ mod tests {
 
         let result = DiscreteRuleField::<SimpleState>::new(
             dimensions,
-            initial_state,
+            |_, _, _, _| initial_state,
+            &(),
             BoundaryPolicy::Clamp,
             default_rule,
             Some(custom_rules),
@@ -912,5 +988,69 @@ mod tests {
             assert!(error_msg.contains("out of bounds"));
         }
     }
+
+    #[test]
+    fn test_flexible_initialization_with_generator() {
+        // Test position-based initialization using the generator function
+        let dimensions = Dimensions2d::new(10, 10);
+        let rule_set = RuleSet::new(NeighborhoodType::Immediate, simple_rule);
+
+        // Initialize cells based on their position - create a gradient
+        let field = DiscreteRuleField::<SimpleState>::new(
+            dimensions,
+            |_index, _dims, coords, _data| {
+                // Create a horizontal gradient: value increases with x coordinate
+                SimpleState { value: (coords.x * 10) as u8 }
+            },
+            &(),
+            BoundaryPolicy::Clamp,
+            rule_set.clone(),
+            None,
+            NeighborhoodType::Immediate,
+        ).unwrap();
+
+        // Verify gradient pattern
+        assert_eq!(field.get_cell(GridCoord::new(0, 0)).unwrap().state.value, 0);
+        assert_eq!(field.get_cell(GridCoord::new(1, 0)).unwrap().state.value, 10);
+        assert_eq!(field.get_cell(GridCoord::new(5, 0)).unwrap().state.value, 50);
+        assert_eq!(field.get_cell(GridCoord::new(9, 0)).unwrap().state.value, 90);
+
+        // Values should be the same in each column
+        assert_eq!(field.get_cell(GridCoord::new(5, 5)).unwrap().state.value, 50);
+    }
+
+    #[test]
+    fn test_initialization_with_custom_data() {
+        // Test initialization with user-provided data
+        struct InitData {
+            scale: f32,
+            offset: u8,
+        }
+
+        let dimensions = Dimensions2d::new(5, 5);
+        let rule_set = RuleSet::new(NeighborhoodType::Immediate, simple_rule);
+        let init_data = InitData { scale: 2.0, offset: 100 };
+
+        let field = DiscreteRuleField::<SimpleState>::new(
+            dimensions,
+            |index, _dims, _coords, data| {
+                // Use index and custom data to initialize
+                SimpleState {
+                    value: ((index as f32 * data.scale) as u8).saturating_add(data.offset)
+                }
+            },
+            &init_data,
+            BoundaryPolicy::Clamp,
+            rule_set,
+            None,
+            NeighborhoodType::Immediate,
+        ).unwrap();
+
+        // Verify custom initialization
+        assert_eq!(field.get_cell(GridCoord::new(0, 0)).unwrap().state.value, 100); // 0 * 2.0 + 100
+        assert_eq!(field.get_cell(GridCoord::new(1, 0)).unwrap().state.value, 102); // 1 * 2.0 + 100
+        assert_eq!(field.get_cell(GridCoord::new(2, 0)).unwrap().state.value, 104); // 2 * 2.0 + 100
+    }
 }
+
 
