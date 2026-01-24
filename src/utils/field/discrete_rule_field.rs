@@ -71,11 +71,11 @@ pub enum RuleAssignment<CellState: Clone> {
 /// Configuration for how the field should be updated.
 pub struct UpdateConfig {
     /// Neighborhood type used by the update function.
-    update_neighborhood: NeighborhoodType,
+    pub update_neighborhood: NeighborhoodType,
     /// Center point of the update neighborhood.
-    update_neighborhood_center: Point<usize>,
+    pub update_neighborhood_center: Point<usize>,
     /// If true, the whole field gets updated and `update_neighborhood` and `update_neighborhood_center` are ignored
-    update_whole_field: bool,
+    pub update_whole_field: bool,
 }
 
 impl UpdateConfig {
@@ -105,7 +105,7 @@ pub struct DiscreteRuleField<CellState: Clone> {
     /// Rule assignment strategy.
     rule_assignment: RuleAssignment<CellState>,
     /// details on how exactly the field needs to be updated
-    update_config: UpdateConfig
+    pub update_config: UpdateConfig
 
 }
 
@@ -393,13 +393,17 @@ impl<CellState: Clone> DiscreteRuleField<CellState> {
             }
             return cells;
         } else {
+            // Get cells in the update neighborhood around the center point
+            let mut cells = self.get_neighbors(
+                config.update_neighborhood_center,
+                config.update_neighborhood,
+            );
 
-            // TODO: Implement optimized cell selection based on neighborhood type and the center point
-            // TODO: from the provided `config`
+            // Include the center cell itself
+            cells.push(config.update_neighborhood_center);
 
-
+            cells
         }
-
 
     }
 

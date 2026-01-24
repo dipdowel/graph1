@@ -82,15 +82,25 @@ Defines edge behavior:
 - **Wrap**: Toroidal topology (coordinates wrap around)
 - **Mirror**: Reflect at boundaries
 
+#### `UpdateConfig`
+Controls which cells get updated during each time step:
+- **update_whole_field**: When true, all cells are processed
+- **update_neighborhood**: The neighborhood type around the center to update
+- **update_neighborhood_center**: The focal point of the update region
+
+This allows efficient localized updates when only a portion of the field needs to be recalculated (e.g., around a user interaction point).
+
 ### Features
 
 - **Double buffering**: Ensures synchronous updates (all cells update based on the same previous state)
+- **Localized updates**: Option to update only cells within a specific neighborhood (performance optimization)
 - **Flexible neighborhoods**: Immediate (Moore), Orthogonal (Von Neumann), Diagonal, Square, Circle, Diamond
 - **Customizable rules**: User-defined functions with full access to grid state
 - **Boundary policies**: Clamp, Wrap, or Mirror for handling edge cases
 - **Per-cell or uniform rules**: Different cells can follow different rules
 - **Generic cell state**: Store any cloneable data type
 - **Cache-friendly**: Row-major storage and scanline processing
+- **Cell iteration and modification**: Multiple methods for reading and modifying cell states
 
 ### Use Cases
 
@@ -108,8 +118,10 @@ Defines edge behavior:
 2. Create a rule function that examines neighbors and returns new state
 3. Create a `RuleSet` with your rule and desired neighborhood type
 4. Initialize a `DiscreteRuleField` with dimensions and initial state
-5. Call `update()` repeatedly to evolve the field over time
-6. Read cell states to visualize or process results
+5. Optionally modify individual cells using `set_cell()` or `get_cell_mut()`
+6. Call `update()` to evolve the entire field, or `update(Some(UpdateConfig::new(...)))` for localized updates
+7. Iterate over cells using `grid()` or `grid_mut()` to read/modify states
+8. Read cell states to visualize or process results
 
 ### Example: Simple Averaging Rule
 
@@ -129,6 +141,32 @@ fn averaging_rule(
     let avg = sum / neighbors.len() as u32;
     MyState { value: avg as u8 }
 }
+```
+
+### Example: Localized Updates
+
+```rust
+// Update the entire field
+field.update(None);
+
+// Or update only a specific region (e.g., around user interaction)
+let mouse_position = Point::new(50, 50);
+let localized_config = UpdateConfig::new(
+    NeighborhoodType::Circle { radius: 10 },
+    mouse_position,
+    false, // don't update whole field
+);
+field.update(Some(localized_config));
+
+// You can also set a persistent update configuration
+let persistent_config = UpdateConfig::new(
+    NeighborhoodType::Circle { radius: 15 },
+    Point::new(75, 75),
+    false,
+);
+field.set_update_config(persistent_config);
+// Now all subsequent calls to field.update(None) will use this configuration
+field.update(None);
 ```
 
 ---

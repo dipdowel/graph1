@@ -169,10 +169,65 @@ fn main() {
         }
     }
     
-    // Now update the field
-    field.update();
+    // Update the entire field (traditional CA evolution)
+    field.update(None);
+    
+    // Or do a localized update around a point of interest
+    let interaction_point = Point::new(50, 50);
+    let localized_config = UpdateConfig::new(
+        NeighborhoodType::Circle { radius: 15 },
+        interaction_point,
+        false,
+    );
+    field.update(Some(localized_config));
 }
 ```
+
+## Update Modes
+
+The `DiscreteRuleField` supports two update modes:
+
+### Full Field Update
+```rust
+// Update all cells in the field
+field.update(None);
+```
+
+### Localized Update (One-time)
+```rust
+// Update only cells in a specific neighborhood for this single update
+let update_config = UpdateConfig::new(
+    NeighborhoodType::Circle { radius: 10 },
+    Point::new(50, 50), // center point
+    false, // don't update whole field
+);
+field.update(Some(update_config));
+```
+
+### Localized Update (Persistent)
+```rust
+// Set a persistent update configuration
+let persistent_config = UpdateConfig::new(
+    NeighborhoodType::Circle { radius: 10 },
+    Point::new(50, 50), // center point
+    false,
+);
+field.set_update_config(persistent_config);
+
+// Now all subsequent calls to update(None) will use this configuration
+field.update(None); // Uses persistent config
+field.update(None); // Still uses persistent config
+
+// You can override it temporarily with a one-time config
+field.update(Some(other_config));
+
+// Or update the persistent config
+field.set_update_config(new_persistent_config);
+```
+
+**Performance tip:** Use localized updates when only a small region changes (e.g., around user interaction) to avoid recalculating the entire field.
+
+---
 
 ## Performance Tips
 
@@ -180,6 +235,7 @@ fn main() {
 2. **Use `get_cell_mut()` for complex state modifications** - Avoids cloning
 3. **Use `get_cell_unchecked_mut()` in verified loops** - Maximum performance
 4. **Use `grid_mut()` for bulk operations** - Most efficient for many cells
+5. **Use localized updates** - When only a region needs updating, use `UpdateConfig` to avoid processing the entire field
 
 ## Thread Safety
 
