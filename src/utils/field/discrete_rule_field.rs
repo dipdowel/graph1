@@ -68,6 +68,30 @@ pub enum RuleAssignment<CellState: Clone> {
     PerCell(Vec<RuleSet<CellState>>),
 }
 
+/// Configuration for how the field should be updated.
+pub struct UpdateConfig {
+    /// Neighborhood type used by the update function.
+    update_neighborhood: NeighborhoodType,
+    /// Center point of the update neighborhood.
+    update_neighborhood_center: Point<usize>,
+    /// If true, the whole field gets updated and `update_neighborhood` and `update_neighborhood_center` are ignored
+    update_whole_field: bool,
+}
+
+impl UpdateConfig {
+    pub fn new(
+        update_neighborhood: NeighborhoodType,
+        update_neighborhood_center: Point<usize>,
+        update_whole_field: bool,
+    ) -> Self {
+        UpdateConfig {
+            update_neighborhood,
+            update_neighborhood_center,
+            update_whole_field,
+        }
+    }
+}
+
 /// A 2D discrete rule field that implements cellular automaton / rule-based stencil computation.
 pub struct DiscreteRuleField<CellState: Clone> {
     /// Current state grid (row-major order).
@@ -80,8 +104,9 @@ pub struct DiscreteRuleField<CellState: Clone> {
     boundary_policy: BoundaryPolicy,
     /// Rule assignment strategy.
     rule_assignment: RuleAssignment<CellState>,
-    /// Neighborhood type used by the update function.
-    update_neighborhood: NeighborhoodType,
+    /// details on how exactly the field needs to be updated
+    update_config: UpdateConfig
+
 }
 
 impl<CellState: Clone> DiscreteRuleField<CellState> {
@@ -103,7 +128,11 @@ impl<CellState: Clone> DiscreteRuleField<CellState> {
             dimensions,
             boundary_policy,
             rule_assignment: RuleAssignment::Uniform(rule_set),
-            update_neighborhood,
+            update_config: UpdateConfig::new(
+                update_neighborhood,
+                Point::new(dimensions.w / 2, dimensions.h / 2),
+                false,
+            )
         }
     }
 
@@ -133,7 +162,11 @@ impl<CellState: Clone> DiscreteRuleField<CellState> {
             dimensions,
             boundary_policy,
             rule_assignment: RuleAssignment::PerCell(rule_sets),
-            update_neighborhood,
+            update_config: UpdateConfig::new(
+                update_neighborhood,
+                Point::new(dimensions.w / 2, dimensions.h / 2),
+                false,
+            )
         })
     }
 
@@ -319,9 +352,18 @@ impl<CellState: Clone> DiscreteRuleField<CellState> {
 
     /// Updates the field by one time step using the assigned rules.
     /// This reads from the current grid and writes to the next grid, then swaps them.
-    pub fn update(&mut self) {
+    pub fn update(&mut self, one_time_config:Option<UpdateConfig>) {
+
+
+        let mut config = &self.update_config;
+
+        if one_time_config.is_some(){
+            config = one_time_config.as_ref().unwrap();
+        }
+
+
         // Process all cells based on the update neighborhood
-        let cells_to_process = self.get_cells_to_process(self.update_neighborhood);
+        let cells_to_process = self.get_cells_to_process(config);
 
         for cell_coords in cells_to_process {
             let rule_set = self.get_rule_set_for_cell(cell_coords);
@@ -341,16 +383,24 @@ impl<CellState: Clone> DiscreteRuleField<CellState> {
     }
 
     /// Gets all cells that should be processed based on the update neighborhood.
-    fn get_cells_to_process(&self, _neighborhood: NeighborhoodType) -> Vec<Point<usize>> {
-        // FIXME: For now, process all cells in scanline order (cache-friendly)
-        // FIXME: This could be optimized based on the neighborhood type if needed
-        let mut cells = Vec::with_capacity(self.dimensions.w * self.dimensions.h);
-        for y in 0..self.dimensions.h {
-            for x in 0..self.dimensions.w {
-                cells.push(Point::new(x, y));
+    fn get_cells_to_process(&self, config:&UpdateConfig) -> Vec<Point<usize>> {
+        if config.update_whole_field {
+            let mut cells = Vec::with_capacity(self.dimensions.w * self.dimensions.h);
+            for y in 0..self.dimensions.h {
+                for x in 0..self.dimensions.w {
+                    cells.push(Point::new(x, y));
+                }
             }
+            return cells;
+        } else {
+
+            // TODO: Implement optimized cell selection based on neighborhood type and the center point
+            // TODO: from the provided `config`
+
+
         }
-        cells
+
+
     }
 
     /// Gets the rule set for a specific cell.
@@ -573,7 +623,11 @@ mod tests {
             .unwrap();
 
         // Update should average neighbors
-        field.update();
+        field.update(Some(UpdateConfig::new(
+            NeighborhoodType::Immediate,
+            Point::new(1, 1),
+            true,
+        )));
 
         // After update, cells should have new values based on their neighbors
         let center_cell = field.get_cell(Point::new(1, 1)).unwrap();
