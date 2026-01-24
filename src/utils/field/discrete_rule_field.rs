@@ -41,6 +41,20 @@ pub type RuleFn<CellState> = fn(
     boundary_policy: BoundaryPolicy,
 ) -> CellState;
 
+/// A function type that generates initial state for a cell during field construction.
+/// Parameters:
+/// - index: Linear cell index (0..capacity-1) in row-major order
+/// - dimensions: Reference to grid dimensions (width × height)
+/// - coords: Cell coordinates (x, y)
+/// - initial_state_data: Reference to user-provided initialization data
+/// Returns: The initial state for the cell
+pub type InitFn<CellState, InitialStateData> = fn(
+    usize,
+    &Dimensions2d<usize>,
+    GridCoord,
+    &InitialStateData,
+) -> CellState;
+
 /// A rule set that can be applied to cells in the field.
 #[derive(Clone)]
 pub struct RuleSet<CellState: Clone> {
@@ -111,12 +125,12 @@ impl<CellState: Clone> DiscreteRuleField<CellState> {
     ///
     /// # Arguments
     /// * `dimensions` - Grid dimensions (width × height)
-    /// * `init_fn` - Generator function called for each cell. Receives:
+    /// * `initial_state_generator` - Generator function called for each cell. Receives:
     ///   - `index`: Linear cell index (0..capacity-1)
     ///   - `dimensions`: Reference to grid dimensions
     ///   - `coords`: Cell coordinates (x, y)
-    ///   - `init_data`: Reference to user-provided initialization data
-    /// * `init_data` - User data passed to the generator function (can be `&()` if unused)
+    ///   - `initial_state_data`: Reference to user-provided initialization data
+    /// * `initial_state_data` - User data passed to the generator function (can be `&()` if unused)
     /// * `boundary_policy` - How to handle edge cells
     /// * `default_rule_set` - Default rule applied to all cells
     /// * `custom_rule_sets` - Optional list of (coordinate, rule) pairs for per-cell overrides
@@ -158,8 +172,8 @@ impl<CellState: Clone> DiscreteRuleField<CellState> {
     /// ```
     pub fn new<F, InitialStateData>(
         dimensions: Dimensions2d<usize>,
-        init_fn: F,
-        init_data: &InitialStateData,
+        initial_state_generator: F,
+        initial_state_data: &InitialStateData,
         boundary_policy: BoundaryPolicy,
         default_rule_set: RuleSet<CellState>,
         custom_rule_sets: Option<Vec<(GridCoord, RuleSet<CellState>)>>,
@@ -178,7 +192,7 @@ impl<CellState: Clone> DiscreteRuleField<CellState> {
             let x = index % dimensions.w;
             let y = index / dimensions.w;
             let coords = GridCoord::new(x, y);
-            let state = init_fn(index, &dimensions, coords, init_data);
+            let state = initial_state_generator(index, &dimensions, coords, initial_state_data);
             grid.push(Cell::new(state.clone()));
             next_grid.push(Cell::new(state));
         }

@@ -21,8 +21,8 @@ pub fn new_simple(
 ```rust
 pub fn new<F, InitialStateData>(
     dimensions: Dimensions2d<usize>,
-    init_fn: F,
-    init_data: &InitialStateData,
+    initial_state_generator: F,
+    initial_state_data: &InitialStateData,
     boundary_policy: BoundaryPolicy,
     default_rule_set: RuleSet<CellState>,
     custom_rule_sets: Option<Vec<(GridCoord, RuleSet<CellState>)>>,
@@ -32,9 +32,19 @@ where
     F: Fn(usize, &Dimensions2d<usize>, GridCoord, &InitialStateData) -> CellState
 ```
 
+**Generator Function Type Alias:**
+```rust
+pub type InitFn<CellState, InitialStateData> = fn(
+    usize,
+    &Dimensions2d<usize>,
+    GridCoord,
+    &InitialStateData,
+) -> CellState;
+```
+
 **Generator Function Signature**:
 ```rust
-|index, dimensions, coords, init_data| -> CellState
+|index, dimensions, coords, initial_state_data| -> CellState
 ```
 
 **Use when**: Cells need different initial states based on position, index, or custom data.
@@ -111,7 +121,7 @@ DiscreteRuleField::new(
 | `index` | `usize` | Linear index (0..capacity-1), row-major order |
 | `dimensions` | `&Dimensions2d<usize>` | Grid dimensions (width, height) |
 | `coords` | `GridCoord` | Cell coordinates (x, y) |
-| `init_data` | `&InitialStateData` | User-provided data (any type) |
+| `initial_state_data` | `&InitialStateData` | User-provided data (any type) |
 
 **Returns**: `CellState` - The initial state for the cell
 

@@ -2,6 +2,47 @@
 
 This guide demonstrates various initialization patterns using the flexible `new()` constructor and the convenience `new_simple()` constructor.
 
+## Type Alias for Generator Functions
+
+The generator function signature is available as a type alias for easier usage:
+
+```rust
+pub type InitFn<CellState, InitialStateData> = fn(
+    usize,
+    &Dimensions2d<usize>,
+    GridCoord,
+    &InitialStateData,
+) -> CellState;
+```
+
+This can be used when defining generator functions or in type annotations.
+
+### Example: Using InitFn Type Alias
+
+```rust
+// Define a generator function using the type alias
+fn gradient_generator(
+    _index: usize,
+    dims: &Dimensions2d<usize>,
+    coords: GridCoord,
+    _data: &(),
+) -> CellState {
+    let normalized_x = coords.x as f32 / dims.w as f32;
+    CellState { value: (normalized_x * 255.0) as u8 }
+}
+
+// Use it in field construction
+let field = DiscreteRuleField::new(
+    Dimensions2d::new(100, 100),
+    gradient_generator,
+    &(),
+    BoundaryPolicy::Clamp,
+    rule_set,
+    None,
+    NeighborhoodType::Immediate,
+)?;
+```
+
 ## Table of Contents
 1. [Uniform Initialization](#uniform-initialization)
 2. [Position-Based Patterns](#position-based-patterns)
