@@ -48,7 +48,7 @@ pub type RuleFn<CellState> = fn(
 /// - coords: Cell coordinates (x, y)
 /// - initial_state_data: Reference to user-provided initialization data
 /// Returns: The initial state for the cell
-pub type InitFn<CellState, InitialStateData> = fn(
+pub type InitialStateGeneratorFn<CellState, InitialStateData> = fn(
     usize,
     &Dimensions2d<usize>,
     GridCoord,
