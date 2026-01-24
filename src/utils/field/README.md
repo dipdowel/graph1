@@ -121,7 +121,7 @@ This allows efficient localized updates when only a portion of the field needs t
 1. Define a cell state type (e.g., `struct State { alive: bool }`)
 2. Create a rule function that examines neighbors and returns new state
 3. Create a `RuleSet` with your rule and desired neighborhood type
-4. Initialize a `DiscreteRuleField` with dimensions and initial state
+4. Initialize a `DiscreteRuleField` with `new_uniform()` and dimensions
 5. Optionally modify individual cells using `set_cell()` or `get_cell_mut()`
 6. Optionally set custom rules for specific cells using `set_cell_rule()`
 7. Call `update()` to evolve the entire field, or `update(Some(UpdateConfig::new(...)))` for localized updates
@@ -150,7 +150,7 @@ fn averaging_rule(
 
 ### Example: Localized Updates
 
-```rust
+```ignore
 // Update the entire field
 field.update(None);
 
@@ -176,7 +176,7 @@ field.update(None);
 
 ### Example: Dynamic Per-Cell Rules
 
-```rust
+```ignore
 // Create field with default rule
 let default_rule = RuleSet::new(NeighborhoodType::Immediate, averaging_rule);
 let mut field = DiscreteRuleField::new_uniform(

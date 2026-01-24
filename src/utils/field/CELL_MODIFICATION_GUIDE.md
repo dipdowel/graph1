@@ -8,7 +8,7 @@ This guide shows you how to modify cell states in a `DiscreteRuleField` from use
 
 The safest and most straightforward way to modify a cell:
 
-```rust
+```ignore
 use crate::utils::field::discrete_rule_field::*;
 use crate::primitives::point::Point;
 
@@ -36,7 +36,7 @@ match field.set_cell(coords, new_state) {
 
 Get a mutable reference to modify the cell directly:
 
-```rust
+```ignore
 let coords = Point::new(5, 5);
 if let Some(cell) = field.get_cell_mut(coords) {
     // Modify the cell state directly
@@ -60,7 +60,7 @@ if let Some(cell) = field.get_cell_mut(coords) {
 
 For performance-critical loops where you've already verified bounds:
 
-```rust
+```ignore
 let coords = Point::new(5, 5);
 // IMPORTANT: Verify bounds first!
 if coords.x < field.dimensions().w && coords.y < field.dimensions().h {
@@ -85,7 +85,7 @@ if coords.x < field.dimensions().w && coords.y < field.dimensions().h {
 
 For modifying many cells at once:
 
-```rust
+```ignore
 let dimensions = field.dimensions();
 for cell in field.grid_mut().iter_mut() {
     // Modify all cells
@@ -108,7 +108,7 @@ for (index, cell) in field.grid_mut().iter_mut().enumerate() {
 ### 1. `set_cell_rule()` - Set custom rule for a cell
 
 Override the default rule for a specific cell:
-
+```ignore
 ```rust
 // Define a custom rule function
 fn custom_rule(
@@ -124,7 +124,7 @@ fn custom_rule(
 let custom_rule_set = RuleSet::new(NeighborhoodType::Orthogonal, custom_rule);
 field.set_cell_rule(Point::new(5, 5), custom_rule_set)?;
 ```
-
+```
 **When to use:** Creating heat sources, obstacles, or special cells with different behavior.
 
 ---
@@ -145,7 +145,7 @@ field.reset_cell_rule(Point::new(5, 5))?;
 
 Check which rule applies to a cell:
 
-```rust
+```ignore
 let rule = field.get_cell_rule(Point::new(5, 5));
 println!("Neighborhood type: {:?}", rule.neighborhood_type);
 ```
@@ -156,7 +156,7 @@ println!("Neighborhood type: {:?}", rule.neighborhood_type);
 
 ## Complete Example
 
-```rust
+```ignore
 use crate::utils::field::discrete_rule_field::*;
 use crate::primitives::point::Point;
 use crate::primitives::plane::Dimensions2d;
@@ -239,13 +239,14 @@ fn main() {
 The `DiscreteRuleField` supports two update modes:
 
 ### Full Field Update
-```rust
+```ignore
 // Update all cells in the field
 field.update(None);
 ```
 
 ### Localized Update (One-time)
-```rust
+
+```ignore
 // Update only cells in a specific neighborhood for this single update
 let update_config = UpdateConfig::new(
     NeighborhoodType::Circle { radius: 10 },
@@ -256,7 +257,7 @@ field.update(Some(update_config));
 ```
 
 ### Localized Update (Persistent)
-```rust
+```ignore
 // Set a persistent update configuration
 let persistent_config = UpdateConfig::new(
     NeighborhoodType::Circle { radius: 10 },

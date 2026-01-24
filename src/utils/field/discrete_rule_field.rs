@@ -107,6 +107,8 @@ pub struct DiscreteRuleField<CellState: Clone> {
 
 impl<CellState: Clone> DiscreteRuleField<CellState> {
     /// Creates a new discrete rule field with uniform rule assignment.
+    /// All cells will initially use the provided default rule.
+    /// Individual cells can be assigned custom rules using `set_cell_rule()`.
     pub fn new_uniform(
         dimensions: Dimensions2d<usize>,
         initial_state: CellState,
@@ -133,56 +135,6 @@ impl<CellState: Clone> DiscreteRuleField<CellState> {
                 false,
             )
         }
-    }
-
-    /// Creates a new discrete rule field with per-cell rule assignment.
-    /// This constructor is provided for backward compatibility but is less efficient than
-    /// using new_uniform() with sparse overrides via set_cell_rule().
-    pub fn new_per_cell(
-        dimensions: Dimensions2d<usize>,
-        initial_state: CellState,
-        boundary_policy: BoundaryPolicy,
-        rule_sets: Vec<RuleSet<CellState>>,
-        update_neighborhood: NeighborhoodType,
-    ) -> Result<Self, String> {
-        let capacity = dimensions.w * dimensions.h;
-        if rule_sets.len() != capacity {
-            return Err(format!(
-                "Rule sets count ({}) must match grid size ({})",
-                rule_sets.len(),
-                capacity
-            ));
-        }
-
-        let grid = vec![Cell::new(initial_state.clone()); capacity];
-        let next_grid = vec![Cell::new(initial_state); capacity];
-
-        // Use the first rule as default, rest as overrides
-        let default_rule = rule_sets[0].clone();
-        let mut override_rules = Vec::new();
-        let mut rule_indices = Vec::with_capacity(capacity);
-
-        for (idx, rule_set) in rule_sets.into_iter().enumerate() {
-            // For simplicity, we store all rules as overrides for per-cell mode
-            // This maintains backward compatibility but is not optimal
-            override_rules.push(rule_set);
-            rule_indices.push(Some(idx));
-        }
-
-        Ok(DiscreteRuleField {
-            grid,
-            next_grid,
-            dimensions,
-            boundary_policy,
-            default_rule,
-            override_rules,
-            rule_indices,
-            update_config: UpdateConfig::new(
-                update_neighborhood,
-                Point::new(dimensions.w / 2, dimensions.h / 2),
-                false,
-            )
-        })
     }
 
     /// Returns the dimensions of the field.
