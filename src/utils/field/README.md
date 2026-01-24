@@ -71,10 +71,13 @@ Defines how cells should update, including:
 - **Neighborhood Type**: Which surrounding cells to inspect
 - **Rule Function**: Custom logic that computes the next state based on neighbors
 
-#### `RuleAssignment<CellState>`
-Strategy for applying rules to the field:
-- **Uniform**: All cells use the same rule
-- **PerCell**: Each cell can have its own unique rule
+#### Rule Management (Index-Based System)
+The field uses an efficient index-based system for managing rules:
+- **Default Rule**: Applied to all cells by default
+- **Override Rules**: Sparse storage for cells with custom rules
+- **Rule Indices**: Fast O(1) lookup mapping each cell to its rule
+
+This allows efficient memory usage: only cells with custom rules consume extra memory, while maintaining O(1) access performance.
 
 #### `BoundaryPolicy`
 Defines edge behavior:
@@ -96,8 +99,9 @@ This allows efficient localized updates when only a portion of the field needs t
 - **Localized updates**: Option to update only cells within a specific neighborhood (performance optimization)
 - **Flexible neighborhoods**: Immediate (Moore), Orthogonal (Von Neumann), Diagonal, Square, Circle, Diamond
 - **Customizable rules**: User-defined functions with full access to grid state
+- **Dynamic per-cell rules**: Set custom rules for individual cells at runtime with `set_cell_rule()`
 - **Boundary policies**: Clamp, Wrap, or Mirror for handling edge cases
-- **Per-cell or uniform rules**: Different cells can follow different rules
+- **Efficient rule storage**: Index-based system with O(1) access and sparse override storage
 - **Generic cell state**: Store any cloneable data type
 - **Cache-friendly**: Row-major storage and scanline processing
 - **Cell iteration and modification**: Multiple methods for reading and modifying cell states
@@ -119,9 +123,10 @@ This allows efficient localized updates when only a portion of the field needs t
 3. Create a `RuleSet` with your rule and desired neighborhood type
 4. Initialize a `DiscreteRuleField` with dimensions and initial state
 5. Optionally modify individual cells using `set_cell()` or `get_cell_mut()`
-6. Call `update()` to evolve the entire field, or `update(Some(UpdateConfig::new(...)))` for localized updates
-7. Iterate over cells using `grid()` or `grid_mut()` to read/modify states
-8. Read cell states to visualize or process results
+6. Optionally set custom rules for specific cells using `set_cell_rule()`
+7. Call `update()` to evolve the entire field, or `update(Some(UpdateConfig::new(...)))` for localized updates
+8. Iterate over cells using `grid()` or `grid_mut()` to read/modify states
+9. Read cell states to visualize or process results
 
 ### Example: Simple Averaging Rule
 
@@ -167,6 +172,34 @@ let persistent_config = UpdateConfig::new(
 field.set_update_config(persistent_config);
 // Now all subsequent calls to field.update(None) will use this configuration
 field.update(None);
+```
+
+### Example: Dynamic Per-Cell Rules
+
+```rust
+// Create field with default rule
+let default_rule = RuleSet::new(NeighborhoodType::Immediate, averaging_rule);
+let mut field = DiscreteRuleField::new_uniform(
+    dimensions,
+    initial_state,
+    BoundaryPolicy::Wrap,
+    default_rule,
+    NeighborhoodType::Immediate,
+);
+
+// Set custom rule for specific cells (e.g., heat sources)
+fn heat_source_rule(...) -> MyState {
+    MyState { temperature: 100.0 } // Always hot
+}
+
+let heat_source_rule_set = RuleSet::new(NeighborhoodType::Immediate, heat_source_rule);
+field.set_cell_rule(Point::new(10, 10), heat_source_rule_set)?;
+
+// Reset a cell back to default rule
+field.reset_cell_rule(Point::new(10, 10))?;
+
+// Query which rule a cell uses
+let rule = field.get_cell_rule(Point::new(10, 10));
 ```
 
 ---

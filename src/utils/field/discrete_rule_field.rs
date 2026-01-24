@@ -59,15 +59,6 @@ impl<CellState: Clone> RuleSet<CellState> {
     }
 }
 
-/// Rule assignment strategy for the field.
-#[derive(Clone)]
-pub enum RuleAssignment<CellState: Clone> {
-    /// All cells use the same rule set.
-    Uniform(RuleSet<CellState>),
-    /// Each cell can have a different rule set (stored in row-major order).
-    PerCell(Vec<RuleSet<CellState>>),
-}
-
 /// Configuration for how the field should be updated.
 pub struct UpdateConfig {
     /// Neighborhood type used by the update function.
@@ -102,8 +93,13 @@ pub struct DiscreteRuleField<CellState: Clone> {
     dimensions: Dimensions2d<usize>,
     /// Boundary policy for edge cells.
     boundary_policy: BoundaryPolicy,
-    /// Rule assignment strategy.
-    rule_assignment: RuleAssignment<CellState>,
+    /// Default rule set applied to all cells (unless overridden).
+    default_rule: RuleSet<CellState>,
+    /// Storage for override rule sets (sparse).
+    override_rules: Vec<RuleSet<CellState>>,
+    /// Index mapping for each cell: None = use default_rule, Some(idx) = use override_rules[idx].
+    /// Has 1:1 correspondence with grid (same length).
+    rule_indices: Vec<Option<usize>>,
     /// details on how exactly the field needs to be updated
     pub update_config: UpdateConfig
 
@@ -121,13 +117,16 @@ impl<CellState: Clone> DiscreteRuleField<CellState> {
         let capacity = dimensions.w * dimensions.h;
         let grid = vec![Cell::new(initial_state.clone()); capacity];
         let next_grid = vec![Cell::new(initial_state); capacity];
+        let rule_indices = vec![None; capacity]; // All cells use default rule
 
         DiscreteRuleField {
             grid,
             next_grid,
             dimensions,
             boundary_policy,
-            rule_assignment: RuleAssignment::Uniform(rule_set),
+            default_rule: rule_set,
+            override_rules: Vec::new(),
+            rule_indices,
             update_config: UpdateConfig::new(
                 update_neighborhood,
                 Point::new(dimensions.w / 2, dimensions.h / 2),
@@ -137,6 +136,8 @@ impl<CellState: Clone> DiscreteRuleField<CellState> {
     }
 
     /// Creates a new discrete rule field with per-cell rule assignment.
+    /// This constructor is provided for backward compatibility but is less efficient than
+    /// using new_uniform() with sparse overrides via set_cell_rule().
     pub fn new_per_cell(
         dimensions: Dimensions2d<usize>,
         initial_state: CellState,
@@ -156,12 +157,26 @@ impl<CellState: Clone> DiscreteRuleField<CellState> {
         let grid = vec![Cell::new(initial_state.clone()); capacity];
         let next_grid = vec![Cell::new(initial_state); capacity];
 
+        // Use the first rule as default, rest as overrides
+        let default_rule = rule_sets[0].clone();
+        let mut override_rules = Vec::new();
+        let mut rule_indices = Vec::with_capacity(capacity);
+
+        for (idx, rule_set) in rule_sets.into_iter().enumerate() {
+            // For simplicity, we store all rules as overrides for per-cell mode
+            // This maintains backward compatibility but is not optimal
+            override_rules.push(rule_set);
+            rule_indices.push(Some(idx));
+        }
+
         Ok(DiscreteRuleField {
             grid,
             next_grid,
             dimensions,
             boundary_policy,
-            rule_assignment: RuleAssignment::PerCell(rule_sets),
+            default_rule,
+            override_rules,
+            rule_indices,
             update_config: UpdateConfig::new(
                 update_neighborhood,
                 Point::new(dimensions.w / 2, dimensions.h / 2),
@@ -178,6 +193,110 @@ impl<CellState: Clone> DiscreteRuleField<CellState> {
     /// Returns the boundary policy.
     pub fn boundary_policy(&self) -> BoundaryPolicy {
         self.boundary_policy
+    }
+
+    /// Sets the update configuration for the field.
+    /// This allows you to control which cells get updated and the update neighborhood.
+    ///
+    /// # Example
+    /// ```ignore
+    /// let new_config = UpdateConfig::new(
+    ///     NeighborhoodType::Circle { radius: 10 },
+    ///     Point::new(50, 50),
+    ///     false,
+    /// );
+    /// field.set_update_config(new_config);
+    /// ```
+    pub fn set_update_config(&mut self, config: UpdateConfig) {
+        self.update_config = config;
+    }
+
+    /// Sets a custom rule for a specific cell. The cell will use this rule instead of the default rule.
+    ///
+    /// # Arguments
+    /// * `coords` - The coordinates of the cell
+    /// * `rule_set` - The rule set to apply to this cell
+    ///
+    /// # Returns
+    /// * `Ok(())` if the rule was successfully set
+    /// * `Err(String)` if the coordinates are invalid
+    ///
+    /// # Example
+    /// ```ignore
+    /// let custom_rule = RuleSet::new(NeighborhoodType::Orthogonal, my_rule_fn);
+    /// field.set_cell_rule(Point::new(5, 5), custom_rule)?;
+    /// ```
+    pub fn set_cell_rule(&mut self, coords: Point<usize>, rule_set: RuleSet<CellState>) -> Result<(), String> {
+        let adjusted = self
+            .apply_boundary_policy(coords)
+            .ok_or("Coordinates out of bounds")?;
+        let index = self.coords_to_index(adjusted);
+
+        if index >= self.rule_indices.len() {
+            return Err("Invalid cell index".to_string());
+        }
+
+        // Check if this cell already has an override
+        if let Some(override_idx) = self.rule_indices[index] {
+            // Replace existing override
+            self.override_rules[override_idx] = rule_set;
+        } else {
+            // Add new override
+            self.override_rules.push(rule_set);
+            self.rule_indices[index] = Some(self.override_rules.len() - 1);
+        }
+
+        Ok(())
+    }
+
+    /// Resets a cell's rule to the default rule (removes any override).
+    ///
+    /// # Arguments
+    /// * `coords` - The coordinates of the cell
+    ///
+    /// # Returns
+    /// * `Ok(())` if the rule was successfully reset
+    /// * `Err(String)` if the coordinates are invalid
+    ///
+    /// # Example
+    /// ```ignore
+    /// field.reset_cell_rule(Point::new(5, 5))?;
+    /// ```
+    pub fn reset_cell_rule(&mut self, coords: Point<usize>) -> Result<(), String> {
+        let adjusted = self
+            .apply_boundary_policy(coords)
+            .ok_or("Coordinates out of bounds")?;
+        let index = self.coords_to_index(adjusted);
+
+        if index >= self.rule_indices.len() {
+            return Err("Invalid cell index".to_string());
+        }
+
+        // Simply set to None to use default rule
+        // Note: We don't remove from override_rules to avoid index invalidation
+        self.rule_indices[index] = None;
+
+        Ok(())
+    }
+
+    /// Gets the rule set for a specific cell (either override or default).
+    ///
+    /// # Arguments
+    /// * `coords` - The coordinates of the cell
+    ///
+    /// # Returns
+    /// A reference to the rule set that applies to this cell
+    ///
+    /// # Example
+    /// ```ignore
+    /// let rule = field.get_cell_rule(Point::new(5, 5));
+    /// ```
+    pub fn get_cell_rule(&self, coords: Point<usize>) -> &RuleSet<CellState> {
+        let index = self.coords_to_index(coords);
+        match self.rule_indices.get(index) {
+            Some(Some(override_idx)) => &self.override_rules[*override_idx],
+            _ => &self.default_rule,
+        }
     }
 
     /// Gets a cell at the given coordinates (with boundary policy applied).
@@ -409,12 +528,10 @@ impl<CellState: Clone> DiscreteRuleField<CellState> {
 
     /// Gets the rule set for a specific cell.
     fn get_rule_set_for_cell(&self, coords: Point<usize>) -> &RuleSet<CellState> {
-        match &self.rule_assignment {
-            RuleAssignment::Uniform(rule_set) => rule_set,
-            RuleAssignment::PerCell(rule_sets) => {
-                let index = self.coords_to_index(coords);
-                &rule_sets[index]
-            }
+        let index = self.coords_to_index(coords);
+        match self.rule_indices.get(index) {
+            Some(Some(override_idx)) => &self.override_rules[*override_idx],
+            _ => &self.default_rule,
         }
     }
 
@@ -637,4 +754,62 @@ mod tests {
         let center_cell = field.get_cell(Point::new(1, 1)).unwrap();
         assert!(center_cell.state.value <= 8);
     }
+
+    #[test]
+    fn test_set_cell_rule() {
+        let dimensions = Dimensions2d::new(5, 5);
+        let initial_state = SimpleState { value: 0 };
+        let default_rule = RuleSet::new(NeighborhoodType::Immediate, simple_rule);
+
+        let mut field = DiscreteRuleField::<SimpleState>::new_uniform(
+            dimensions,
+            initial_state,
+            BoundaryPolicy::Clamp,
+            default_rule,
+            NeighborhoodType::Immediate,
+        );
+
+        // Define a custom rule that always returns value 42
+        fn custom_rule(
+            _grid: &DiscreteRuleField<SimpleState>,
+            _cell_coords: Point<usize>,
+            _neighborhood_type: NeighborhoodType,
+            _boundary_policy: BoundaryPolicy,
+        ) -> SimpleState {
+            SimpleState { value: 42 }
+        }
+
+        let custom_rule_set = RuleSet::new(NeighborhoodType::Orthogonal, custom_rule);
+
+        // Set custom rule for specific cell
+        let custom_cell = Point::new(2, 2);
+        field.set_cell_rule(custom_cell, custom_rule_set).unwrap();
+
+        // Verify the cell uses the custom rule
+        let rule = field.get_cell_rule(custom_cell);
+        assert_eq!(rule.neighborhood_type, NeighborhoodType::Orthogonal);
+
+        // Update the field
+        field.update(Some(UpdateConfig::new(
+            NeighborhoodType::Immediate,
+            Point::new(2, 2),
+            true,
+        )));
+
+        // The cell with custom rule should have value 42
+        let cell_with_custom_rule = field.get_cell(custom_cell).unwrap();
+        assert_eq!(cell_with_custom_rule.state.value, 42);
+
+        // Other cells should use the default rule (averaging)
+        let other_cell = field.get_cell(Point::new(0, 0)).unwrap();
+        assert_eq!(other_cell.state.value, 0); // No neighbors with different values
+
+        // Reset the cell rule
+        field.reset_cell_rule(custom_cell).unwrap();
+
+        // Verify it now uses the default rule
+        let rule_after_reset = field.get_cell_rule(custom_cell);
+        assert_eq!(rule_after_reset.neighborhood_type, NeighborhoodType::Immediate);
+    }
 }
+

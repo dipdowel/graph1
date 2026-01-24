@@ -103,6 +103,57 @@ for (index, cell) in field.grid_mut().iter_mut().enumerate() {
 
 ---
 
+## Rule Modification Methods
+
+### 1. `set_cell_rule()` - Set custom rule for a cell
+
+Override the default rule for a specific cell:
+
+```rust
+// Define a custom rule function
+fn custom_rule(
+    grid: &DiscreteRuleField<MyState>,
+    cell_coords: Point<usize>,
+    neighborhood_type: NeighborhoodType,
+    boundary_policy: BoundaryPolicy,
+) -> MyState {
+    // Custom logic
+    MyState { value: 42 }
+}
+
+let custom_rule_set = RuleSet::new(NeighborhoodType::Orthogonal, custom_rule);
+field.set_cell_rule(Point::new(5, 5), custom_rule_set)?;
+```
+
+**When to use:** Creating heat sources, obstacles, or special cells with different behavior.
+
+---
+
+### 2. `reset_cell_rule()` - Revert to default rule
+
+Remove a cell's custom rule:
+
+```rust
+field.reset_cell_rule(Point::new(5, 5))?;
+```
+
+**When to use:** Removing temporary effects or resetting modified cells.
+
+---
+
+### 3. `get_cell_rule()` - Query a cell's rule
+
+Check which rule applies to a cell:
+
+```rust
+let rule = field.get_cell_rule(Point::new(5, 5));
+println!("Neighborhood type: {:?}", rule.neighborhood_type);
+```
+
+**When to use:** Debugging or conditional logic based on cell rules.
+
+---
+
 ## Complete Example
 
 ```rust
