@@ -33,12 +33,14 @@ impl<CellState: Clone> Cell<CellState> {
 /// - cell_coords: Coordinates of the cell being updated
 /// - neighborhood_type: The type of neighborhood to inspect
 /// - boundary_policy: How to handle edge cells
+/// - payload_for_rule: Optional payload data passed from update() call to rule function
 /// Returns: The new state for the cell
-pub type RuleFn<CellState> = fn(
-    grid: &DiscreteRuleField<CellState>,
+pub type RuleFn<CellState, PayloadForRule> = fn(
+    grid: &DiscreteRuleField<CellState, PayloadForRule>,
     cell_coords: GridCoord,
     neighborhood_type: NeighborhoodType,
     boundary_policy: BoundaryPolicy,
+    payload_for_rule: Option<&PayloadForRule>,
 ) -> CellState;
 
 /// A function type that generates initial state for a cell during field construction.
@@ -57,15 +59,15 @@ pub type InitialStateGeneratorFn<CellState, InitialStateData> = fn(
 
 /// A rule set that can be applied to cells in the field.
 #[derive(Clone)]
-pub struct RuleSet<CellState: Clone> {
+pub struct RuleSet<CellState: Clone, PayloadForRule> {
     /// The neighborhood type to inspect when applying this rule.
     pub neighborhood_type: NeighborhoodType,
     /// The rule function that computes the next state.
-    pub rule_fn: RuleFn<CellState>,
+    pub rule_fn: RuleFn<CellState, PayloadForRule>,
 }
 
-impl<CellState: Clone> RuleSet<CellState> {
-    pub fn new(neighborhood_type: NeighborhoodType, rule_fn: RuleFn<CellState>) -> Self {
+impl<CellState: Clone, PayloadForRule> RuleSet<CellState, PayloadForRule> {
+    pub fn new(neighborhood_type: NeighborhoodType, rule_fn: RuleFn<CellState, PayloadForRule>) -> Self {
         RuleSet {
             neighborhood_type,
             rule_fn,
@@ -98,7 +100,7 @@ impl UpdateConfig {
 }
 
 /// A 2D discrete rule field that implements cellular automaton / rule-based stencil computation.
-pub struct DiscreteRuleField<CellState: Clone> {
+pub struct DiscreteRuleField<CellState: Clone, PayloadForRule> {
     /// Current state grid (row-major order).
     grid: Vec<Cell<CellState>>,
     /// Next state grid (used for double buffering).
@@ -108,9 +110,9 @@ pub struct DiscreteRuleField<CellState: Clone> {
     /// Boundary policy for edge cells.
     boundary_policy: BoundaryPolicy,
     /// Default rule set applied to all cells (unless overridden).
-    default_rule: RuleSet<CellState>,
+    default_rule: RuleSet<CellState, PayloadForRule>,
     /// Storage for override rule sets (sparse).
-    override_rules: Vec<RuleSet<CellState>>,
+    override_rules: Vec<RuleSet<CellState, PayloadForRule>>,
     /// Index mapping for each cell: None = use default_rule, Some(idx) = use override_rules[idx].
     /// Has 1:1 correspondence with grid (same length).
     rule_indices: Vec<Option<usize>>,
@@ -119,7 +121,7 @@ pub struct DiscreteRuleField<CellState: Clone> {
 
 }
 
-impl<CellState: Clone> DiscreteRuleField<CellState> {
+impl<CellState: Clone, PayloadForRule> DiscreteRuleField<CellState, PayloadForRule> {
     /// Creates a new discrete rule field with flexible initial state generation.
     /// Each cell's initial state is computed by the provided generator function.
     ///
@@ -175,8 +177,8 @@ impl<CellState: Clone> DiscreteRuleField<CellState> {
         initial_state_generator: F,
         initial_state_data: &InitialStateData,
         boundary_policy: BoundaryPolicy,
-        default_rule_set: RuleSet<CellState>,
-        custom_rule_sets: Option<Vec<(GridCoord, RuleSet<CellState>)>>,
+        default_rule_set: RuleSet<CellState, PayloadForRule>,
+        custom_rule_sets: Option<Vec<(GridCoord, RuleSet<CellState, PayloadForRule>)>>,
         update_neighborhood: NeighborhoodType,
     ) -> Result<Self, String>
     where
@@ -265,7 +267,7 @@ impl<CellState: Clone> DiscreteRuleField<CellState> {
         dimensions: Dimensions2d<usize>,
         initial_state: CellState,
         boundary_policy: BoundaryPolicy,
-        rule_set: RuleSet<CellState>,
+        rule_set: RuleSet<CellState, PayloadForRule>,
         update_neighborhood: NeighborhoodType,
     ) -> Result<Self, String> {
         Self::new(
@@ -320,7 +322,7 @@ impl<CellState: Clone> DiscreteRuleField<CellState> {
     /// let custom_rule = RuleSet::new(NeighborhoodType::Orthogonal, my_rule_fn);
     /// field.set_cell_rule(Point::new(5, 5), custom_rule)?;
     /// ```
-    pub fn set_cell_rule(&mut self, coords: GridCoord, rule_set: RuleSet<CellState>) -> Result<(), String> {
+    pub fn set_cell_rule(&mut self, coords: GridCoord, rule_set: RuleSet<CellState, PayloadForRule>) -> Result<(), String> {
         let adjusted = self
             .apply_boundary_policy(coords)
             .ok_or("Coordinates out of bounds")?;
@@ -385,7 +387,7 @@ impl<CellState: Clone> DiscreteRuleField<CellState> {
     /// ```ignore
     /// let rule = field.get_cell_rule(Point::new(5, 5));
     /// ```
-    pub fn get_cell_rule(&self, coords: GridCoord) -> &RuleSet<CellState> {
+    pub fn get_cell_rule(&self, coords: GridCoord) -> &RuleSet<CellState, PayloadForRule> {
         let index = self.coords_to_index(coords);
         match self.rule_indices.get(index) {
             Some(Some(override_idx)) => &self.override_rules[*override_idx],
@@ -565,7 +567,8 @@ impl<CellState: Clone> DiscreteRuleField<CellState> {
 
     /// Updates the field by one time step using the assigned rules.
     /// This reads from the current grid and writes to the next grid, then swaps them.
-    pub fn update(&mut self, one_time_config:Option<UpdateConfig>) {
+    /// TODO: Improve the documentation, this is a very important function for the users!
+    pub fn update(&mut self, one_time_config: Option<UpdateConfig>, payload_for_rule: Option<&PayloadForRule>) {
 
 
         let mut config = &self.update_config;
@@ -585,6 +588,7 @@ impl<CellState: Clone> DiscreteRuleField<CellState> {
                 cell_coords,
                 rule_set.neighborhood_type,
                 self.boundary_policy,
+                payload_for_rule,
             );
 
             let index = self.coords_to_index(cell_coords);
@@ -621,7 +625,7 @@ impl<CellState: Clone> DiscreteRuleField<CellState> {
     }
 
     /// Gets the rule set for a specific cell.
-    fn get_rule_set_for_cell(&self, coords: GridCoord) -> &RuleSet<CellState> {
+    fn get_rule_set_for_cell(&self, coords: GridCoord) -> &RuleSet<CellState, PayloadForRule> {
         let index = self.coords_to_index(coords);
         match self.rule_indices.get(index) {
             Some(Some(override_idx)) => &self.override_rules[*override_idx],
@@ -740,10 +744,11 @@ mod tests {
     }
 
     fn simple_rule(
-        grid: &DiscreteRuleField<SimpleState>,
+        grid: &DiscreteRuleField<SimpleState, ()>,
         cell_coords: GridCoord,
         neighborhood_type: NeighborhoodType,
         _boundary_policy: BoundaryPolicy,
+        _payload_for_rule: Option<&()>,
     ) -> SimpleState {
         let neighbors = grid.get_neighbors(cell_coords, neighborhood_type);
         let sum: u32 = neighbors
@@ -765,7 +770,7 @@ mod tests {
         let initial_state = SimpleState { value: 0 };
         let rule_set = RuleSet::new(NeighborhoodType::Immediate, simple_rule);
 
-        let field = DiscreteRuleField::<SimpleState>::new_simple(
+        let field = DiscreteRuleField::<SimpleState, ()>::new_simple(
             dimensions,
             initial_state,
             BoundaryPolicy::Clamp,
@@ -784,7 +789,7 @@ mod tests {
         let initial_state = SimpleState { value: 0 };
         let rule_set = RuleSet::new(NeighborhoodType::Immediate, simple_rule);
 
-        let field = DiscreteRuleField::<SimpleState>::new_simple(
+        let field = DiscreteRuleField::<SimpleState, ()>::new_simple(
             dimensions,
             initial_state,
             BoundaryPolicy::Clamp,
@@ -804,7 +809,7 @@ mod tests {
         let initial_state = SimpleState { value: 0 };
         let rule_set = RuleSet::new(NeighborhoodType::Orthogonal, simple_rule);
 
-        let field = DiscreteRuleField::<SimpleState>::new_simple(
+        let field = DiscreteRuleField::<SimpleState, ()>::new_simple(
             dimensions,
             initial_state,
             BoundaryPolicy::Clamp,
@@ -824,7 +829,7 @@ mod tests {
         let initial_state = SimpleState { value: 1 };
         let rule_set = RuleSet::new(NeighborhoodType::Immediate, simple_rule);
 
-        let mut field = DiscreteRuleField::<SimpleState>::new_simple(
+        let mut field = DiscreteRuleField::<SimpleState, ()>::new_simple(
             dimensions,
             initial_state,
             BoundaryPolicy::Clamp,
@@ -842,7 +847,7 @@ mod tests {
             NeighborhoodType::Immediate,
             GridCoord::new(1, 1),
             true,
-        )));
+        )), None);
 
         // After update, cells should have new values based on their neighbors
         let center_cell = field.get_cell(GridCoord::new(1, 1)).unwrap();
@@ -855,7 +860,7 @@ mod tests {
         let initial_state = SimpleState { value: 0 };
         let default_rule = RuleSet::new(NeighborhoodType::Immediate, simple_rule);
 
-        let mut field = DiscreteRuleField::<SimpleState>::new_simple(
+        let mut field = DiscreteRuleField::<SimpleState, ()>::new_simple(
             dimensions,
             initial_state,
             BoundaryPolicy::Clamp,
@@ -865,10 +870,11 @@ mod tests {
 
         // Define a custom rule that always returns value 42
         fn custom_rule(
-            _grid: &DiscreteRuleField<SimpleState>,
+            _grid: &DiscreteRuleField<SimpleState, ()>,
             _cell_coords: GridCoord,
             _neighborhood_type: NeighborhoodType,
             _boundary_policy: BoundaryPolicy,
+            _payload_for_rule: Option<&()>,
         ) -> SimpleState {
             SimpleState { value: 42 }
         }
@@ -888,7 +894,7 @@ mod tests {
             NeighborhoodType::Immediate,
             GridCoord::new(2, 2),
             true,
-        )));
+        )), None);
 
         // The cell with custom rule should have value 42
         let cell_with_custom_rule = field.get_cell(custom_cell).unwrap();
@@ -914,10 +920,11 @@ mod tests {
 
         // Define a custom rule that always returns value 99
         fn custom_rule(
-            _grid: &DiscreteRuleField<SimpleState>,
+            _grid: &DiscreteRuleField<SimpleState, ()>,
             _cell_coords: GridCoord,
             _neighborhood_type: NeighborhoodType,
             _boundary_policy: BoundaryPolicy,
+            _payload_for_rule: Option<&()>,
         ) -> SimpleState {
             SimpleState { value: 99 }
         }
@@ -930,7 +937,7 @@ mod tests {
             (GridCoord::new(3, 3), custom_rule_set.clone()),
         ];
 
-        let mut field = DiscreteRuleField::<SimpleState>::new(
+        let mut field = DiscreteRuleField::<SimpleState, ()>::new(
             dimensions,
             |_, _, _, _| initial_state,
             &(),
@@ -956,7 +963,7 @@ mod tests {
             NeighborhoodType::Immediate,
             GridCoord::new(2, 2),
             true,
-        )));
+        )), None);
 
         let cell1 = field.get_cell(GridCoord::new(1, 1)).unwrap();
         assert_eq!(cell1.state.value, 99);
@@ -972,10 +979,11 @@ mod tests {
         let default_rule = RuleSet::new(NeighborhoodType::Immediate, simple_rule);
 
         fn custom_rule(
-            _grid: &DiscreteRuleField<SimpleState>,
+            _grid: &DiscreteRuleField<SimpleState, ()>,
             _cell_coords: GridCoord,
             _neighborhood_type: NeighborhoodType,
             _boundary_policy: BoundaryPolicy,
+            _payload_for_rule: Option<&()>,
         ) -> SimpleState {
             SimpleState { value: 99 }
         }
@@ -987,7 +995,7 @@ mod tests {
             (GridCoord::new(10, 10), custom_rule_set), // Out of bounds!
         ];
 
-        let result = DiscreteRuleField::<SimpleState>::new(
+        let result = DiscreteRuleField::<SimpleState, ()>::new(
             dimensions,
             |_, _, _, _| initial_state,
             &(),
@@ -1010,7 +1018,7 @@ mod tests {
         let rule_set = RuleSet::new(NeighborhoodType::Immediate, simple_rule);
 
         // Initialize cells based on their position - create a gradient
-        let field = DiscreteRuleField::<SimpleState>::new(
+        let field = DiscreteRuleField::<SimpleState, ()>::new(
             dimensions,
             |_index, _dims, coords, _data| {
                 // Create a horizontal gradient: value increases with x coordinate
@@ -1034,7 +1042,7 @@ mod tests {
     }
 
     #[test]
-    fn test_initialization_with_custom_data() {
+    fn test_initialization_with_custom_rule_payload() {
         // Test initialization with user-provided data
         struct InitData {
             scale: f32,
@@ -1045,7 +1053,7 @@ mod tests {
         let rule_set = RuleSet::new(NeighborhoodType::Immediate, simple_rule);
         let init_data = InitData { scale: 2.0, offset: 100 };
 
-        let field = DiscreteRuleField::<SimpleState>::new(
+        let field = DiscreteRuleField::<SimpleState, ()>::new(
             dimensions,
             |index, _dims, _coords, data| {
                 // Use index and custom data to initialize
