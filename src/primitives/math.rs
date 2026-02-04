@@ -55,7 +55,8 @@ impl<T: Numeric> Displacement<T> {
     }
 }
 
-
+/// A type alias for grid coordinates represented as a point with `usize` components.
+pub type GridCoord = Point<usize>;
 
 /// Interpolation methods for shaping a scaled transition curve.
 /// Optional parameters allow customizing the curve steepness or shape.

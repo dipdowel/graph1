@@ -300,7 +300,7 @@ impl<T: Numeric> UniformGrid<T> {
         col: usize,
         neighborhood_type: &NeighborhoodType,
         include_center: bool,
-    ) -> Vec<Neighbor<T>> {
+    ) -> Vec<Neighbor<'_, T>> {
         let mut result: Vec<Neighbor<T>> = Vec::new();
 
         // Determine the directions to check based on the neighborhood type
