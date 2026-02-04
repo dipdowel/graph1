@@ -54,6 +54,7 @@ impl<'a> WhiteNoise<'a> {
         }
     }
 
+    #[allow(unused_variables)]
     pub fn generate_32(
         &mut self,
         target_buf: &mut [u32],

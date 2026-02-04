@@ -6,6 +6,7 @@ use ocl::{Buffer, Kernel};
 
 use crate::utils::color::math::ColorOperation;
 
+#[allow(dead_code)]
 pub fn white_noise(
     target_buf: &mut [u32],
     noise_buf: &[u32],

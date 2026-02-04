@@ -473,7 +473,7 @@ impl<UserData> GraphContext<UserData> {
     pub fn get_multi_frame_bufs(
         &mut self,
         frame_buf_indices: &[usize],
-    ) -> Result<MultipleFrameBuffers, FrameBufferStatus> {
+    ) -> Result<MultipleFrameBuffers<'_>, FrameBufferStatus> {
         let mut immut_frame_bufs: Vec<ImmutableFrameBuffer> = Vec::new();
 
         for buf_index in frame_buf_indices {

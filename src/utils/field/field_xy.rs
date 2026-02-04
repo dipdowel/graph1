@@ -4,7 +4,7 @@ use crate::primitives::point::Point;
 use std::cell::RefCell;
 
 /// Function type that defines how an influencer affects a point in the field.
-type InfluenceFn<T, PointState: Clone> = fn(
+type InfluenceFn<T, PointState> = fn(
     win_dimensions: Dimensions2d,
     &FieldXYInfluencer<T, PointState>,
     &mut FieldXYPoint<T, PointState>,
@@ -81,6 +81,7 @@ impl<'a, T: Numeric, PointState: Clone> FieldXYInfluencer<'a, T, PointState> {
 
 
 /// Represents a point in a 2D field that can be influenced by an influencer (e.g., a mouse cursor).
+#[allow(unused)]
 #[derive(Debug, Copy, Clone)]
 pub struct FieldXYPoint<T: Numeric, PointState: Clone> {
     /** 1-d index of the field point */
