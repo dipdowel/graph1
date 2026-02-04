@@ -405,6 +405,7 @@ pub mod utils {
 
     pub mod field {
         pub mod field_xy;
+        pub mod discrete_rule_field;
     }
 
     pub mod grid {

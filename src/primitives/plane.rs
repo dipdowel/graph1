@@ -149,7 +149,8 @@ impl<T: Numeric + std::ops::Add<Output = T>> RectArea<T> {
 
 
     /// Creates a new `RectArea` from a given pixel, with specified width and height
-    pub fn new_from_pixel(pixel: &Pixel, w: T, h: T, color: Option<u32>) -> Self {
+    pub fn new_from_pixel(pixel: &Pixel, w: T, h: T, _color: Option<u32>) -> Self {
+        // FIXME: take `_color` into account!
         Self::new(T::from_u32(pixel.x), T::from_u32(pixel.y), w, h, Some(pixel.color))
     }
 

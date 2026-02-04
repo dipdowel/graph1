@@ -17,6 +17,7 @@ use ocl::Kernel;
 /// * `op` - Color operation (Add or Subtract)
 /// * `use_alpha` - Whether alpha is affected
 /// * `gpu_context` - The GPU context for managing OpenCL resources
+#[allow(dead_code)]
 pub fn fade_gpu(
     cpu_buf: &mut [u32],
     width: u32,

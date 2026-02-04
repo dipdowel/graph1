@@ -163,7 +163,7 @@ pub fn fill_rects_bucketed_get_kernel<T: Numeric + Copy + 'static>(
         Err("GPU support is not enabled at compile time.".to_string())
     }
 }
-
+#[allow(dead_code)]
 pub fn choose_num_buckets<T: Numeric + Copy>(
     rects: &Vec<&RectArea<T>>,
     buf_width: u32,
@@ -178,7 +178,7 @@ pub fn choose_num_buckets<T: Numeric + Copy>(
 }
 
 /// Helper for N-bucket rect flattening and pointer tables (as above)
-
+#[allow(dead_code)]
 fn bucketize_rects<T: Numeric + Copy>(
     rects: &[&RectArea<T>],
     buf_width: u32,

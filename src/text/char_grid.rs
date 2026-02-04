@@ -60,8 +60,8 @@ fn get_char_cell_dims(font: &PixelFont) -> Option<Dimensions2d> {
     let mut glyph_dims = font.get_glyph(&first_font_char).dimensions.clone();
 
 
-    glyph_dims.w = (glyph_dims.w + kerning);
-    glyph_dims.h = (glyph_dims.h + leading);
+    glyph_dims.w = glyph_dims.w + kerning ;
+    glyph_dims.h = glyph_dims.h + leading ;
 
     Some(glyph_dims)
 }

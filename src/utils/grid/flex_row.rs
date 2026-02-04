@@ -242,7 +242,7 @@ impl<T: Numeric> FlexRowGrid<T> {
     }
     /// Adds a new row from a `FlexRow` descriptor to the grid.
     pub fn add_row(&mut self, row: FlexRow<T>) {
-        let row_width = row.total_width();
+        let _row_width = row.total_width();
         self.add_row_internal(row);
         self.update_props();
         self.update_props();

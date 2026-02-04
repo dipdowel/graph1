@@ -1,7 +1,8 @@
 use crate::core::context::GraphContext;
 use crate::primitives::helper_types::PixelColorTransformerFn;
 use crate::primitives::plane::Dimensions2d;
-use crate::primitives::point::{Point, POINT_ZERO};
+use crate::primitives::point::{Point};
+// use crate::primitives::point::{POINT_ZERO};
 use crate::text::font::PixelFont;
 use crate::utils::pixel_copy::image_data;
 
@@ -103,11 +104,11 @@ pub fn get_line_dimensions(
         return result;
     }
 
-    let mut dst_point: Point = POINT_ZERO.clone();
+    // let mut dst_point: Point = POINT_ZERO.clone();
 
     for text_char in text_str.chars() {
         let the_glyph = font.get_glyph(&text_char);
-        dst_point.x += the_glyph.dimensions.w + font.spacing.kerning_px as u32;
+        // dst_point.x += the_glyph.dimensions.w + font.spacing.kerning_px as u32;
         result.w += the_glyph.dimensions.w + font.spacing.kerning_px as u32;
     }
 
@@ -232,27 +233,29 @@ pub fn print<UserData>(
 pub fn get_text_dimensions(
     font: &PixelFont,
     text: &[&str],
-    alignment: Align,
+    // alignment: Align,
 ) -> Dimensions2d {
     // Do nothing if there was no text provided
     if text.len() < 1 {
         return Dimensions2d { w: 0, h: 0 };
     };
 
-    let mut position = POINT_ZERO.clone();
-    let original_position = POINT_ZERO.clone();
+    // let mut position = POINT_ZERO.clone();
+    // let original_position = POINT_ZERO.clone();
 
     let mut result: Dimensions2d = Dimensions2d { w: 0, h: 0 };
 
     // height of the line of text + leading
-    let full_line_height = font.img_dimensions.h + font.spacing.leading_px as u32;
+    // let full_line_height = font.img_dimensions.h + font.spacing.leading_px as u32;
 
-    let mut line_index: usize = 0;
+    // let mut line_index: usize = 0;
 
     let mut line_widths = get_line_widths(font, text);
     let longest_line_width = line_widths.pop().unwrap_or(0);
 
-    for text_line in text {
+    /*
+    // TODO: Check whether the commented code  in this file can be removed
+    for _text_line in text {
         position.x = match alignment {
             Align::Right => {
                 original_position.x + (longest_line_width - line_widths[line_index]) as u32
@@ -263,9 +266,12 @@ pub fn get_text_dimensions(
             Align::Left => original_position.x,
         };
         position.y += full_line_height;
+
         result.h += full_line_height;
         line_index += 1;
     }
+     */
+
     result.w = longest_line_width as u32;
     return result;
 }
