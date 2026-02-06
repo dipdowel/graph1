@@ -395,6 +395,24 @@ impl<CellState: Clone, PayloadForRule> DiscreteRuleField<CellState, PayloadForRu
         }
     }
 
+
+    /// Returns an iterator over all cells in the grid,
+    /// yielding their coordinates and references to the cells.
+    pub fn iter_cells(&self) -> impl Iterator<Item = (GridCoord, &Cell<CellState>)> {
+        self.grid.iter().enumerate().map(|(idx, cell)| {
+            // (self.index_to_coords(idx), cell)
+            (GridCoord::new(idx % self.dimensions.w, idx / self.dimensions.w), cell)
+
+        })
+    }
+
+    /// Returns a vector of all cell states in row-major order (left-to-right, top-to-bottom).
+    /// This creates a copy of the states, making it safe to use while the field is being modified.
+    pub fn cell_states(&self) -> Vec<CellState> {
+        self.grid.iter().map(|cell| cell.state.clone()).collect()
+    }
+
+
     /// Gets a cell at the given coordinates (with boundary policy applied).
     pub fn get_cell(&self, coords: GridCoord) -> Option<&Cell<CellState>> {
         let adjusted = self.apply_boundary_policy(coords)?;
