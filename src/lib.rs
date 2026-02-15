@@ -1,5 +1,19 @@
 //-=[ B }=------------------------------------------------------------------------------------------
 pub mod buffer_op {
+    pub mod color {
+
+        pub mod hue {
+            mod hue;
+            mod hue_buffer;
+            pub use hue::Hue;
+            pub use hue_buffer::hue_buffer;
+        }
+        pub mod tint {
+            mod tint;
+            pub mod multiplicative;
+            pub use tint::Tint;
+        }
+    }
     pub mod copy {
         // pub mod region;
         pub mod rect {
@@ -401,6 +415,12 @@ pub mod utils {
             pub mod intensity;
             pub mod luminance;
         }
+
+        // TODO: create a high-level ctx-aware wrapper for `buffer_op.color.tint.*`
+        // pub mod tint {
+        //     pub mod multiplicative;
+        // }
+
     }
 
     pub mod field {
