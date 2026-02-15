@@ -59,14 +59,14 @@ pub type InitialStateGeneratorFn<CellState, InitialStateData> = fn(
 
 /// A rule set that can be applied to cells in the field.
 #[derive(Clone)]
-pub struct RuleSet<CellState: Clone, PayloadForRule> {
+pub struct RuleSet<CellState: Clone, PayloadForRule:Clone> {
     /// The neighborhood type to inspect when applying this rule.
     pub neighborhood_type: NeighborhoodType,
     /// The rule function that computes the next state.
     pub rule_fn: RuleFn<CellState, PayloadForRule>,
 }
 
-impl<CellState: Clone, PayloadForRule> RuleSet<CellState, PayloadForRule> {
+impl<CellState: Clone, PayloadForRule:Clone> RuleSet<CellState, PayloadForRule> {
     pub fn new(neighborhood_type: NeighborhoodType, rule_fn: RuleFn<CellState, PayloadForRule>) -> Self {
         RuleSet {
             neighborhood_type,
@@ -76,6 +76,7 @@ impl<CellState: Clone, PayloadForRule> RuleSet<CellState, PayloadForRule> {
 }
 
 /// Configuration for how the field should be updated.
+#[derive(Debug, Clone)]
 pub struct UpdateConfig {
     /// Neighborhood type used by the update function.
     pub update_neighborhood: NeighborhoodType,
@@ -100,7 +101,7 @@ impl UpdateConfig {
 }
 
 /// A 2D discrete rule field that implements cellular automaton / rule-based stencil computation.
-pub struct DiscreteRuleField<CellState: Clone, PayloadForRule> {
+pub struct DiscreteRuleField<CellState: Clone, PayloadForRule:Clone> {
     /// Current state grid (row-major order).
     grid: Vec<Cell<CellState>>,
     /// Next state grid (used for double buffering).
@@ -121,7 +122,7 @@ pub struct DiscreteRuleField<CellState: Clone, PayloadForRule> {
 
 }
 
-impl<CellState: Clone, PayloadForRule> DiscreteRuleField<CellState, PayloadForRule> {
+impl<CellState: Clone, PayloadForRule:Clone> DiscreteRuleField<CellState, PayloadForRule> {
     /// Creates a new discrete rule field with flexible initial state generation.
     /// Each cell's initial state is computed by the provided generator function.
     ///
@@ -306,6 +307,10 @@ impl<CellState: Clone, PayloadForRule> DiscreteRuleField<CellState, PayloadForRu
     pub fn set_update_config(&mut self, config: UpdateConfig) {
         self.update_config = config;
     }
+    /// Gets the current update configuration.
+        pub fn get_update_config(&self) -> UpdateConfig {
+        self.update_config.clone()
+    }
 
     /// Sets a custom rule for a specific cell. The cell will use this rule instead of the default rule.
     ///
@@ -487,6 +492,26 @@ impl<CellState: Clone, PayloadForRule> DiscreteRuleField<CellState, PayloadForRu
         }
     }
 
+    /// Gets a copy of the default rule set used by cells without custom rules.
+    ///
+    /// # Example
+    /// ```ignore
+    /// let default_rule = field.get_default_rule_set();
+    /// ```
+    pub fn get_default_rule_set(&self) -> RuleSet<CellState, PayloadForRule> {
+        self.default_rule.clone()
+    }
+
+    /// Sets the default rule set for cells without custom rules.
+    /// Cells with custom rules are not affected.
+    ///
+    /// # Example
+    /// ```ignore
+    /// field.set_default_rule_set(new_rule);
+    /// ```
+    pub fn set_default_rule_set(&mut self, rule_set: RuleSet<CellState, PayloadForRule>) {
+        self.default_rule = rule_set;
+    }
     /// Gets the neighbor coordinates based on the neighborhood type and center coordinates.
     pub fn get_neighbors(
         &self,
@@ -584,17 +609,26 @@ impl<CellState: Clone, PayloadForRule> DiscreteRuleField<CellState, PayloadForRu
     }
 
     /// Updates the field by one time step using the assigned rules.
-    /// This reads from the current grid and writes to the next grid, then swaps them.
-    /// TODO: Improve the documentation, this is a very important function for the users!
+    ///
+    /// Applies each cell's rule function to compute new states based on their neighborhoods,
+    /// using double-buffering to ensure all cells update simultaneously (synchronous update).
+    ///
+    /// # Arguments
+    /// * `one_time_config` - Optional configuration override for this update only. If `None`,
+    ///   uses the field's stored `update_config`.
+    /// * `payload_for_rule` - Optional data passed to all rule functions during this update.
+    ///
+    /// # Example
+    /// ```ignore
+    /// field.update(None, None);  // Update entire field
+    /// ```
     pub fn update(&mut self, one_time_config: Option<UpdateConfig>, payload_for_rule: Option<&PayloadForRule>) {
-
 
         let mut config = &self.update_config;
 
         if one_time_config.is_some(){
             config = one_time_config.as_ref().unwrap();
         }
-
 
         // Process all cells based on the update neighborhood
         let cells_to_process = self.get_cells_to_process(config);
