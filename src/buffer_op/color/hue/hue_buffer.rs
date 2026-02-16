@@ -1,7 +1,29 @@
 use crate::buffer_op::color::hue::Hue;
 
+/// Applies hue rotation to a buffer of RRGGBBAA pixels using a pre-computed matrix.
+///
+/// This function rotates the hue of each pixel using a 3x3 transformation matrix
+/// that preserves luminance
+/// (based on Rec. 601 coefficients: https://en.wikipedia.org/wiki/Rec._601).
+/// The rotation is performed in RGB space using fixed-point arithmetic for performance.
+///
+/// # Performance
+/// - Uses 8.8 fixed-point arithmetic for speed (avoids floating-point operations)
+/// - Matrix values are kept in registers
+/// - Alpha channel is preserved unchanged
+/// - Early exit for identity rotation (0° or 360°)
+///
+/// # Arguments
+/// * `buffer` - Mutable slice of RRGGBBAA pixels (R in MSB, A in LSB)
+/// * `hue` - Pre-computed hue rotation with cached transformation matrix
+#[inline]
 pub fn hue_buffer(buffer: &mut [u32], hue: Hue) {
-    let m = hue.matrix();
+    // Early exit for identity rotation (no change needed)
+    if hue.as_radians().abs() < f32::EPSILON {
+        return;
+    }
+
+    let m = hue.matrix_values();
 
     // Unpack matrix once (helps compiler keep them in registers)
     let m00 = m[0][0];
@@ -21,8 +43,8 @@ pub fn hue_buffer(buffer: &mut [u32], hue: Hue) {
 
         let r = ((p >> 24) & 0xFF) as i32;
         let g = ((p >> 16) & 0xFF) as i32;
-        let b = ((p >> 8)  & 0xFF) as i32;
-        let a =  p & 0xFF;
+        let b = ((p >> 8) & 0xFF) as i32;
+        let a = p & 0xFF;
 
         // 8.8 fixed-point multiply
         let r2 = (m00*r + m01*g + m02*b) >> 8;
