@@ -1,4 +1,6 @@
 use crate::buffer_op::color::cheap::Hue;
+use crate::utils::color::channel::pixel;
+
 
 /// Applies hue rotation to a buffer of RRGGBBAA pixels using a pre-computed matrix.
 ///
@@ -39,25 +41,60 @@ pub fn hue_buffer(buffer: &mut [u32], hue: Hue) {
     let m22 = m[2][2];
 
     for pixel in buffer.iter_mut() {
-        let p = *pixel;
-
-        let r = ((p >> 24) & 0xFF) as i32;
-        let g = ((p >> 16) & 0xFF) as i32;
-        let b = ((p >> 8) & 0xFF) as i32;
-        let a = p & 0xFF;
-
-        // 8.8 fixed-point multiply
-        let r2 = (m00*r + m01*g + m02*b) >> 8;
-        let g2 = (m10*r + m11*g + m12*b) >> 8;
-        let b2 = (m20*r + m21*g + m22*b) >> 8;
-
-        // Clamp to u8 range
-        let r2 = r2.clamp(0, 255) as u32;
-        let g2 = g2.clamp(0, 255) as u32;
-        let b2 = b2.clamp(0, 255) as u32;
-
-        *pixel = (r2 << 24) | (g2 << 16) | (b2 << 8) | a;
+        let (r, g, b, a) = pixel::to_rgb::as_u32(*pixel);
+        let (r, g, b) = hue_pixel(r, g, b, m00, m01, m02, m10, m11, m12, m20, m21, m22);
+        *pixel = pixel::from_rgb::of_u32(r, g, b, a);
     }
+}
+
+/// Apply hue rotation to individual color channels
+///
+/// # Parameters
+/// - `r`: Red channel value (0-255)
+/// - `g`: Green channel value (0-255)
+/// - `b`: Blue channel value (0-255)
+/// - `m00`: Matrix element [0,0] - red's contribution to output red (8.8 fixed-point)
+/// - `m01`: Matrix element [0,1] - green's contribution to output red (8.8 fixed-point)
+/// - `m02`: Matrix element [0,2] - blue's contribution to output red (8.8 fixed-point)
+/// - `m10`: Matrix element [1,0] - red's contribution to output green (8.8 fixed-point)
+/// - `m11`: Matrix element [1,1] - green's contribution to output green (8.8 fixed-point)
+/// - `m12`: Matrix element [1,2] - blue's contribution to output green (8.8 fixed-point)
+/// - `m20`: Matrix element [2,0] - red's contribution to output blue (8.8 fixed-point)
+/// - `m21`: Matrix element [2,1] - green's contribution to output blue (8.8 fixed-point)
+/// - `m22`: Matrix element [2,2] - blue's contribution to output blue (8.8 fixed-point)
+///
+/// # Returns
+/// A tuple `(r, g, b)` containing the hue-rotated color channel values, clamped to 0-255
+#[inline(always)]
+pub fn hue_pixel(
+    r: u32,
+    g: u32,
+    b: u32,
+    m00: i32,
+    m01: i32,
+    m02: i32,
+    m10: i32,
+    m11: i32,
+    m12: i32,
+    m20: i32,
+    m21: i32,
+    m22: i32,
+) -> (u32, u32, u32) {
+    let r = r as i32;
+    let g = g as i32;
+    let b = b as i32;
+
+    // 8.8 fixed-point multiply
+    let r2 = (m00*r + m01*g + m02*b) >> 8;
+    let g2 = (m10*r + m11*g + m12*b) >> 8;
+    let b2 = (m20*r + m21*g + m22*b) >> 8;
+
+    // Clamp to u8 range
+    let r2 = r2.clamp(0, 255) as u32;
+    let g2 = g2.clamp(0, 255) as u32;
+    let b2 = b2.clamp(0, 255) as u32;
+
+    (r2, g2, b2)
 }
 
 #[cfg(test)]

@@ -25,8 +25,19 @@ pub fn tint_buffer(buffer: &mut [u32], tint: Tint) {
 }
 
 /// Tint individual color channels
+///
+/// # Parameters
+/// - `r`: Red channel value (0-255)
+/// - `g`: Green channel value (0-255)
+/// - `b`: Blue channel value (0-255)
+/// - `tr`: Tint multiplier for red channel (0-255, where 255 = no change)
+/// - `tg`: Tint multiplier for green channel (0-255, where 255 = no change)
+/// - `tb`: Tint multiplier for blue channel (0-255, where 255 = no change)
+///
+/// # Returns
+/// A tuple `(r, g, b)` containing the tinted color channel values
 #[inline(always)]
-fn tint_pixel(r: u32, g: u32, b: u32, tr: u32, tg: u32, tb: u32) -> (u32, u32, u32) {
+pub fn tint_pixel(r: u32, g: u32, b: u32, tr: u32, tg: u32, tb: u32) -> (u32, u32, u32) {
     let r = (r * tr + 128) >> 8;
     let g = (g * tg + 128) >> 8;
     let b = (b * tb + 128) >> 8;

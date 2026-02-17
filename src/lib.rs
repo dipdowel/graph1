@@ -22,9 +22,16 @@ pub mod buffer_op {
             mod color_transform_buf;
             
             pub use crate::buffer_op::color::cheap::brightness_buf::brightness_buffer;
+            pub use crate::buffer_op::color::cheap::brightness_buf::brightness_pixel;
+
             pub use crate::buffer_op::color::cheap::contrast_buf::contrast_buffer;
+            pub use crate::buffer_op::color::cheap::contrast_buf::contrast_pixel;
+
             pub use crate::buffer_op::color::cheap::hue_buf::hue_buffer;
+            pub use crate::buffer_op::color::cheap::hue_buf::hue_pixel;
+
             pub use crate::buffer_op::color::cheap::tint_buf::tint_buffer;
+            pub use crate::buffer_op::color::cheap::tint_buf::tint_pixel;
 
             pub use crate::buffer_op::color::cheap::color_transform_buf::color_transform_buffer;
         }

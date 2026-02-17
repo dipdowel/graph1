@@ -8,8 +8,9 @@ pub fn color_transform_buffer(buffer: &mut [u32], transform: ColorTransform) {
 
 /*
 TODO:
-      1. Analyze `brightness_buf.rs`, `contrast_buf.rs`, `hue_buf.rs`, and `tint_buf.rs` to identify common patterns and opportunities for code reuse.
-        - E.g. In each of them we extract color channels like this:
+      1. Analyze `brightness_buf.rs`, `contrast_buf.rs`, `hue_buf.rs`, and `tint_buf.rs` to identify
+         common patterns and opportunities for code reuse.
+        - E.g. In each of them we extract color channels similar to this:
         ```
             // Extract channels
                 let r = ((pixel >> 24) & 0xFF) as i32;
