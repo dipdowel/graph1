@@ -35,7 +35,18 @@ use crate::utils::color::channel::pixel;
 /// color_transform_buffer(&mut buffer, transform);
 /// ```
 pub fn color_transform_buffer(buffer: &mut [u32], transform: ColorTransform) {
-    // Early exit if no transformations specified
+    let mut transform = transform;
+
+    // Remove identity transformations to avoid unnecessary processing
+    transform.transforms.retain(|t| {
+        match t {
+            ColorTransformType::Contrast(contrast) => !contrast.is_identity(),
+            ColorTransformType::Hue(hue) => !hue.is_identity(),
+            _ => true, // Keep all other transformation types
+        }
+    });
+
+    // Early exit if no transformations remain (initially empty or all were identity)
     if transform.is_empty() {
         return;
     }
