@@ -42,6 +42,8 @@ pub fn color_transform_buffer(buffer: &mut [u32], transform: ColorTransform) {
         match t {
             ColorTransformType::Contrast(contrast) => !contrast.is_identity(),
             ColorTransformType::Hue(hue) => !hue.is_identity(),
+            ColorTransformType::Tint(tint) => !tint.is_identity(),
+            ColorTransformType::Brightness(brightness) => !brightness.is_identity(),
             _ => true, // Keep all other transformation types
         }
     });

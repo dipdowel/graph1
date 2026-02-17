@@ -26,6 +26,15 @@ impl Brightness {
         Self { factor_8_8: 256 }
     }
 
+    /// Returns true if the brightness adjustment is effectively an identity operation (no change).
+    ///
+    /// This checks if the brightness factor is 256 (1.0x in 8.8 fixed-point), which means
+    /// applying it would have no effect on the colors.
+    #[inline(always)]
+    pub fn is_identity(&self) -> bool {
+        self.factor_8_8 == 256
+    }
+
     #[inline(always)]
     pub fn factor_8_8(self) -> i32 {
         self.factor_8_8

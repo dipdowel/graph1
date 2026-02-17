@@ -18,6 +18,15 @@ impl Tint {
     pub const fn white() -> Self {
         Self { r: 255, g: 255, b: 255 }
     }
+
+    /// Returns true if the tint is effectively an identity operation (no color change).
+    ///
+    /// This checks if the tint is white (255, 255, 255), which means applying it would
+    /// have no effect on the colors.
+    #[inline(always)]
+    pub fn is_identity(&self) -> bool {
+        self.r == 255 && self.g == 255 && self.b == 255
+    }
 }
 
 impl From<(u8, u8, u8)> for Tint {

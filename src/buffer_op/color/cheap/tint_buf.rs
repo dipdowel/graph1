@@ -13,6 +13,12 @@ use crate::utils::color::channel::pixel;
 /// - Optimized division approximation: `(x * y + 128) >> 8`
 #[inline]
 pub fn tint_buffer(buffer: &mut [u32], tint: Tint) {
+
+    // Early exit for identity rotation (no change needed)
+    if tint.is_identity() {
+        return;
+    }
+
     let tr = tint.r as u32;
     let tg = tint.g as u32;
     let tb = tint.b as u32;

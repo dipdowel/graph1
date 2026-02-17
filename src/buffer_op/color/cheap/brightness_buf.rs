@@ -10,6 +10,13 @@ use crate::utils::color::channel::pixel;
 ///   out = (in * factor_8_8 + 128) >> 8
 #[inline]
 pub fn brightness_buffer(buffer: &mut [u32], brightness: Brightness) {
+
+    // Early exit for no contrast change
+    if brightness.is_identity() {
+        return;
+    }
+
+
     let f = brightness.factor_8_8();
 
     for pixel in buffer.iter_mut() {
