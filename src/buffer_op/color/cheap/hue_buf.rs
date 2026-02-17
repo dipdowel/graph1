@@ -1,7 +1,6 @@
 use crate::buffer_op::color::cheap::Hue;
 use crate::utils::color::channel::pixel;
 
-
 /// Applies hue rotation to a buffer of RRGGBBAA pixels using a pre-computed matrix.
 ///
 /// This function rotates the hue of each pixel using a 3x3 transformation matrix
@@ -21,7 +20,7 @@ use crate::utils::color::channel::pixel;
 #[inline]
 pub fn hue_buffer(buffer: &mut [u32], hue: Hue) {
     // Early exit for identity rotation (no change needed)
-    if hue.as_radians().abs() < f32::EPSILON {
+    if hue.is_identity() {
         return;
     }
 

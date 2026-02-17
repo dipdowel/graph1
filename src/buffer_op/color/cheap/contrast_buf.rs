@@ -1,7 +1,6 @@
 use crate::buffer_op::color::cheap::Contrast;
 use crate::utils::color::channel::pixel;
 
-
 /// Applies contrast adjustment to a buffer of RRGGBBAA pixels using a pre-computed multiplier.
 ///
 /// This function adjusts the contrast of each pixel by scaling the difference between
@@ -24,7 +23,7 @@ use crate::utils::color::channel::pixel;
 #[inline]
 pub fn contrast_buffer(buffer: &mut [u32], contrast: Contrast) {
     // Early exit for no contrast change
-    if (contrast.as_f32() - 1.0).abs() < f32::EPSILON {
+    if contrast.is_identity() {
         return;
     }
 

@@ -56,4 +56,13 @@ impl Contrast {
     pub fn fixed_multiplier(&self) -> i32 {
         self.fixed
     }
+
+    /// Returns true if the contrast adjustment is effectively an identity operation (no change).
+    ///
+    /// This checks if the contrast value is close enough to 1.0 that applying it would
+    /// have no visible effect on the colors.
+    #[inline(always)]
+    pub fn is_identity(&self) -> bool {
+        (self.value - 1.0).abs() < f32::EPSILON
+    }
 }

@@ -86,6 +86,15 @@ impl Hue {
         self.matrix
     }
 
+    /// Returns true if the hue rotation is effectively an identity operation (no change).
+    ///
+    /// This checks if the rotation angle is close enough to zero that applying it would
+    /// have no visible effect on the colors.
+    #[inline(always)]
+    pub fn is_identity(&self) -> bool {
+        self.radians.abs() < f32::EPSILON
+    }
+
     fn build_matrix(theta: f32) -> [[i32; 3]; 3] {
         let cos = theta.cos();
         let sin = theta.sin();
