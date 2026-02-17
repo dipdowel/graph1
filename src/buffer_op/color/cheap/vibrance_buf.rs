@@ -9,16 +9,17 @@ use crate::utils::color::channel::pixel;
 ///
 /// # Algorithm
 /// For each pixel:
-/// 1. Calculate luminance using Rec.709 coefficients
-/// 2. Compute saturation as max(R,G,B) - min(R,G,B)
+/// 1. Calculate luminance using Rec.709 coefficients (integer arithmetic, 0-255 range)
+/// 2. Compute saturation as (max - min) / 255
 /// 3. Calculate vibrance factor: 1 + vibrance * (1 - saturation)
 ///    - Low saturation colors get a stronger adjustment
 ///    - High saturation colors get a weaker adjustment
 /// 4. Interpolate between luminance (gray) and original color by the factor
-/// 5. Clamp results to valid range
+/// 5. Clamp results to 0-255 range
 ///
 /// # Performance
-/// - Uses fixed-point arithmetic where possible for speed
+/// - Uses integer arithmetic for luminance calculation (Rec.709 scaled by 256)
+/// - Works directly in 0-255 range to avoid normalization overhead
 /// - Preserves alpha channel throughout
 /// - Early exit for identity vibrance (0.0)
 ///
@@ -66,40 +67,47 @@ pub fn vibrance_buffer(buffer: &mut [u32], vibrance: Vibrance) {
 /// - Calculates saturation as the difference between max and min RGB values
 /// - Applies stronger adjustment to colors with lower saturation
 /// - Uses luminance as the neutral point for interpolation
+///
+/// # Performance Notes
+/// - Uses integer arithmetic for luminance calculation (Rec.709 coefficients scaled by 255)
+/// - Minimizes floating-point operations by working in 0-255 range
+/// - Rec.709 weights: R=0.2126, G=0.7152, B=0.0722, scaled to integers: 54, 182, 18
 #[inline(always)]
 pub fn vibrance_pixel(r: u32, g: u32, b: u32, vibrance: f32) -> (u32, u32, u32) {
-    // Convert to float for calculations (0-255 range)
+    // Fast luminance calculation using integer arithmetic with Rec.709 coefficients
+    // Coefficients scaled by 256: (0.2126*256≈54, 0.7152*256≈183, 0.0722*256≈18)
+    // Sum ≈ 255, normalized by >>8
+    let luma_i = (54 * r + 183 * g + 18 * b) >> 8;
+    let luma = luma_i as f32;
+
+    // Find max and min for saturation calculation
+    let max = r.max(g).max(b);
+    let min = r.min(g).min(b);
+    let sat_range = (max - min) as f32;
+
+    // Saturation in 0-255 range
+    let saturation_norm = sat_range / 255.0;
+
+    // Vibrance factor: 1 + vibrance * (1 - saturation)
+    // Rewritten to reduce operations: vibrance + (1 - vibrance) - vibrance * saturation
+    let inv_sat = 1.0 - saturation_norm;
+    let factor = 1.0 + vibrance * inv_sat;
+
+    // Convert inputs to float for interpolation
     let rf = r as f32;
     let gf = g as f32;
     let bf = b as f32;
 
-    // Normalize to 0-1
-    let r_norm = rf / 255.0;
-    let g_norm = gf / 255.0;
-    let b_norm = bf / 255.0;
+    // Mix gray (luminance) and original color in 0-255 range
+    // new_color = luma + (original - luma) * factor
+    let r_new = luma + (rf - luma) * factor;
+    let g_new = luma + (gf - luma) * factor;
+    let b_new = luma + (bf - luma) * factor;
 
-    // Calculate luminance using Rec.709 coefficients
-    let luminance = 0.2126 * r_norm + 0.7152 * g_norm + 0.0722 * b_norm;
-
-    // Approximate saturation
-    let max = r_norm.max(g_norm).max(b_norm);
-    let min = r_norm.min(g_norm).min(b_norm);
-    let saturation = max - min;
-
-    // Vibrance factor: boost low saturation more, high saturation less
-    // factor = 1 + vibrance * (1 - saturation)
-    let factor = 1.0 + vibrance * (1.0 - saturation);
-
-    // Mix gray (luminance) and original color
-    // new_color = luminance + (original - luminance) * factor
-    let r_new = luminance + (r_norm - luminance) * factor;
-    let g_new = luminance + (g_norm - luminance) * factor;
-    let b_new = luminance + (b_norm - luminance) * factor;
-
-    // Clamp to 0-1 and convert back to 0-255
-    let r_out = (r_new.clamp(0.0, 1.0) * 255.0).round() as u32;
-    let g_out = (g_new.clamp(0.0, 1.0) * 255.0).round() as u32;
-    let b_out = (b_new.clamp(0.0, 1.0) * 255.0).round() as u32;
+    // Clamp to 0-255
+    let r_out = r_new.clamp(0.0, 255.0).round() as u32;
+    let g_out = g_new.clamp(0.0, 255.0).round() as u32;
+    let b_out = b_new.clamp(0.0, 255.0).round() as u32;
 
     (r_out, g_out, b_out)
 }

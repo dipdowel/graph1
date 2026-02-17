@@ -9,9 +9,6 @@
 /// - 0.0: No change (identity)
 /// - Typical range: -1.0 to 1.0
 ///
-/// # Fixed-Point Representation
-/// Internally stores the vibrance as an 8.8 fixed-point integer for efficient computation.
-///
 /// # Examples
 /// ```
 /// use graph1::buffer_op::color::cheap::Vibrance;
@@ -23,13 +20,9 @@
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct Vibrance {
     value: f32,
-    fixed: i32, // 8.8 fixed-point vibrance value (scaled by 256)
 }
 
 impl Vibrance {
-    /// Fixed-point scaling factor (2^8)
-    const SCALE: f32 = 256.0;
-
     /// Creates a vibrance adjustment from a floating-point value.
     ///
     /// # Arguments
@@ -37,8 +30,7 @@ impl Vibrance {
     ///             Values are clamped to [-2.0, 2.0] for safety.
     pub fn from_f32(value: f32) -> Self {
         let value = value.clamp(-2.0, 2.0);
-        let fixed = (value * Self::SCALE).round() as i32;
-        Self { value, fixed }
+        Self { value }
     }
 
     /// Returns the stored vibrance value as a floating-point number.
@@ -47,18 +39,9 @@ impl Vibrance {
         self.value
     }
 
-    /// Returns the cached fixed-point vibrance value.
-    #[inline(always)]
-    pub fn fixed_value(&self) -> i32 {
-        self.fixed
-    }
-
     /// Common preset: no change (0.0).
     pub const fn identity() -> Self {
-        Self {
-            value: 0.0,
-            fixed: 0,
-        }
+        Self { value: 0.0 }
     }
 
     /// Returns true if the vibrance adjustment is effectively an identity operation (no change).
