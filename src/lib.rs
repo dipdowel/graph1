@@ -384,6 +384,16 @@ pub mod utils {
         pub mod alpha;
         /// Conversions between RGBA and 1-bit image
         pub mod bit_operations;
+
+        pub mod channel {
+            pub mod pixel {
+                pub mod from_rgb;
+                pub mod to_rgb;
+                #[cfg(test)]
+                mod tests;
+            }
+        }
+
         /// Math operations on colors
         pub mod math {
 
@@ -397,6 +407,7 @@ pub mod utils {
         pub mod gradient;
 
         pub mod invert;
+
 
         /// Built-in color palettes
         pub mod palettes {
@@ -424,6 +435,7 @@ pub mod utils {
             pub use vintage_pastel::VintagePastel;
             pub use winter_frost::WinterFrost;
         }
+
 
         /// Color properties calculations, color analysis
         pub mod desaturate {
