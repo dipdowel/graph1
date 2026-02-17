@@ -18,6 +18,7 @@ brightness_buffer(&mut buffer, Brightness::from_percent(120));
 contrast_buffer(&mut buffer, Contrast::from_f32(1.5));
 hue_buffer(&mut buffer, Hue::from_degrees(45.0));
 tint_buffer(&mut buffer, Tint::new(255, 200, 150));
+vibrance_buffer(&mut buffer, Vibrance::from_f32(0.5));
 ```
 
 ## Operations
@@ -66,6 +67,20 @@ tint_buffer(&mut buffer, Tint::new(255, 128, 64)); // Orange tint
 - `Tint::from((200, 150, 100))` - From tuple
 - `Tint::from(0xFF8040FF)` - From pixel color
 
+### Vibrance
+Selective saturation adjustment (affects dull colors more than vibrant ones).
+
+```rust
+vibrance_buffer(&mut buffer, Vibrance::from_f32(0.5)); // Boost dull colors
+```
+
+- `Vibrance::from_f32(0.0)` - No change
+- `Vibrance::from_f32(0.5)` - Enhance less-saturated colors
+- `Vibrance::from_f32(-0.5)` - Mute colors
+- `Vibrance::identity()` - Same as 0.0
+
+**Note:** Unlike uniform saturation, vibrance protects already-saturated colors from oversaturation.
+
 ## Combined Transformations
 
 Apply multiple operations in **one pass**:
@@ -73,6 +88,7 @@ Apply multiple operations in **one pass**:
 ```rust
 let transform = ColorTransform::new(vec![
     ColorTransformType::Brightness(Brightness::from_percent(120)),
+    ColorTransformType::Vibrance(Vibrance::from_f32(0.4)),
     ColorTransformType::Contrast(Contrast::from_f32(1.2)),
     ColorTransformType::Hue(Hue::from_degrees(30.0)),
 ]);

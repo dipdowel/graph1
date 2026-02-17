@@ -8,17 +8,20 @@ pub mod buffer_op {
                 pub(crate) mod contrast;
                 pub(crate) mod hue;
                 pub(crate) mod tint;
+                pub(crate) mod vibrance;
             }
             pub use structs::brightness::Brightness;
             pub use structs::color_transform::{ColorTransform, ColorTransformType};
             pub use structs::contrast::Contrast;
             pub use structs::hue::Hue;
             pub use structs::tint::Tint;
+            pub use structs::vibrance::Vibrance;
 
             mod brightness_buf;
             mod contrast_buf;
             mod hue_buf;
             mod tint_buf;
+            mod vibrance_buf;
             mod color_transform_buf;
             
             pub use crate::buffer_op::color::cheap::brightness_buf::brightness_buffer;
@@ -32,6 +35,9 @@ pub mod buffer_op {
 
             pub use crate::buffer_op::color::cheap::tint_buf::tint_buffer;
             pub use crate::buffer_op::color::cheap::tint_buf::tint_pixel;
+
+            pub use crate::buffer_op::color::cheap::vibrance_buf::vibrance_buffer;
+            pub use crate::buffer_op::color::cheap::vibrance_buf::vibrance_pixel;
 
             pub use crate::buffer_op::color::cheap::color_transform_buf::color_transform_buffer;
         }

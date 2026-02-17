@@ -1,4 +1,4 @@
-use crate::buffer_op::color::cheap::{Brightness, Contrast, Hue, Tint};
+use crate::buffer_op::color::cheap::{Brightness, Contrast, Hue, Tint, Vibrance};
 
 /// A type of color transformation that can be applied to image buffers.
 #[derive(Clone, Copy, Debug)]
@@ -7,6 +7,7 @@ pub enum ColorTransformType {
     Contrast(Contrast),
     Hue(Hue),
     Tint(Tint),
+    Vibrance(Vibrance),
 }
 
 /// A collection of color transformations to be applied in sequence.

@@ -1,6 +1,6 @@
 use crate::buffer_op::color::cheap::structs::color_transform::ColorTransformType;
 use crate::buffer_op::color::cheap::ColorTransform;
-use crate::buffer_op::color::cheap::{brightness_pixel, contrast_pixel, hue_pixel, tint_pixel};
+use crate::buffer_op::color::cheap::{brightness_pixel, contrast_pixel, hue_pixel, tint_pixel, vibrance_pixel};
 use crate::utils::color::channel::pixel;
 
 
@@ -44,7 +44,7 @@ pub fn color_transform_buffer(buffer: &mut [u32], transform: ColorTransform) {
             ColorTransformType::Hue(hue) => !hue.is_identity(),
             ColorTransformType::Tint(tint) => !tint.is_identity(),
             ColorTransformType::Brightness(brightness) => !brightness.is_identity(),
-            _ => true, // Keep all other transformation types
+            ColorTransformType::Vibrance(vibrance) => !vibrance.is_identity(),
         }
     });
 
@@ -80,6 +80,9 @@ pub fn color_transform_buffer(buffer: &mut [u32], transform: ColorTransform) {
                 ColorTransformType::Tint(tint) => {
                     tint_pixel(r, g, b, tint.r as u32, tint.g as u32, tint.b as u32)
                 }
+                ColorTransformType::Vibrance(vibrance) => {
+                    vibrance_pixel(r, g, b, vibrance.as_f32())
+                }
             };
         }
 
@@ -91,8 +94,8 @@ pub fn color_transform_buffer(buffer: &mut [u32], transform: ColorTransform) {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::buffer_op::color::cheap::{Brightness, Contrast, Hue, Tint};
-    use crate::buffer_op::color::cheap::{brightness_buffer, contrast_buffer, hue_buffer, tint_buffer};
+    use crate::buffer_op::color::cheap::{Brightness, Contrast, Hue, Tint, Vibrance};
+    use crate::buffer_op::color::cheap::{brightness_buffer, contrast_buffer, hue_buffer, tint_buffer, vibrance_buffer};
 
     #[test]
     fn test_empty_transform() {
@@ -171,6 +174,23 @@ mod tests {
 
         assert_eq!(buffer_multi, buffer_single,
             "Single tint via color_transform should match tint_buffer");
+    }
+
+    #[test]
+    fn test_single_vibrance() {
+        let mut buffer_multi = vec![0xFF8040FF; 10];
+        let mut buffer_single = buffer_multi.clone();
+
+        let vibrance = Vibrance::from_f32(0.5);
+        let transform = ColorTransform::new(vec![
+            ColorTransformType::Vibrance(vibrance),
+        ]);
+
+        color_transform_buffer(&mut buffer_multi, transform);
+        vibrance_buffer(&mut buffer_single, vibrance);
+
+        assert_eq!(buffer_multi, buffer_single,
+            "Single vibrance via color_transform should match vibrance_buffer");
     }
 
     #[test]
