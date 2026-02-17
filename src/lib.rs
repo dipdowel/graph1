@@ -1,17 +1,26 @@
 //-=[ B }=------------------------------------------------------------------------------------------
 pub mod buffer_op {
     pub mod color {
+        pub (crate)mod structs{
 
-        pub mod hue {
+            mod contrast;
+            pub use contrast::Contrast;
             mod hue;
-            mod hue_buffer;
             pub use hue::Hue;
+            mod tint;
+            pub use tint::Tint;
+        }
+        pub mod contrast {
+            mod contrast_buffer;
+            pub use contrast_buffer::contrast_buffer;
+        }
+        pub mod hue {
+            mod hue_buffer;
             pub use hue_buffer::hue_buffer;
         }
         pub mod tint {
-            mod tint;
             pub mod multiplicative;
-            pub use tint::Tint;
+
         }
     }
     pub mod copy {
@@ -363,7 +372,12 @@ pub mod utils {
             pub use rgba_to_argb::rgba_to_argb;
             pub use single_pixel::rgba_color_to_0rgb;
             pub use single_pixel::rgba_color_to_abgr;
+
         }
+
+        pub use crate::buffer_op::color::structs::Hue;
+        pub use crate::buffer_op::color::structs::Tint;
+        pub use crate::buffer_op::color::structs::Contrast;
 
         /// Functions to blend colors taking into account the alpha channel
         pub mod alpha;

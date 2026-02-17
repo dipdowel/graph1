@@ -1,4 +1,4 @@
-use crate::buffer_op::color::hue::Hue;
+use crate::buffer_op::color::structs::Hue;
 
 /// Applies hue rotation to a buffer of RRGGBBAA pixels using a pre-computed matrix.
 ///
