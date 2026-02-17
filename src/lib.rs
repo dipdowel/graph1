@@ -3,7 +3,7 @@ pub mod buffer_op {
     pub mod color {
         pub (crate)mod structs{
 
-            mod brightness;            
+            mod brightness;
             pub use brightness::Brightness;
             mod contrast;
             pub use contrast::Contrast;
@@ -11,14 +11,14 @@ pub mod buffer_op {
             pub use hue::Hue;
             mod tint;
             pub use tint::Tint;
-            
+
         }
 
         pub mod brightness {
             mod brightness_buffer;
             pub use brightness_buffer::brightness_buffer;
         }
-        
+
         pub mod contrast {
             mod contrast_buffer;
             pub use contrast_buffer::contrast_buffer;
@@ -28,7 +28,8 @@ pub mod buffer_op {
             pub use hue_buffer::hue_buffer;
         }
         pub mod tint {
-            pub mod multiplicative;
+            mod tint_buffer;
+            pub use tint_buffer::tint_buffer;
 
         }
     }
@@ -388,7 +389,7 @@ pub mod utils {
         pub use crate::buffer_op::color::structs::Contrast;
         pub use crate::buffer_op::color::structs::Hue;
         pub use crate::buffer_op::color::structs::Tint;
-        
+
 
         /// Functions to blend colors taking into account the alpha channel
         pub mod alpha;
