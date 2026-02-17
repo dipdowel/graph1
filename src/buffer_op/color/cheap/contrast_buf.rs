@@ -1,4 +1,4 @@
-use crate::buffer_op::color::structs::Contrast;
+use crate::buffer_op::color::cheap::Contrast;
 
 /// Applies contrast adjustment to a buffer of RRGGBBAA pixels using a pre-computed multiplier.
 ///

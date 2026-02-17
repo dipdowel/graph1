@@ -1,4 +1,4 @@
-use crate::utils::color::Brightness;
+use crate::buffer_op::color::cheap::Brightness;
 
 /// Applies brightness scaling to an RGBA buffer in RRGGBBAA format.
 /// RGB channels are scaled by `brightness` and clamped to [0, 255].

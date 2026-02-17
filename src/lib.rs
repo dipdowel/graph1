@@ -1,36 +1,32 @@
 //-=[ B }=------------------------------------------------------------------------------------------
 pub mod buffer_op {
     pub mod color {
-        pub (crate)mod structs{
+        pub mod cheap {
+            pub(crate) mod structs {
+                pub(crate) mod brightness;
+                pub(crate) mod color_transform;
+                pub(crate) mod contrast;
+                pub(crate) mod hue;
+                pub(crate) mod tint;
+            }
+            pub use structs::brightness::Brightness;
+            pub use structs::color_transform::ColorTransform;
+            pub use structs::contrast::Contrast;
+            pub use structs::hue::Hue;
+            pub use structs::tint::Tint;
 
-            mod brightness;
-            pub use brightness::Brightness;
-            mod contrast;
-            pub use contrast::Contrast;
-            mod hue;
-            pub use hue::Hue;
-            mod tint;
-            pub use tint::Tint;
+            mod brightness_buf;
+            mod contrast_buf;
+            mod hue_buf;
+            mod tint_buf;
+            mod color_transform_buf;
+            
+            pub use crate::buffer_op::color::cheap::brightness_buf::brightness_buffer;
+            pub use crate::buffer_op::color::cheap::contrast_buf::contrast_buffer;
+            pub use crate::buffer_op::color::cheap::hue_buf::hue_buffer;
+            pub use crate::buffer_op::color::cheap::tint_buf::tint_buffer;
 
-        }
-
-        pub mod brightness {
-            mod brightness_buffer;
-            pub use brightness_buffer::brightness_buffer;
-        }
-
-        pub mod contrast {
-            mod contrast_buffer;
-            pub use contrast_buffer::contrast_buffer;
-        }
-        pub mod hue {
-            mod hue_buffer;
-            pub use hue_buffer::hue_buffer;
-        }
-        pub mod tint {
-            mod tint_buffer;
-            pub use tint_buffer::tint_buffer;
-
+            pub use crate::buffer_op::color::cheap::color_transform_buf::color_transform_buffer;
         }
     }
     pub mod copy {
@@ -77,7 +73,7 @@ pub mod buffer_op {
                 pub use to_another_buf_sparse::to_another_buf;
                 // pub use to_another_buf_multi_dst::to_another_buf_multi_dst;
                 // pub use within_buf::within_buf;
-        }
+            }
         }
     }
 
@@ -292,8 +288,8 @@ pub mod primitives {
     pub mod containable;
 
     pub mod data_structs {
-        pub mod variant;
         pub mod ring_buffers;
+        pub mod variant;
     }
 
     /// Aliases for complex or peculiar types
@@ -339,13 +335,13 @@ pub mod test {
 }
 pub mod text {
 
-    pub mod char_width_map;
     pub mod char_grid;
+    pub mod char_width_map;
     pub mod font;
     pub mod font_constants;
     pub mod font_embedder;
     pub mod helpers;
-    
+
     pub mod printer;
 
     pub mod utils;
@@ -382,14 +378,7 @@ pub mod utils {
             pub use rgba_to_argb::rgba_to_argb;
             pub use single_pixel::rgba_color_to_0rgb;
             pub use single_pixel::rgba_color_to_abgr;
-
         }
-
-        pub use crate::buffer_op::color::structs::Brightness;
-        pub use crate::buffer_op::color::structs::Contrast;
-        pub use crate::buffer_op::color::structs::Hue;
-        pub use crate::buffer_op::color::structs::Tint;
-
 
         /// Functions to blend colors taking into account the alpha channel
         pub mod alpha;
@@ -446,22 +435,20 @@ pub mod utils {
         // pub mod tint {
         //     pub mod multiplicative;
         // }
-
     }
 
     pub mod field {
-        pub mod field_xy;
         pub mod discrete_rule_field;
+        pub mod field_xy;
     }
 
     pub mod grid {
-         pub mod flex_row;
+        pub mod flex_row;
         pub mod grid_position;
         pub mod uniform;
 
         mod render;
         pub use render::render;
-
     }
 
     /// Various math utilities and constants

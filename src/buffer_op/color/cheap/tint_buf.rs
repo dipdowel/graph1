@@ -1,4 +1,4 @@
-use crate::buffer_op::color::structs::Tint;
+use crate::buffer_op::color::cheap::Tint;
 
 /// **NB:** Experimental! Use with caution.
 /// Applies multiplicative tinting to a buffer of pixels.

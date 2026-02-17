@@ -9,15 +9,7 @@
 /// # Fixed-Point Representation
 /// The multiplier uses 8.8 fixed-point format (scale 256) for efficient integer
 /// arithmetic during pixel operations, avoiding floating-point overhead in tight loops.
-///
-/// # Examples
-/// ```
-/// use graph1::buffer_op::color::structs::Contrast;
-///
-/// let contrast = Contrast::from_f32(1.5); // 50% more contrast
-/// let contrast = Contrast::from_f32(0.5); // 50% less contrast
-/// let contrast = Contrast::from_f32(1.0); // No change (default)
-/// ```
+ 
 #[derive(Clone, Copy, Debug)]
 pub struct Contrast {
     value: f32,

@@ -10,15 +10,7 @@
 /// The matrix uses 8.8 fixed-point format (scale 256) for efficient integer
 /// arithmetic during pixel operations, avoiding floating-point overhead in tight loops.
 ///
-/// # Examples
-/// ```
-/// use graph1::buffer_op::color::hue::Hue;
-///
-/// let hue = Hue::from_degrees(90.0); // 90° rotation
-/// let hue = Hue::from_radians(std::f32::consts::FRAC_PI_2); // Same rotation
-/// let hue = Hue::from_turns(0.25); // Same rotation
-/// let matrix = hue.matrix();
-/// ```
+ 
 #[derive(Clone, Copy, Debug)]
 pub struct Hue {
     radians: f32,
