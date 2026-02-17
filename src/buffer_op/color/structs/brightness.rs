@@ -8,10 +8,10 @@ pub struct Brightness {
 }
 
 impl Brightness {
-    /// Create from an 8.8 fixed-point factor (256 = 1.0x).
-    pub fn from_factor_8_8(factor_8_8: i32) -> Self {
-        Self { factor_8_8 }
-    }
+    // // Create from an 8.8 fixed-point factor (256 = 1.0x).
+    // pub fn from_factor_8_8(factor_8_8: i32) -> Self {
+    //     Self { factor_8_8 }
+    // }
 
     /// Create from a percentage (100 = 1.0x, 50 = 0.5x, 200 = 2.0x).
     pub fn from_percent(percent: i32) -> Self {
