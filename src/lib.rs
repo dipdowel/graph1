@@ -10,7 +10,7 @@ pub mod buffer_op {
                 pub(crate) mod tint;
             }
             pub use structs::brightness::Brightness;
-            pub use structs::color_transform::ColorTransform;
+            pub use structs::color_transform::{ColorTransform, ColorTransformType};
             pub use structs::contrast::Contrast;
             pub use structs::hue::Hue;
             pub use structs::tint::Tint;
