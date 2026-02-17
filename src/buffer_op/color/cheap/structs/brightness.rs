@@ -40,8 +40,3 @@ impl Brightness {
         self.factor_8_8
     }
 }
-
-#[inline(always)]
-fn clamp_u8_i32(v: i32) -> u32 {
-    if v < 0 { 0 } else if v > 255 { 255 } else { v as u32 }
-}
