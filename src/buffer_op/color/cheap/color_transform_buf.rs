@@ -1,5 +1,6 @@
 use crate::buffer_op::color::cheap::structs::color_transform::ColorTransformType;
 use crate::buffer_op::color::cheap::ColorTransform;
+use crate::buffer_op::color::cheap::{brightness_pixel, contrast_pixel, hue_pixel, tint_pixel};
 use crate::utils::color::channel::pixel;
 
 
@@ -41,54 +42,36 @@ pub fn color_transform_buffer(buffer: &mut [u32], transform: ColorTransform) {
 
     // Single pass over the buffer
     for pixel in buffer.iter_mut() {
-        let (r, g, b, a) = pixel::to_rgb::as_u32(*pixel);
-
-        // Convert to i32 for arithmetic operations
-        let mut r = r as i32;
-        let mut g = g as i32;
-        let mut b = b as i32;
+        let (mut r, mut g, mut b, a) = pixel::to_rgb::as_u32(*pixel);
 
         // Apply each transformation in sequence
         for t in &transform.transforms {
-            match t {
+            (r, g, b) = match t {
                 ColorTransformType::Brightness(brightness) => {
                     let f = brightness.factor_8_8();
-                    // 8.8 fixed-point multiply, +128 for rounding before >> 8
-                    r = ((r * f + 128) >> 8).clamp(0, 255);
-                    g = ((g * f + 128) >> 8).clamp(0, 255);
-                    b = ((b * f + 128) >> 8).clamp(0, 255);
+                    brightness_pixel(r, g, b, f)
                 }
                 ColorTransformType::Contrast(contrast) => {
                     let cf = contrast.fixed_multiplier();
-                    // Adjust around middle gray (128)
-                    r = (((r - 128) * cf) >> 8) + 128;
-                    g = (((g - 128) * cf) >> 8) + 128;
-                    b = (((b - 128) * cf) >> 8) + 128;
-                    r = r.clamp(0, 255);
-                    g = g.clamp(0, 255);
-                    b = b.clamp(0, 255);
+                    contrast_pixel(r, g, b, cf)
                 }
                 ColorTransformType::Hue(hue) => {
                     let m = hue.matrix_values();
-                    // Apply 3x3 hue rotation matrix
-                    let nr = (m[0][0]*r + m[0][1]*g + m[0][2]*b) >> 8;
-                    let ng = (m[1][0]*r + m[1][1]*g + m[1][2]*b) >> 8;
-                    let nb = (m[2][0]*r + m[2][1]*g + m[2][2]*b) >> 8;
-                    r = nr.clamp(0, 255);
-                    g = ng.clamp(0, 255);
-                    b = nb.clamp(0, 255);
+                    hue_pixel(
+                        r, g, b,
+                        m[0][0], m[0][1], m[0][2],
+                        m[1][0], m[1][1], m[1][2],
+                        m[2][0], m[2][1], m[2][2],
+                    )
                 }
                 ColorTransformType::Tint(tint) => {
-                    // Multiplicative tinting
-                    r = ((r * tint.r as i32 + 128) >> 8).clamp(0, 255);
-                    g = ((g * tint.g as i32 + 128) >> 8).clamp(0, 255);
-                    b = ((b * tint.b as i32 + 128) >> 8).clamp(0, 255);
+                    tint_pixel(r, g, b, tint.r as u32, tint.g as u32, tint.b as u32)
                 }
-            }
+            };
         }
 
         // Pack back into pixel format, preserving alpha
-        *pixel = pixel::from_rgb::of_u32(r as u32, g as u32, b as u32, a);
+        *pixel = pixel::from_rgb::of_u32(r, g, b, a);
     }
 }
 
