@@ -492,6 +492,40 @@ impl<CellState: Clone, PayloadForRule:Clone> DiscreteRuleField<CellState, Payloa
         }
     }
 
+    /// Sets the complete state of the field using external data.
+    /// The data must be in row-major order (left-to-right, top-to-bottom).
+    ///
+    /// # Arguments
+    /// * `states` - A slice of cell states to set. Must have exactly `width × height` elements.
+    ///
+    /// # Returns
+    /// * `Ok(())` if the field state was successfully updated
+    /// * `Err(String)` if the data size doesn't match the field dimensions
+    ///
+    /// # Example
+    /// ```ignore
+    /// let new_states: Vec<MyState> = vec![/* width * height states */];
+    /// field.set_field_state(&new_states)?;
+    /// ```
+    pub fn set_field_state(&mut self, states: &[CellState]) -> Result<(), String> {
+        let expected_size = self.dimensions.w * self.dimensions.h;
+
+        // Validate data size
+        if states.len() != expected_size {
+            return Err(format!(
+                "Invalid data size: expected {} elements ({}×{}) but got {}",
+                expected_size, self.dimensions.w, self.dimensions.h, states.len()
+            ));
+        }
+
+        // Update all cells with the provided states
+        for (index, state) in states.iter().enumerate() {
+            self.grid[index].state = state.clone();
+        }
+
+        Ok(())
+    }
+
     /// Gets a copy of the default rule set used by cells without custom rules.
     ///
     /// # Example
@@ -1125,6 +1159,158 @@ mod tests {
         assert_eq!(field.get_cell(GridCoord::new(1, 0)).unwrap().state.value, 102); // 1 * 2.0 + 100
         assert_eq!(field.get_cell(GridCoord::new(2, 0)).unwrap().state.value, 104); // 2 * 2.0 + 100
     }
-}
 
+    #[test]
+    fn test_set_field_state_valid() {
+        // Test setting the complete field state with valid data
+        let dimensions = Dimensions2d::new(3, 3);
+        let initial_state = SimpleState { value: 0 };
+        let rule_set = RuleSet::new(NeighborhoodType::Immediate, simple_rule);
+
+        let mut field = DiscreteRuleField::<SimpleState, ()>::new_simple(
+            dimensions,
+            initial_state,
+            BoundaryPolicy::Clamp,
+            rule_set,
+            NeighborhoodType::Immediate,
+        ).unwrap();
+
+        // Create new states (3x3 = 9 cells)
+        let new_states: Vec<SimpleState> = vec![
+            SimpleState { value: 1 },
+            SimpleState { value: 2 },
+            SimpleState { value: 3 },
+            SimpleState { value: 4 },
+            SimpleState { value: 5 },
+            SimpleState { value: 6 },
+            SimpleState { value: 7 },
+            SimpleState { value: 8 },
+            SimpleState { value: 9 },
+        ];
+
+        // Set the field state
+        let result = field.set_field_state(&new_states);
+        assert!(result.is_ok());
+
+        // Verify all cells were updated correctly
+        assert_eq!(field.get_cell(GridCoord::new(0, 0)).unwrap().state.value, 1);
+        assert_eq!(field.get_cell(GridCoord::new(1, 0)).unwrap().state.value, 2);
+        assert_eq!(field.get_cell(GridCoord::new(2, 0)).unwrap().state.value, 3);
+        assert_eq!(field.get_cell(GridCoord::new(0, 1)).unwrap().state.value, 4);
+        assert_eq!(field.get_cell(GridCoord::new(1, 1)).unwrap().state.value, 5);
+        assert_eq!(field.get_cell(GridCoord::new(2, 1)).unwrap().state.value, 6);
+        assert_eq!(field.get_cell(GridCoord::new(0, 2)).unwrap().state.value, 7);
+        assert_eq!(field.get_cell(GridCoord::new(1, 2)).unwrap().state.value, 8);
+        assert_eq!(field.get_cell(GridCoord::new(2, 2)).unwrap().state.value, 9);
+    }
+
+    #[test]
+    fn test_set_field_state_too_few_elements() {
+        // Test with too few elements
+        let dimensions = Dimensions2d::new(3, 3);
+        let initial_state = SimpleState { value: 0 };
+        let rule_set = RuleSet::new(NeighborhoodType::Immediate, simple_rule);
+
+        let mut field = DiscreteRuleField::<SimpleState, ()>::new_simple(
+            dimensions,
+            initial_state,
+            BoundaryPolicy::Clamp,
+            rule_set,
+            NeighborhoodType::Immediate,
+        ).unwrap();
+
+        // Only 5 elements instead of 9
+        let new_states: Vec<SimpleState> = vec![
+            SimpleState { value: 1 },
+            SimpleState { value: 2 },
+            SimpleState { value: 3 },
+            SimpleState { value: 4 },
+            SimpleState { value: 5 },
+        ];
+
+        let result = field.set_field_state(&new_states);
+        assert!(result.is_err());
+
+        if let Err(error_msg) = result {
+            assert!(error_msg.contains("Invalid data size"));
+            assert!(error_msg.contains("expected 9"));
+            assert!(error_msg.contains("got 5"));
+        }
+
+        // Verify field was not modified
+        assert_eq!(field.get_cell(GridCoord::new(0, 0)).unwrap().state.value, 0);
+    }
+
+    #[test]
+    fn test_set_field_state_too_many_elements() {
+        // Test with too many elements
+        let dimensions = Dimensions2d::new(2, 2);
+        let initial_state = SimpleState { value: 0 };
+        let rule_set = RuleSet::new(NeighborhoodType::Immediate, simple_rule);
+
+        let mut field = DiscreteRuleField::<SimpleState, ()>::new_simple(
+            dimensions,
+            initial_state,
+            BoundaryPolicy::Clamp,
+            rule_set,
+            NeighborhoodType::Immediate,
+        ).unwrap();
+
+        // 10 elements instead of 4
+        let new_states: Vec<SimpleState> = vec![
+            SimpleState { value: 1 },
+            SimpleState { value: 2 },
+            SimpleState { value: 3 },
+            SimpleState { value: 4 },
+            SimpleState { value: 5 },
+            SimpleState { value: 6 },
+            SimpleState { value: 7 },
+            SimpleState { value: 8 },
+            SimpleState { value: 9 },
+            SimpleState { value: 10 },
+        ];
+
+        let result = field.set_field_state(&new_states);
+        assert!(result.is_err());
+
+        if let Err(error_msg) = result {
+            assert!(error_msg.contains("Invalid data size"));
+            assert!(error_msg.contains("expected 4"));
+            assert!(error_msg.contains("got 10"));
+        }
+
+        // Verify field was not modified
+        assert_eq!(field.get_cell(GridCoord::new(0, 0)).unwrap().state.value, 0);
+    }
+
+    #[test]
+    fn test_set_field_state_empty() {
+        // Test with empty data
+        let dimensions = Dimensions2d::new(3, 3);
+        let initial_state = SimpleState { value: 42 };
+        let rule_set = RuleSet::new(NeighborhoodType::Immediate, simple_rule);
+
+        let mut field = DiscreteRuleField::<SimpleState, ()>::new_simple(
+            dimensions,
+            initial_state,
+            BoundaryPolicy::Clamp,
+            rule_set,
+            NeighborhoodType::Immediate,
+        ).unwrap();
+
+        let new_states: Vec<SimpleState> = vec![];
+
+        let result = field.set_field_state(&new_states);
+        assert!(result.is_err());
+
+        if let Err(error_msg) = result {
+            assert!(error_msg.contains("Invalid data size"));
+            assert!(error_msg.contains("expected 9"));
+            assert!(error_msg.contains("got 0"));
+        }
+
+        // Verify field was not modified
+        assert_eq!(field.get_cell(GridCoord::new(0, 0)).unwrap().state.value, 42);
+    }
+}
 
